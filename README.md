@@ -22,7 +22,6 @@
  - [setAppUserId](#setAppUserId)
  - [setGCMProjectID](#setGCMProjectID)
  - [getAppsFlyerUID](#getAppsFlyerUID)
- - [onInstallConversionDataLoaded](#onInstallConversionDataLoaded)
 - [Deep linking Tracking](#deep-linking-tracking) 
  - [Android](#dl-android)
  - [iOS](#dl-ios)
@@ -158,7 +157,7 @@ initialize the SDK.
 | `devKey`   |`string` |         |   [Appsflyer Dev key](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android)    |
 | `appId`    |`string` |        | [Apple Application ID](https://support.appsflyer.com/hc/en-us/articles/207032066-AppsFlyer-SDK-Integration-iOS) (for iOS only) |
 | `isDebug`  |`boolean`| `false` | debug mode (optional)|
-| `onInstallConversionDataListener`  |`boolean`| `false` | Accessing AppsFlyer Attribution / Conversion Data from the SDK (Deferred Deeplinking). Read more: [Android](http://support.appsflyer.com/entries/69796693-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deep-linking-), [iOS](http://support.appsflyer.com/entries/22904293-Testing-AppsFlyer-iOS-SDK-Integration-Before-Submitting-to-the-App-Store-) AppsFlyer plugin will fire `onInstallConversionDataLoaded` event with attribution data. 
+| `onInstallConversionDataListener`  |`boolean`| `false` | Accessing AppsFlyer Attribution / Conversion Data from the SDK (Deferred Deeplinking). Read more: [Android](http://support.appsflyer.com/entries/69796693-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deep-linking-), [iOS](http://support.appsflyer.com/entries/22904293-Testing-AppsFlyer-iOS-SDK-Integration-Before-Submitting-to-the-App-Store-) AppsFlyer plugin will fire `onInstallConversionData` event with attribution data. 
 
 *Example:*
 

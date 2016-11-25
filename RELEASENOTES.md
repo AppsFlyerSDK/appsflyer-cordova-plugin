@@ -1,4 +1,10 @@
 # Release Notes
+### 4.2.9 (Nov 25, 2016)
+* moved from PhoneGap to cordova-plugin-appsflyer-sdk
+* onInstallConversionDataListener added to `initSdk`
+* DOCs fixes
+
+# Release Notes
 ### 4.2.7 (Nov 14, 2016)
 * changed isDebug to default false
 * DOCs fixes
