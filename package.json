@@ -1,0 +1,51 @@
+{
+  "name": "appsflyer",
+  "version": "4.2.8",
+  "description": "Cordova AppsFlyer SDK Plugin",
+  "cordova": {
+    "id": "cordova-plugin-appsflyer-sdk",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk.git"
+  },
+  "keywords": [
+    "cordova",
+    "appsflyer",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios"
+  ],
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=4.3.0"
+    }
+  ],
+  "author": "Appsflyer",
+  "license": {
+    "type": "MIT",
+    "url": "https://github.com/AppsFlyerSDK/nativescript-plugin-appsflyer/blob/master/LICENSE"
+  },
+  "bugs": {
+    "url": "https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/issues"
+  },
+  "homepage": "https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk#readme",
+  "scripts": {
+    "test": "npm run jshint",
+    "jshint": "node node_modules/jshint/bin/jshint www && node node_modules/jshint/bin/jshint src && node node_modules/jshint/bin/jshint tests",
+    "preparedemo": "cd examples/demoA; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova plugin add ../.. --save",
+    "setup": "cd examples/demoA; npm install; cd ../..; npm run preparedemo;",
+    "demo.ra": "cd examples/demoA; ionic run android",
+    "demo.ba": "cd examples/demoA; ionic build android",
+    "demo.ri": "cd examples/demoA; ionic run ios",
+    "demo.bi": "cd examples/demoA; ionic build ios"
+  },
+  "devDependencies": {
+    "jshint": "^2.6.0"
+  }
+}

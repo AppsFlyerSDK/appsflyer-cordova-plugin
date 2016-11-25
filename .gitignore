@@ -1,0 +1,17 @@
+*.csproj.user
+*.suo
+*.cache
+Thumbs.db
+*.DS_Store
+
+*.bak
+*.cache
+*.log
+*.swp
+*.user
+
+node_modules
+
+
+examples/demoAngular/node_modules/
+/examples/demoA/www/lib/

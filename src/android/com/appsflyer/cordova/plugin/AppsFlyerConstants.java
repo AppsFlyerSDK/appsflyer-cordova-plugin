@@ -1,0 +1,26 @@
+package com.appsflyer.cordova.plugin;
+
+/**
+ * Created by maxim on 11/24/16.
+ */
+
+public class AppsFlyerConstants {
+
+    final static String NO_DEVKEY_FOUND = "No 'devKey' found or its empty";
+    final static String SUCCESS = "Success";
+    final static String NO_EVENT_NAME_FOUND   = "No 'eventName' found or its empty";
+    final static String NO_EVENT_VALUES_FOUND = "No 'eventValues' found or Dictionary its empty";
+
+
+    final static String AF_IS_DEBUG = "isDebug";
+    final static String AF_DEV_KEY = "devKey";
+    final static String AF_CONVERSION_DATA = "onInstallConversionDataListener";
+    final static String AF_ON_INSTALL_CONVERSION_DATA = "onInstallConversionDataN";
+
+    final static String AF_SUCCESS ="success";
+    final static String AF_FAILURE ="failure";
+    final static String AF_ON_ATTRIBUTION_FAILURE ="onAttributionFailure";
+    final static String AF_ON_APP_OPEN_ATTRIBUTION ="onAppOpenAttribution";
+    final static String AF_ON_INSTALL_CONVERSION_FAILURE ="onInstallConversionFailure";
+    final static String AF_ON_INSTALL_CONVERSION_DATA_LOADED ="onInstallConversionDataLoaded";
+}
