@@ -31,53 +31,12 @@
                }
              }
 
-//             args.onInstallConversionDataListener = (eventsMap['onInstallConversionData']) ? true: false;
              exec(successCB, errorCB, "AppsFlyerPlugin", "initSdk", [args]);    
           }           
         };
 
 
-        // AppsFlyer.prototype.onInstallConversionDataN = function(callback) {
-
-        //      console.log("onInstallConversionDataN is called" );
-
-        //     const listener = NativeAppEventEmitter.addListener('onInstallConversionData',
-        //         function(_data){
-        //             if(callback && typeof(callback) === typeof(Function)){
-        //                 try{
-        //                     let data = JSON.parse(_data);
-        //                     callback(data);
-        //                 }
-        //                 catch(_error){
-        //                     callback(new AFParseJSONException("Invalid data structure", _data));
-        //                 }
-        //             }
-        //         }
-        //     );            
-        // };
-
-
-        //  AppsFlyer.prototype.onInstallConversionData = function (conversionData) {
-
-        //   console.log("onInstallConversionData is called" );
-
-        //     var data = conversionData,event;
-
-        //     if (typeof data === "string") {
-        //         data = JSON.parse(conversionData);
-        //     }
-            
-        //     event = new CustomEvent('onInstallConversionData', {'detail': data});
-        //     global.document.dispatchEvent(event);
-
-        //      eventsMap['onInstallConversionData'] = listener;
-
-        //      // unregister listener
-        //     return function remove() {
-        //          console.log("onInstallConversionData listener.remove()" );
-        //         listener.remove();
-        //     };
-        // };
+  
 
         AppsFlyer.prototype.setCurrencyCode = function (currencyId) {
             argscheck.checkArgs('S', 'AppsFlyer.setCurrencyCode', arguments);
@@ -129,11 +88,5 @@
         });
     }(window));
 
-
-function AFParseJSONException(_message, _data) {
-    this.message = _message;
-    this.data = _data;
-    this.name = "AFParseJSONException";
-}
 
     
