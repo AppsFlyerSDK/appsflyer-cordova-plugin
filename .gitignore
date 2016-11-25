@@ -10,8 +10,9 @@ Thumbs.db
 *.swp
 *.user
 
-node_modules
+node_modules/
 
 
 examples/demoA/node_modules/
+examples/demoA/platforms/
 /examples/demoA/www/lib/
