@@ -13,5 +13,5 @@ Thumbs.db
 node_modules
 
 
-examples/demoAngular/node_modules/
+examples/demoA/node_modules/
 /examples/demoA/www/lib/
