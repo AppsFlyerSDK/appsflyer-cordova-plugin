@@ -175,7 +175,7 @@ var options = {
                devKey:  'd3Ac9qPardVYZxfWmCspwL',
                appId: '123456789',
                isDebug: false,
-               onInstallConversionDataLoaded: true
+               onInstallConversionDataListener: true
              };
 window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
 ```
