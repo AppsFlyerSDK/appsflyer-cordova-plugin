@@ -247,20 +247,21 @@ window.plugins.appsFlyer.setAppUserId(userId);
 ---
 
 
-##### <a id="setGCMProjectID"> **`setGCMProjectID(GCMProjectID): void`**
+##### <a id="setGCMProjectID"> **`setGCMProjectID(GCMProjectNumber): void`**
 
-Set the GCM API key. AppsFlyer requires a Google Project Number and GCM API Key to enable uninstall tracking.
+AppsFlyer requires a Google Project Number to enable uninstall tracking.
+<a href="https://support.appsflyer.com/hc/en-us/articles/208004986-Android-Uninstall-Tracking">More Information</a>
+
 
 | parameter   | type                        | description |
 | ----------- |-----------------------------|--------------|
-| `GCMProjectID`   | `String`                      | |
+| `GCMProjectNumber`   | `String`                      | |
 
-
-//TBD should be from delegate
 
 ##### <a id="registerUninstall"> **`registerUninstall(token): void`** 
 
-AEnables tracking app. uninstalls.
+Enables app uninstall tracking.
+<a href="https://support.appsflyer.com/hc/en-us/articles/211211963-iOS-Uninstall-Tracking">More Information</a>
 
 | parameter   | type                        | description |
 | ----------- |-----------------------------|--------------|
