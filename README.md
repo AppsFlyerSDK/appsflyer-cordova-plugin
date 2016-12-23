@@ -1,4 +1,4 @@
-<img src="https://www.appsflyer.com/wp-content/themes/ohav-child/images/logo.svg"  width="200">
+<img src="https://www.appsflyer.com/wp-content/uploads/2016/11/logo-1.svg"  width="200">
 
 # Cordova AppsFlyer plugin for Android and iOS. 
 
