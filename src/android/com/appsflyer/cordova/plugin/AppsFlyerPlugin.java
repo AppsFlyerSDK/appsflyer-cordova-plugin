@@ -204,12 +204,14 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 	private boolean trackEvent(JSONArray parameters, final CallbackContext callbackContext) {
 		String eventName;
-		Map<String, Object> eventValues;
+		Map<String, Object> eventValues = null;
 		try{
 			eventName = parameters.getString(0);
-			JSONObject jsonEventValues = parameters.getJSONObject(1);
-			eventValues = jsonToMap(jsonEventValues.toString());
 
+			if(parameters.length() >1 && !parameters.get(1).equals(null)){
+				JSONObject jsonEventValues = parameters.getJSONObject(1);
+				eventValues = jsonToMap(jsonEventValues.toString());
+			}
 		}
 		catch (JSONException e){
 			e.printStackTrace();
@@ -218,12 +220,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 		if(eventName == null || eventName.trim().length()==0){
 			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_EVENT_NAME_FOUND));
-			return true;
-		}
-
-
-		if(eventValues.size() == 0){
-			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_EVENT_VALUES_FOUND));
 			return true;
 		}
 
