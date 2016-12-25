@@ -38,14 +38,22 @@
   "scripts": {
     "test": "npm run jshint",
     "jshint": "node node_modules/jshint/bin/jshint www && node node_modules/jshint/bin/jshint src && node node_modules/jshint/bin/jshint tests",
-    "preparedemo": "cd examples/demoA; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova plugin add ../.. --save",
-    "setup": "cd examples/demoA; npm install; cd ../..; npm run preparedemo;",
-    "demo.ra": "cd examples/demoA; ionic run android",
-    "demo.ba": "cd examples/demoA; ionic build android",
-    "demo.ri": "cd examples/demoA; ionic run ios",
-    "demo.bi": "cd examples/demoA; ionic build ios"
+    "preparedemo_a": "cd examples/demoA; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova plugin add ../.. --save",
+    "preparedemo_c": "cd examples/demoC; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova plugin add ../.. --save; cordova plugin rm phonegap-plugin-push --save; cordova plugin add phonegap-plugin-push@1.7.0 --variable SENDER_ID=12345 --save; cordova plugin rm cordova-plugin-console --save; cordova plugin add cordova-plugin-console --save; cordova platform rm android; cordova platform add android; cordova platform rm ios; cordova platform add ios",
+    "setup_a": "cd examples/demoA; npm install; cd ../..; npm run preparedemo_a;",
+    "setup_c": "cd examples/demoC; npm install; cd ../..; npm run preparedemo_c;",
+    "demo_a.ra": "cd examples/demoA; ionic run android",
+    "demo_a.ba": "cd examples/demoA; ionic build android",
+    "demo_a.ri": "cd examples/demoA; ionic run ios",
+    "demo_a.bi": "cd examples/demoA; ionic build ios",
+    "demo_c.ra": "cd examples/demoC; cordova run android",
+    "demo_c.ba": "cd examples/demoC; cordova build android",
+    "demo_c.ri": "cd examples/demoC; cordova run ios",
+    "demo_c.bi": "cd examples/demoC; cordova build ios"
   },
   "devDependencies": {
     "jshint": "^2.6.0"
   }
 }
+
+
