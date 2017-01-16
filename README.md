@@ -38,8 +38,8 @@
 
 ### <a id="plugin-build-for"> This plugin is built for
 
-- iOS AppsFlyerSDK **v4.5.12**
-- Android AppsFlyerSDK **v4.6.1**
+- iOS AppsFlyerSDK **v4.6.3**
+- Android AppsFlyerSDK **v4.6.5**
 
 
 ## <a id="installation-using-cli"> Installation using CLI:
@@ -298,7 +298,7 @@ window.plugins.appsFlyer.getAppsFlyerUID(getUserIdCallbackFn);
 ### <a id="deep-linking-tracking"> Deep linking Tracking
 
 #### <a id="dl-android"> Android
-In ver. 4.2.5 deeplinking metadata (scheme/host) is sent automatically
+In ver. >4.2.5 deeplinking metadata (scheme/host) is sent automatically
 
 #### <a id="dl-ios"> iOS
 

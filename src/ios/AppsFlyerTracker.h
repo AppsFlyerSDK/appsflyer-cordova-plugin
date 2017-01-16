@@ -2,7 +2,7 @@
 //  AppsFlyerTracker.h
 //  AppsFlyerLib
 //
-//  AppsFlyer iOS SDK v4.5.12
+//  AppsFlyer iOS SDK v4.6.3
 //  Copyright (c) 2013 AppsFlyer Ltd. All rights reserved.
 //
 
@@ -80,7 +80,8 @@
 typedef enum  {
     EmailCryptTypeNone = 0,
     EmailCryptTypeSHA1 = 1,
-    EmailCryptTypeMD5 = 2
+    EmailCryptTypeMD5 = 2,
+    EmailCryptTypeSHA256 = 3
 } EmailCryptType;
 
 /*
@@ -179,6 +180,11 @@ typedef enum  {
 @property (nonatomic, setter = setUseUninstallSandbox:) BOOL useUninstallSandbox;
 
 /*
+ * Advertising Id (exposed for RemoteDebug)
+ */
+@property (nonatomic, strong) NSString *advertiserId;
+
+/*
  * Use this to send the User's emails
  */
 -(void) setUserEmails:(NSArray *) userEmails withCryptType:(EmailCryptType) type;
@@ -192,7 +198,7 @@ typedef enum  {
  * Example :
  *      [[AppsFlyer sharedTracker] trackEvent:@"hotel-booked" withValue:"200"];
  */
-- (void) trackEvent:(NSString*)eventName withValue:(NSString*)value;
+- (void) trackEvent:(NSString*)eventName withValue:(NSString*)value __attribute__((deprecated));
 
 /*
  * Use this method to track an events with mulitple values. See AppsFlyer's documentation for details. 
@@ -260,5 +266,8 @@ typedef enum  {
 */
 - (NSString *) getSDKVersion;
 
+
+
+- (void) remoteDebuggingCallWithData:(NSString *) data;
 
 @end
