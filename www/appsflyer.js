@@ -19,24 +19,19 @@
 
         AppsFlyer.prototype.initSdk = function (args, successCB, errorCB) {
             argscheck.checkArgs('O', 'AppsFlyer.initSdk', arguments);
-
-        if (!args) {
-            if (errorCB) {
-                errorCB(AppsFlyerError.INVALID_ARGUMENT_ERROR);                
-            }
-        } else {
-            if(args.appId !== undefined && typeof args.appId != 'string'){
+            if (!args) {
                 if (errorCB) {
-                  errorCB(AppsFlyerError.APPID_NOT_VALID);
-               }
-             }
-
-             exec(successCB, errorCB, "AppsFlyerPlugin", "initSdk", [args]);    
-          }           
+                    errorCB(AppsFlyerError.INVALID_ARGUMENT_ERROR);                
+                }
+            } else {
+                if(args.appId !== undefined && typeof args.appId != 'string'){
+                    if (errorCB) {
+                      errorCB(AppsFlyerError.APPID_NOT_VALID);
+                   }
+                 }
+                 exec(successCB, errorCB, "AppsFlyerPlugin", "initSdk", [args]);    
+              }          
         };
-
-
-  
 
         AppsFlyer.prototype.setCurrencyCode = function (currencyId) {
             argscheck.checkArgs('S', 'AppsFlyer.setCurrencyCode', arguments);
@@ -70,10 +65,10 @@
             exec(null, null, "AppsFlyerPlugin", "trackEvent", [eventName, eventValue]);
         };
 
-        
-
-
-
+        AppsFlyer.prototype.handleOpenUrl = function (url) {
+            argscheck.checkArgs('S', 'AppsFlyer.handleOpenUrl', arguments);
+            exec(null, null, "AppsFlyerPlugin", "handleOpenUrl", [url]);
+        }
 
         global.cordova.addConstructor(function () {
             if (!global.Cordova) {
@@ -86,7 +81,7 @@
 
             global.plugins.appsFlyer = new AppsFlyer();
         });
-    }(window));
+    } (window));
 
 
     

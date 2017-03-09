@@ -4,8 +4,8 @@
 @implementation AppsFlyerPlugin
 
 
-static NSString *const NO_DEVKEY_FOUND = @"No 'devKey' found or its empty";
-static NSString *const NO_APPID_FOUND  = @"No 'appId' found or its empty";
+static NSString *const NO_DEVKEY_FOUND = @"No 'devKey' found or is empty";
+static NSString *const NO_APPID_FOUND  = @"No 'appId' found or is empty";
 static NSString *const SUCCESS         = @"Success";
 
  NSString* mConversionListener;
@@ -230,5 +230,11 @@ static NSString *const SUCCESS         = @"Success";
         mConversionListener = nil;
      }
 }
+- (void) handleOpenUrl:(CDVInvokedUrlCommand*)command {
+    NSURL *url = [command.arguments objectAtIndex:0];
+    [[AppsFlyerTracker sharedTracker] handleOpenUrl:url options:nil];
+
+}
+
 
 @end
