@@ -66,7 +66,7 @@
         };
 
         AppsFlyer.prototype.handleOpenUrl = function (url) {
-            argscheck.checkArgs('S', 'AppsFlyer.handleOpenUrl', arguments);
+            argscheck.checkArgs('*', 'AppsFlyer.handleOpenUrl', arguments);
             exec(null, null, "AppsFlyerPlugin", "handleOpenUrl", [url]);
         }
 

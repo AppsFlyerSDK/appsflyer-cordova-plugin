@@ -231,9 +231,10 @@ static NSString *const SUCCESS         = @"Success";
      }
 }
 - (void) handleOpenUrl:(CDVInvokedUrlCommand*)command {
-    NSURL *url = [command.arguments objectAtIndex:0];
+    NSURL *url = [NSURL URLWithString:
+        [[command.arguments objectAtIndex:0]
+            stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
     [[AppsFlyerTracker sharedTracker] handleOpenUrl:url options:nil];
-
 }
 
 
