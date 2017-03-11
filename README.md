@@ -302,19 +302,17 @@ In ver. >4.2.5 deeplinking metadata (scheme/host) is sent automatically
 
 #### <a id="dl-ios"> iOS
 
-Open in Xcode `AppDelegate.m`, add `#import "AppsFlyerTracker.h"` and add the following method under `application: openURL` :
+Add the following lines to your code to be able to track deeplinks with AppsFlyer attribution data:
 
-```objective-c
-[[AppsFlyerTracker sharedTracker] handleOpenURL:url sourceApplication:sourceApplication withAnnotation:annotation];
+for pure Cordova - add a function 'handleOpenUrl' to your root, and call our SDK as shown:
+```javascript
+    window.plugins.appsFlyer.handleOpenUrl(url);
 ```
-
 It appears as follows:
 
-```objective-c
--(BOOL) application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
-    
-    [[AppsFlyerTracker sharedTracker] handleOpenURL:url sourceApplication:sourceApplication withAnnotation:annotation];
-    return YES;
+```javascript
+var handleOpenURL = function(url) {
+    window.plugins.appsFlyer.handleOpenUrl(url);
 }
 ```
 
