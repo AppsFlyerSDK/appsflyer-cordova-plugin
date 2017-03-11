@@ -68,7 +68,7 @@
         AppsFlyer.prototype.handleOpenUrl = function (url) {
             argscheck.checkArgs('*', 'AppsFlyer.handleOpenUrl', arguments);
             exec(null, null, "AppsFlyerPlugin", "handleOpenUrl", [url]);
-        }
+        };
 
         global.cordova.addConstructor(function () {
             if (!global.Cordova) {
