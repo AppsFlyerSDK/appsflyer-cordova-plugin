@@ -4,8 +4,8 @@
 @implementation AppsFlyerPlugin
 
 
-static NSString *const NO_DEVKEY_FOUND = @"No 'devKey' found or is empty";
-static NSString *const NO_APPID_FOUND  = @"No 'appId' found or is empty";
+static NSString *const NO_DEVKEY_FOUND = @"AppsFlyer 'devKey' is missing or empty";
+static NSString *const NO_APPID_FOUND  = @"'appId' is missing or empty";
 static NSString *const SUCCESS         = @"Success";
 
  NSString* mConversionListener;
