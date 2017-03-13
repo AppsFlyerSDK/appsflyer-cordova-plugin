@@ -21,7 +21,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="cordova-plugin-appsflyer-sdk"
-        version="4.2.16">
+        version="4.2.17">
     <name>AppsFlyer</name>
     <description>Cordova Plugin AppsFlyer</description>
     <license>Apache 2.0</license>
@@ -32,10 +32,10 @@
     </engines>
 
     <js-module src="www/appsflyer.js" name="appsflyer">
-            <clobbers target="window.plugins.appsFlyer" />
+        <clobbers target="window.plugins.appsFlyer" />
     </js-module>
 
-        <js-module src="www/AppsFlyerError.js" name="AppsFlyerError">
+    <js-module src="www/AppsFlyerError.js" name="AppsFlyerError">
         <clobbers target="AppsFlyerError" />
     </js-module>
 
