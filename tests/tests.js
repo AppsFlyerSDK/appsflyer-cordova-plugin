@@ -63,10 +63,7 @@ var fail = function(done) {
         expect(typeof window.plugins.appsFlyer.trackEvent).toBe('function');   
     });
 
-    it("appsFlyer.onInstallConversionDataLoaded method", function(){        
-       expect(window.plugins.appsFlyer.onInstallConversionDataLoaded).toBeDefined();
-        expect(typeof window.plugins.appsFlyer.onInstallConversionDataLoaded).toBe('function');     
-    });
+    
 
   });
 
