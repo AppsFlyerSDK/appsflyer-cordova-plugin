@@ -11,8 +11,9 @@ app.controller('AppsFlyerCtrl', function (
         trackEventResponse: {status: "NA"},
         appsFlyerUID: "not called yet",
         initSdkResponse: "not initialized yet",
-        gcmProjectIDResponse: "not initialized yet",
+        enableUninstallTrackingResponse: "not initialized yet",
         initSdkResponse: "not initialized yet",
+        gcmProjectNumberResponse: "not called yet",
         trackLocation: []
     };
 
@@ -20,13 +21,7 @@ app.controller('AppsFlyerCtrl', function (
 
         console.log('start AppsFlyerCtrl: ' + $rootScope.isAndroid);
 
-//        $scope.onInstallConversionDataCanceller = window.plugins.appsFlyer.onInstallConversionData(
-//            (data) => {
-//                console.log(data);
-//                alert(JSON.stringify(data));
-//            }
-//        );
-
+        initSdk();
     }
 
     $scope.onClick = function (_data) {
@@ -44,21 +39,45 @@ app.controller('AppsFlyerCtrl', function (
             case 'trackLocation':
                 trackLocation();
                 break;
-            case 'setGCMProjectID':
-                setGCMProjectID();
+            case 'gcmProjectNumber':
+                gcmProjectNumber();
                 break;
+            case 'enableUninstallTracking':
+                enableUninstallTracking();
+                break;    
             default:
 
                 break;
         }
     };
 
-    function setGCMProjectID() {
-        var gcmProjectId = "565637785481";
-          window.plugins.appsFlyer.setGCMProjectID(gcmProjectId);
+    function enableUninstallTracking(){
+        var gcmProjectNumber = "1234567";
+         window.plugins.appsFlyer.initSdk(gcmProjectNumber,
+                    function successCB(_response) {
+                        console.log(_response);
+                       
+                             alert(_response);
+                        $timeout(function () {
+                            $scope.viewModel.gcmProjectNumberResponse = _response;
+                        }, 1);
+
+
+                    },
+                    function errorCB(_error) {
+                        $timeout(function () {
+                            $scope.viewModel.gcmProjectNumberResponse = _response;
+                        }, 1);
+                    }
+            );
+    }
+
+    function gcmProjectNumber() {
+        var gcmProjectNumber = "565637785481";
+          window.plugins.appsFlyer.setGCMProjectNumber(gcmProjectNumber);
           
           // we don't use callback for this method
-          $scope.viewModel.gcmProjectIDResponse = "Success";
+          $scope.viewModel.gcmProjectNumberResponse = "Success";
     }
 
     function getAppsflyerUID() {
@@ -123,9 +142,4 @@ app.controller('AppsFlyerCtrl', function (
     $scope.$on("ionicPlatformReady", function () {
         run();
     });
-
-//    document.addEventListener('onInstallConversionData', function (e) {
-//        var attributionData = (JSON.stringify(e.detail));
-//        alert(attributionData);
-//    }, false);
 });

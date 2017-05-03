@@ -18,13 +18,7 @@ app.directive('rowDataDirective', function ($timeout) {
         },
         templateUrl: 'templates/row-data-directive.html',
         link: function (scope, element, attr) {
-
-           
-//            attr.$observe('onClick', function(_value) {
-//                //console.log('onClick has  value to ' + value);
-//                scope.isLabMode = _value !== undefined;
-//              });
-              
+             
             function run() {
                console.log(scope.data);
             }
@@ -41,8 +35,6 @@ app.directive('rowDataDirective', function ($timeout) {
                $timeout(function(){
                         scope.localData = _data;            
                   },1); 
-               
-             
            };
             
             
@@ -55,7 +47,6 @@ app.directive('rowDataDirective', function ($timeout) {
                 
                 if (newVal !== oldVal) {
                     scope.onDataChange(newVal);
-
                 }
             });
         }

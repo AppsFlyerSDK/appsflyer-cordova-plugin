@@ -54,7 +54,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		}
 		else if("getAppsFlyerUID".equals(action))
 		{
-			return getAppsFlyerUID(args, callbackContext);
+			return getAppsFlyerUID(callbackContext);
 		}
 		else if("initSdk".equals(action))
 		{
@@ -64,7 +64,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 			return trackEvent(args, callbackContext);
 		}
 		else if ("setGCMProjectID".equals(action)) {
-			return setGCMProjectID(args);
+			return setGCMProjectNumber(args);
+		}
+		else if("enableUninstallTracking".equals(action))
+		{
+			return enableUninstallTracking(args, callbackContext);
 		}
 
 		return false;
@@ -255,8 +259,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		try
 		{
 			String customeUserId = parameters.getString(0);
-			if(customeUserId == null || customeUserId.length()==0)
-			{
+			if(customeUserId == null || customeUserId.length()==0){
 				return true; //TODO error
 			}
         	AppsFlyerLib.getInstance().setAppUserId(customeUserId);
@@ -273,7 +276,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		return true;
 	}
 
-	private boolean getAppsFlyerUID(JSONArray parameters, CallbackContext callbackContext){
+	private boolean getAppsFlyerUID(CallbackContext callbackContext){
 
     	String id = AppsFlyerLib.getInstance().getAppsFlyerUID(cordova.getActivity().getApplicationContext());
     	PluginResult r = new PluginResult(PluginResult.Status.OK, id);
@@ -301,8 +304,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		return newMap;
 	}
 
-
-	private boolean setGCMProjectID(JSONArray parameters) {
+	@Deprecated
+	private boolean setGCMProjectNumber(JSONArray parameters) {
 		String gcmProjectId = null;
 		try {
 			gcmProjectId = parameters.getString(0);
@@ -315,6 +318,20 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		}
 		Context c = this.cordova.getActivity().getApplicationContext();
 		AppsFlyerLib.getInstance().setGCMProjectNumber(c, gcmProjectId);
+		return true;
+	}
+
+	private boolean enableUninstallTracking(JSONArray parameters, CallbackContext callbackContext){
+
+		String gcmProjectNumber = parameters.optString(0);
+
+		if(gcmProjectNumber == null || gcmProjectNumber.length()==0){
+			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_GCM_PROJECT_NUMBER_PROVIDED));
+			return true;
+		}
+
+		AppsFlyerLib.getInstance().enableUninstallTracking(gcmProjectNumber);
+		callbackContext.success(SUCCESS);
 		return true;
 	}
 

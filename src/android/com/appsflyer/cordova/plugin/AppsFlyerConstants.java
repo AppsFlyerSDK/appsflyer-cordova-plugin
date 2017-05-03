@@ -7,6 +7,7 @@ package com.appsflyer.cordova.plugin;
 public class AppsFlyerConstants {
 
     final static String NO_DEVKEY_FOUND = "No 'devKey' found or its empty";
+    final static String NO_GCM_PROJECT_NUMBER_PROVIDED = "No GCM Project number provided";
     final static String SUCCESS = "Success";
     final static String NO_EVENT_NAME_FOUND   = "No 'eventName' found or its empty";
     final static String NO_EVENT_VALUES_FOUND = "No 'eventValues' found or Dictionary its empty";

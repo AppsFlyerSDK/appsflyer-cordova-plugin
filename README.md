@@ -4,7 +4,12 @@
 
 [![npm version](https://badge.fury.io/js/cordova-plugin-appsflyer-sdk.svg)](https://badge.fury.io/js/cordova-plugin-appsflyer-sdk) [![Build Status](https://travis-ci.org/AppsFlyerSDK/cordova-plugin-appsflyer-sdk.svg?branch=master)](https://travis-ci.org/AppsFlyerSDK/cordova-plugin-appsflyer-sdk)
 
+----------
+In order for us to provide optimal support, we would kindly ask you to submit any issues to support@appsflyer.com
 
+*When submitting an issue please specify your AppsFlyer sign-up (account) email , your app ID , production steps, logs, code snippets and any additional relevant information.*
+
+----------
 
 ## Table of content
 
@@ -38,8 +43,8 @@
 
 ### <a id="plugin-build-for"> This plugin is built for
 
-- iOS AppsFlyerSDK **v4.6.3**
-- Android AppsFlyerSDK **v4.6.5**
+- iOS AppsFlyerSDK **v4.7.3**
+- Android AppsFlyerSDK **v4.7.1**
 
 
 ## <a id="installation-using-cli"> Installation using CLI:

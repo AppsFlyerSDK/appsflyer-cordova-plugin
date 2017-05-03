@@ -26,7 +26,6 @@
     <plugin name="cordova-plugin-splashscreen" spec="~4.0.0" />
     <plugin name="cordova-plugin-statusbar" spec="~2.2.0" />
     <plugin name="ionic-plugin-keyboard" spec="~2.2.1" />
-    <plugin name="cordova-plugin-appsflyer-sdk" spec="../.." />
     <platform name="ios">
         <splash height="1136" src="resources/ios/splash/Default-568h@2x~iphone.png" width="640" />
         <splash height="1334" src="resources/ios/splash/Default-667h.png" width="750" />
@@ -81,4 +80,5 @@
     </platform>
     <icon src="resources/android/icon/drawable-xhdpi-icon.png" />
     <plugin name="cordova-plugin-appsflyer-sdk-tests" spec="../../tests" />
+    <plugin name="cordova-plugin-appsflyer-sdk" spec="../.." />
 </widget>
