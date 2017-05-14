@@ -79,6 +79,5 @@
         <icon density="xxxhdpi" src="resources/android/icon/drawable-xxxhdpi-icon.png" />
     </platform>
     <icon src="resources/android/icon/drawable-xhdpi-icon.png" />
-    <plugin name="cordova-plugin-appsflyer-sdk-tests" spec="../../tests" />
     <plugin name="cordova-plugin-appsflyer-sdk" spec="../.." />
 </widget>

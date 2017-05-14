@@ -27,6 +27,7 @@ In order for us to provide optimal support, we would kindly ask you to submit an
  - [trackEvent](#trackEvent)
  - [setCurrencyCode](#setCurrencyCode)
  - [setAppUserId](#setAppUserId)
+ - [enableUninstallTracking](#enableUninstallTracking)
  - [setGCMProjectID](#setGCMProjectID)
  - [getAppsFlyerUID](#getAppsFlyerUID)
 - [Deep linking Tracking](#deep-linking-tracking) 
@@ -44,7 +45,7 @@ In order for us to provide optimal support, we would kindly ask you to submit an
 ### <a id="plugin-build-for"> This plugin is built for
 
 - iOS AppsFlyerSDK **v4.7.3**
-- Android AppsFlyerSDK **v4.7.1**
+- Android AppsFlyerSDK **v4.7.2**
 
 
 ## <a id="installation-using-cli"> Installation using CLI:
@@ -263,7 +264,7 @@ AppsFlyer requires a Google Project Number to enable uninstall tracking.
 | `GCMProjectNumber`   | `String`                      | |
 
 
-##### <a id="registerUninstall"> **`registerUninstall(token): void`** 
+##### <a id="enableUninstallTracking"> **`enableUninstallTracking(token, onSuccess, onError): void`** 
 
 Enables app uninstall tracking.
 <a href="https://support.appsflyer.com/hc/en-us/articles/211211963-iOS-Uninstall-Tracking">More Information</a>
@@ -271,6 +272,8 @@ Enables app uninstall tracking.
 | parameter   | type                        | description |
 | ----------- |-----------------------------|--------------|
 | `token`   | `String`                      | |
+| `onSuccess` | `(message: string)=>void` | Success callback - called after successfull register uninstall. (optional)|
+| `onError`   | `(message: string)=>void` | Error callback - called when error occurs during register uninstall. (optional)|
 
 
 ---

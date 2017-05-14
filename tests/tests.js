@@ -48,9 +48,9 @@ var fail = function(done) {
         expect(typeof window.plugins.appsFlyer.setGCMProjectID).toBe('function');  
     });
 
-    it("appsFlyer.registerUninstall method", function(){        
-         expect(window.plugins.appsFlyer.registerUninstall).toBeDefined();
-        expect(typeof window.plugins.appsFlyer.registerUninstall).toBe('function');
+    it("appsFlyer.enableUninstallTracking method", function(){        
+         expect(window.plugins.appsFlyer.enableUninstallTracking).toBeDefined();
+        expect(typeof window.plugins.appsFlyer.enableUninstallTracking).toBe('function');
     });
 
     it("appsFlyer.getAppsFlyerUID method", function(){        
@@ -62,8 +62,7 @@ var fail = function(done) {
         expect(window.plugins.appsFlyer.trackEvent).toBeDefined();
         expect(typeof window.plugins.appsFlyer.trackEvent).toBe('function');   
     });
-
-    
+   
 
   });
 

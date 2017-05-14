@@ -53,20 +53,21 @@ app.controller('AppsFlyerCtrl', function (
 
     function enableUninstallTracking(){
         var gcmProjectNumber = "1234567";
-         window.plugins.appsFlyer.initSdk(gcmProjectNumber,
+         window.plugins.appsFlyer.enableUninstallTracking(gcmProjectNumber,
                     function successCB(_response) {
                         console.log(_response);
                        
-                             alert(_response);
+                        alert(_response);
+                        
                         $timeout(function () {
-                            $scope.viewModel.gcmProjectNumberResponse = _response;
+                            $scope.viewModel.enableUninstallTrackingResponse = _response;
                         }, 1);
 
 
                     },
                     function errorCB(_error) {
                         $timeout(function () {
-                            $scope.viewModel.gcmProjectNumberResponse = _response;
+                            $scope.viewModel.enableUninstallTrackingResponse = _response;
                         }, 1);
                     }
             );

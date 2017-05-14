@@ -46,10 +46,10 @@
             argscheck.checkArgs('S', 'AppsFlyer.setGCMProjectNumber', arguments);
             exec(null, null, "AppsFlyerPlugin", "setGCMProjectNumber", [gcmProjectNumber]);
         };
-        AppsFlyer.prototype.registerUninstall = function (token) {
-            argscheck.checkArgs('S', 'AppsFlyer.registerUninstall', arguments);
-            exec(null, null, "AppsFlyerPlugin", "registerUninstall", [token]);
-        };
+        // AppsFlyer.prototype.registerUninstall = function (token) {
+        //     argscheck.checkArgs('S', 'AppsFlyer.registerUninstall', arguments);
+        //     exec(null, null, "AppsFlyerPlugin", "registerUninstall", [token]);
+        // };
         AppsFlyer.prototype.getAppsFlyerUID = function (successCB) {
             argscheck.checkArgs('F', 'AppsFlyer.getAppsFlyerUID', arguments);
             exec(function (result) {
