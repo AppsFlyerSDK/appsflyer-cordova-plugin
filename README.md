@@ -198,7 +198,7 @@ to track ROI (Return on Investment) and LTV (Lifetime Value).
 
 | parameter   | type                        | description |
 | ----------- |-----------------------------|--------------|
-| `eventName` | `String`                    | custom event name, is presented in your dashboard.  See the Event list [HERE](https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/blob/master/platform/ios/AppsFlyerTracker.h)  |
+| `eventName` | `String`                    | custom event name, is presented in your dashboard.  See the Event list [HERE](https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/blob/master/src/ios/AppsFlyerTracker.h)  |
 | `eventValue` | `Object`                    | event details |
 
 *Example:*
