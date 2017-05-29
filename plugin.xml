@@ -40,7 +40,7 @@
     </js-module>
 
 
-    
+
 
     <!-- android -->
     <platform name="android">
@@ -52,6 +52,7 @@
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.INTERNET"/>
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
         </config-file>
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <receiver android:name="com.appsflyer.MultipleInstallBroadcastReceiver" android:exported="true">
@@ -70,7 +71,7 @@
 
 
     <!-- ios -->
-    <platform name="ios">        
+    <platform name="ios">
         <config-file target="config.xml" parent="/*">
             <feature name="AppsFlyerPlugin">
                 <param name="ios-package" value="AppsFlyerPlugin" />
