@@ -44,8 +44,8 @@ In order for us to provide optimal support, we would kindly ask you to submit an
 
 ### <a id="plugin-build-for"> This plugin is built for
 
-- iOS AppsFlyerSDK **v4.7.3**
-- Android AppsFlyerSDK **v4.7.2**
+- iOS AppsFlyerSDK **v4.7.11**
+- Android AppsFlyerSDK **v4.7.4**
 
 
 ## <a id="installation-using-cli"> Installation using CLI:
@@ -79,6 +79,15 @@ $ cordova plugin add https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sd
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
+Inside the `<aplication>` tag,  add the following receiver:
+```xml
+<receiver android:exported="true"    android:name="com.appsflyer.MultipleInstallBroadcastReceiver">
+    <intent-filter>
+        <action android:name="com.android.vending.INSTALL_REFERRER" />
+    </intent-filter>
+</receiver>
+```
+        
 3\. Copy appsflyer.js to `www/js/plugins` and reference it in `index.html`:
 ```html
 <script type="text/javascript" src="js/plugins/appsflyer.js"></script>
@@ -97,7 +106,8 @@ to `platforms/ios/<ProjectName>/Plugins`
 ##### <a id="manual-installation-android"> **Android:** 
 
 Copy `AppsFlyerPlugin.java` to `platforms/android/src/com/appsflyer/cordova/plugins` (create the folders)
-        
+
+   
 ## <a id="usage"> Usage:
 
 #### 1\. Set your App_ID (iOS only), Dev_Key and enable AppsFlyer to detect installations, sessions (app opens) and updates.  
