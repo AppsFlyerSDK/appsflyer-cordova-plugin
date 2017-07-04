@@ -9,7 +9,9 @@ static NSString *const NO_APPID_FOUND  = @"'appId' is missing or empty";
 static NSString *const SUCCESS         = @"Success";
 
  NSString* mConversionListener;
-
+ NSString* mConversionListenerOnResume;
+ BOOL isConversionData = NO;
+    
 - (void)pluginInitialize{}
 
 - (void)initSdk:(CDVInvokedUrlCommand*)command
@@ -19,7 +21,7 @@ static NSString *const SUCCESS         = @"Success";
     NSString* devKey = nil;
     NSString* appId = nil;
     BOOL isDebug = NO;
-    BOOL isConversionData = NO;
+    
     
     if (![initSdkOptions isKindOfClass:[NSNull class]]) {
         
@@ -75,7 +77,26 @@ static NSString *const SUCCESS         = @"Success";
         }
     }
   }
+    
+- (void)resumeSDK:(CDVInvokedUrlCommand *)command
+  {
+      [[AppsFlyerTracker sharedTracker] trackAppLaunch];
+      
+      
+      if (isConversionData == YES) {
+          CDVPluginResult* pluginResult = nil;
+          mConversionListenerOnResume = command.callbackId;
+          
+          pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+          [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+      }
+      else {
+          CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:SUCCESS];
+          [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+      }
+  }
 
+    
 - (void)setCurrencyCode:(CDVInvokedUrlCommand*)command
 {
     if ([command.arguments count] == 0) {
@@ -212,21 +233,34 @@ static NSString *const SUCCESS         = @"Success";
 
 -(void) reportOnFailure:(NSString *)errorMessage {
     
+    if (mConversionListenerOnResume != nil) {
+        mConversionListenerOnResume = nil;
+    }
+    
     if(mConversionListener != nil){
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:errorMessage];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListener];
         
         mConversionListener = nil;
-    }}
+    }
+}
 
 -(void) reportOnSuccess:(NSString *)data {
+    
+    if (mConversionListenerOnResume != nil) {
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
+        [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListenerOnResume];
+        
+        mConversionListenerOnResume = nil;
+    }
     
     if(mConversionListener != nil){
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListener];
-        
+       
         mConversionListener = nil;
      }
 }

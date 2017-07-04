@@ -1,10 +1,11 @@
+cordova.define("cordova-plugin-appsflyer-sdk.appsflyer", function(require, exports, module) {
 
     var exec = require('cordova/exec'),
         argscheck = require('cordova/argscheck'),
         AppsFlyerError = require('./AppsFlyerError');
     
-
-    //var eventsMap = {};    
+     var userAgent = window.navigator.userAgent.toLowerCase();
+     var callbackMap = {};
 
     if (!window.CustomEvent) {
         window.CustomEvent = function (type, config) {
@@ -13,7 +14,7 @@
             return e;
         };
     }
-
+               
     (function (global) {
         var AppsFlyer = function () {};
 
@@ -29,9 +30,23 @@
                       errorCB(AppsFlyerError.APPID_NOT_VALID);
                    }
                  }
-                 exec(successCB, errorCB, "AppsFlyerPlugin", "initSdk", [args]);    
-              }          
+                 exec(successCB, errorCB, "AppsFlyerPlugin", "initSdk", [args]);
+     
+                if (/iphone|ipad|ipod/.test( userAgent )) {
+                    document.addEventListener("resume", this.onResume.bind(this), false);
+     
+                    callbackMap = { suc: successCB,
+                                    err: errorCB
+                    }
+                }
+            }
         };
+     
+        AppsFlyer.prototype.onResume = function() {
+            console.log("On Resume Registered by AppsFlyer Plugin");
+            exec(callbackMap.suc, callbackMap.err, "AppsFlyerPlugin", "resumeSDK", []);
+        };
+
 
         AppsFlyer.prototype.setCurrencyCode = function (currencyId) {
             argscheck.checkArgs('S', 'AppsFlyer.setCurrencyCode', arguments);
@@ -89,5 +104,4 @@
         });
     } (window));
 
-
-    
+});
