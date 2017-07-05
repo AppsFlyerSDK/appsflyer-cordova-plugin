@@ -35,13 +35,13 @@ if (!window.CustomEvent) {
 
                 callbackMap = { suc: successCB,
                                 err: errorCB
-                }
+                };
             }
         }
     };
 
     AppsFlyer.prototype.onResume = function() {
-        console.log("On Resume Registered by AppsFlyer Plugin");
+        window.console.log("On Resume Registered by AppsFlyer Plugin");
         exec(callbackMap.suc, callbackMap.err, "AppsFlyerPlugin", "resumeSDK", []);
     };
 
