@@ -34,15 +34,16 @@
                 if (/iphone|ipad|ipod/.test( userAgent )) {
                     document.addEventListener("resume", this.onResume.bind(this), false);
      
-                    callbackMap = { suc: successCB,
-                                    err: errorCB
-                    }
+                    callbackMap = { 
+                        suc: successCB,
+                        err: errorCB
+                    };
                 }
             }
         };
      
         AppsFlyer.prototype.onResume = function() {
-            console.log("On Resume Registered by AppsFlyer Plugin");
+            //window.log("On Resume Registered by AppsFlyer Plugin");
             exec(callbackMap.suc, callbackMap.err, "AppsFlyerPlugin", "resumeSDK", []);
         };
 
