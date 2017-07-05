@@ -43,7 +43,6 @@
         };
      
         AppsFlyer.prototype.onResume = function() {
-            //window.log("On Resume Registered by AppsFlyer Plugin");
             exec(callbackMap.suc, callbackMap.err, "AppsFlyerPlugin", "resumeSDK", []);
         };
 
