@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-appsflyer-sdk",
-  "version": "4.2.21",
+  "version": "4.2.22",
   "description": "Cordova AppsFlyer SDK Plugin",
   "cordova": {
     "id": "cordova-plugin-appsflyer-sdk",
