@@ -333,21 +333,24 @@ var handleOpenURL = function(url) {
     window.plugins.appsFlyer.handleOpenUrl(url);
 }
 ```
-
-####<a id='dl-ul">Universal Links in iOS
+#### <a id='dl-ul'>Universal Links in iOS
 To enable Universal Links in iOS please follow the guide <a href="https://support.appsflyer.com/hc/en-us/articles/207032266-Setting-Deeplinking-on-iOS9-using-iOS-Universal-Links">here</a>.
 
-#####**Note**: Our plugin utilizes the
+##### **Note**: Our plugin utilizes the
+
  ` - (BOOL)application:(UIApplication *)application 
  continueUserActivity:(NSUserActivity *)userActivity
  restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler; ` 
-#####method for Universal Links support. 
-#####***If additional instances of the method exist in your code - merge all calls into one***.
-#####(Available on cordova-plugin-appsflyer-sdk 4.2.24 and higher )
+
+##### method for Universal Links support. 
+
+##### ***If additional instances of the method exist in your code - merge all calls into one***
+
+##### (Available on cordova-plugin-appsflyer-sdk 4.2.24 and higher )
 
 ---
 
-##Demo
+## Demo
 
 This plugin has a `examples` folder with `demoA` (Angular 1)  and `demoC` (Cordova) projects bundled with it. To give it a try , clone this repo and from root a.e. `cordova-plugin-appsflyer-sdk` execute the following:
 
