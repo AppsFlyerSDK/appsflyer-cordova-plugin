@@ -1,5 +1,6 @@
 #import "AppsFlyerPlugin.h"
 #import "AppsFlyerTracker.h"
+#import "AppDelegate.h"
 
 @implementation AppsFlyerPlugin
 
@@ -273,3 +274,23 @@ static NSString *const SUCCESS         = @"Success";
 
 
 @end
+
+
+// Universal Links Support - AppDelegate interface:
+@interface AppDelegate (AppsFlyerPlugin)
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler;
+
+@end
+
+// Universal Links Support - AppDelegate implementation:
+@implementation AppDelegate (AppsFlyerPlugin)
+
+- (BOOL) application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray *_Nullable))restorationHandler
+{
+    [[AppsFlyerTracker sharedTracker] continueUserActivity:userActivity restorationHandler:restorationHandler];
+    return YES;
+}
+
+@end
+

@@ -32,7 +32,8 @@ In order for us to provide optimal support, we would kindly ask you to submit an
  - [getAppsFlyerUID](#getAppsFlyerUID)
 - [Deep linking Tracking](#deep-linking-tracking) 
  - [Android](#dl-android)
- - [iOS](#dl-ios)
+ - [iOS URL Types](#dl-ios)
+ - [iOS Universal Links](#dl-ul)
 - [Sample App](#sample-app)  
 
 ## <a id="supported-platforms"> Supported Platforms
@@ -318,8 +319,7 @@ window.plugins.appsFlyer.getAppsFlyerUID(getUserIdCallbackFn);
 #### <a id="dl-android"> Android
 In ver. >4.2.5 deeplinking metadata (scheme/host) is sent automatically
 
-#### <a id="dl-ios"> iOS
-
+#### <a id="dl-ios"> iOS URL Types
 Add the following lines to your code to be able to track deeplinks with AppsFlyer attribution data:
 
 for pure Cordova - add a function 'handleOpenUrl' to your root, and call our SDK as shown:
@@ -333,6 +333,17 @@ var handleOpenURL = function(url) {
     window.plugins.appsFlyer.handleOpenUrl(url);
 }
 ```
+
+####<a id='dl-ul">Universal Links in iOS
+To enable Universal Links in iOS please follow the guide <a href="https://support.appsflyer.com/hc/en-us/articles/207032266-Setting-Deeplinking-on-iOS9-using-iOS-Universal-Links">here</a>.
+
+#####**Note**: Our plugin utilizes the
+ ` - (BOOL)application:(UIApplication *)application 
+ continueUserActivity:(NSUserActivity *)userActivity
+ restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler; ` 
+#####method for Universal Links support. 
+#####***If additional instances of the method exist in your code - merge all calls into one***.
+#####(Available on cordova-plugin-appsflyer-sdk 4.2.24 and higher )
 
 ---
 
