@@ -74,6 +74,11 @@
                     []);
         };
 
+        AppsFlyer.prototype.setDeviceTrackingDisabled = function (isDisabled) {
+            argscheck.checkArgs('*', 'AppsFlyer.setDeviceTrackingDisabled', arguments);
+            exec(null,null,"AppsFlyerPlugin","setDeviceTrackingDisabled", [isDisabled]);
+        };
+
         AppsFlyer.prototype.trackEvent = function (eventName, eventValue) {
             argscheck.checkArgs('SO', 'AppsFlyer.trackEvent', arguments);
             exec(null, null, "AppsFlyerPlugin", "trackEvent", [eventName, eventValue]);

@@ -118,6 +118,17 @@ static NSString *const SUCCESS         = @"Success";
     [AppsFlyerTracker sharedTracker].customerUserID  = userId;
 }
 
+- (void)setDeviceTrackingDisabled:(CDVInvokedUrlCommand *)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+    
+    NSString* isDisabled = [command.arguments objectAtIndex:0];
+    BOOL boolValue = [isDisabled boolValue];
+    [AppsFlyerTracker sharedTracker].deviceTrackingDisabled  = boolValue;
+}
+
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand *)command
 {
     NSString* userId = [[AppsFlyerTracker sharedTracker] getAppsFlyerUID];

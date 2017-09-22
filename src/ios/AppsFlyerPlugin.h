@@ -15,6 +15,8 @@
 - (void)trackEvent:(CDVInvokedUrlCommand*)command;
 - (void)registerUninstall:(CDVInvokedUrlCommand*)command;
 - (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
+- (void)setDeviceTrackingDisabled:(CDVInvokedUrlCommand *)command;
+
 @end
 
 

@@ -25,6 +25,7 @@ In order for us to provide optimal support, we would kindly ask you to submit an
 - [API Methods](#api-methods) 
  - [initSdk](#initSdk) 
  - [trackEvent](#trackEvent)
+ - [deviceTrackingDisabled](#deviceTrackingDisabled)
  - [setCurrencyCode](#setCurrencyCode)
  - [setAppUserId](#setAppUserId)
  - [enableUninstallTracking](#enableUninstallTracking)
@@ -224,9 +225,18 @@ var eventValues = {
            };
 window.plugins.appsFlyer.trackEvent(eventName, eventValues);
 ```
-
 ---
 
+##### <a id="deviceTrackingDisabled"> **`deviceTrackingDisabled(bool): void`**
+**End User Opt-Out (Optional)** 
+AppsFlyer provides you a method to opt‐out specific users from AppsFlyer analytics. This method complies with the latest privacy requirements and complies with Facebook data and privacy policies. Default is FALSE, meaning tracking is enabled by default.
+
+*Examples:*
+
+```javascript
+window.plugins.appsFlyer.setDeviceTrackingDisabled(true);
+```
+---
 
 ##### <a id="setCurrencyCode"> **`setCurrencyCode(currencyId): void`**
 
