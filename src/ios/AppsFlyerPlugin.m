@@ -118,6 +118,21 @@ static NSString *const SUCCESS         = @"Success";
     [AppsFlyerTracker sharedTracker].customerUserID  = userId;
 }
 
+- (void)setDeviceTrackingDisabled:(CDVInvokedUrlCommand *)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+    
+    BOOL isDisValueBool = NO;
+    id isDisValue = nil;
+    isDisValue = [command.arguments objectAtIndex:0];
+    if ([isDisValue isKindOfClass:[NSNumber class]]) {
+        isDisValueBool = [(NSNumber*)isDisValue boolValue];
+        [AppsFlyerTracker sharedTracker].deviceTrackingDisabled  = isDisValueBool;
+    }
+}
+
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand *)command
 {
     NSString* userId = [[AppsFlyerTracker sharedTracker] getAppsFlyerUID];
