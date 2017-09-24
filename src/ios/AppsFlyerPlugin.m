@@ -124,9 +124,13 @@ static NSString *const SUCCESS         = @"Success";
         return;
     }
     
-    NSString* isDisabled = [command.arguments objectAtIndex:0];
-    BOOL boolValue = [isDisabled boolValue];
-    [AppsFlyerTracker sharedTracker].deviceTrackingDisabled  = boolValue;
+    BOOL isDisValueBool = NO;
+    id isDisValue = nil;
+    isDisValue = [command.arguments objectAtIndex:0];
+    if ([isDisValue isKindOfClass:[NSNumber class]]) {
+        isDisValueBool = [(NSNumber*)isDisValue boolValue];
+        [AppsFlyerTracker sharedTracker].deviceTrackingDisabled  = isDisValueBool;
+    }
 }
 
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand *)command
