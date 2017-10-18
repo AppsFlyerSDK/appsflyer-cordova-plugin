@@ -193,7 +193,7 @@ static NSString *const SUCCESS         = @"Success";
     NSDictionary* errorMessage = @{
                                    @"status": afFailure,
                                    @"type": afOnInstallConversionFailure,
-                                   @"data": _errorMessage..localizedDescription
+                                   @"data": _errorMessage.localizedDescription
                                    };
     
     [self performSelectorOnMainThread:@selector(handleCallback:) withObject:errorMessage waitUntilDone:NO];
