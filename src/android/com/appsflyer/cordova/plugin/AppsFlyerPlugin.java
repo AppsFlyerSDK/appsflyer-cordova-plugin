@@ -27,6 +27,8 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.*;
 public class AppsFlyerPlugin extends CordovaPlugin {
 
 	private CallbackContext mConversionListener = null;
+    private CallbackContext mAttributionDataListener = null;
+    private Map<String, String> mAttributionData = null;
 
 	@Override
 	public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -73,6 +75,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		else if("enableUninstallTracking".equals(action))
 		{
 			return enableUninstallTracking(args, callbackContext);
+		}
+		else if("resumeSDK".equals(action))
+		{
+			return onResume(args, callbackContext);
 		}
 
 		return false;
@@ -126,6 +132,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 					mConversionListener = callbackContext;
 				}
 
+//                if(mAttributionDataListener == null){
+//                    mAttributionDataListener = callbackContext;
+//                }
+
 				registerConversionListener(instance);
 				sendPluginNoResult(callbackContext);
 			}
@@ -146,7 +156,15 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 			@Override
 			public void onAppOpenAttribution(Map<String, String> attributionData) {
-				handleSuccess(AF_ON_APP_OPEN_ATTRIBUTION, attributionData);
+                mAttributionData = attributionData;
+
+                if(mAttributionDataListener != null) {
+                    PluginResult result = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
+                    result.setKeepCallback(false);
+
+                    mAttributionDataListener.sendPluginResult(result);
+                    mAttributionDataListener = null;
+                }
 			}
 
 			@Override
@@ -353,6 +371,20 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		callbackContext.success(SUCCESS);
 		return true;
 	}
+
+    private boolean onResume(JSONArray parameters, CallbackContext callbackContext){
+
+        if(mAttributionData != null){
+            PluginResult r = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
+            callbackContext.sendPluginResult(r);
+            mAttributionData = null;
+        }
+        else {
+            mAttributionDataListener = callbackContext;
+            sendPluginNoResult(callbackContext);
+        }
+        return true;
+    }
 
 	private void sendPluginNoResult(CallbackContext callbackContext) {
 		PluginResult pluginResult = new PluginResult(

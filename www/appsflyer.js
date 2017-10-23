@@ -1,3 +1,4 @@
+cordova.define("cordova-plugin-appsflyer-sdk.appsflyer", function(require, exports, module) {
 
     var exec = require('cordova/exec'),
         argscheck = require('cordova/argscheck'),
@@ -31,14 +32,14 @@
                  }
                  exec(successCB, errorCB, "AppsFlyerPlugin", "initSdk", [args]);
      
-                if (/iphone|ipad|ipod/.test( userAgent )) {
-                    document.addEventListener("resume", this.onResume.bind(this), false);
-     
-                    callbackMap = { 
-                        suc: successCB,
-                        err: errorCB
-                    };
-                }
+
+                document.addEventListener("resume", this.onResume.bind(this), false);
+
+                callbackMap = {
+                    suc: successCB,
+                    err: errorCB
+                };
+
             }
         };
      
@@ -107,3 +108,4 @@
             global.plugins.appsFlyer = new AppsFlyer();
         });
     } (window));
+});
