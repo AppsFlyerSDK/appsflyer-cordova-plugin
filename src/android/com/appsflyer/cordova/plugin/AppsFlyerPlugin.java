@@ -1,5 +1,6 @@
 package com.appsflyer.cordova.plugin;
 
+import android.net.Uri;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -17,10 +18,11 @@ import com.appsflyer.AppsFlyerConversionListener;
 import com.appsflyer.AppsFlyerLib;
 import com.appsflyer.AppsFlyerProperties;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import android.os.Build;
+
 
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.*;
 
@@ -29,11 +31,14 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 	private CallbackContext mConversionListener = null;
     private CallbackContext mAttributionDataListener = null;
     private Map<String, String> mAttributionData = null;
+    private Uri intentURI = null;
+    private Uri newIntentURI = null;
+    private Activity c;
 
 	@Override
 	public void initialize(CordovaInterface cordova, CordovaWebView webView) {
 		super.initialize(cordova, webView);
-	}
+    }
 
 	/**
 	 * Called when the activity receives a new intent.
@@ -41,7 +46,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 	@Override
 	public void onNewIntent(Intent intent) {
 		cordova.getActivity().setIntent(intent);
-		AppsFlyerLib.getInstance().sendDeepLinkData(cordova.getActivity());
+        AppsFlyerLib.getInstance().sendDeepLinkData(cordova.getActivity());
 	}
 
 	@Override
@@ -84,10 +89,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		return false;
 	}
 
-
-
-    private void trackAppLaunch(){
-        Context c = this.cordova.getActivity().getApplicationContext();
+    private void trackAppLaunch() {
+        c = this.cordova.getActivity();
+        AppsFlyerLib.getInstance().sendDeepLinkData(c);
         AppsFlyerLib.getInstance().trackEvent(c, null, null);
     }
 
@@ -120,24 +124,27 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 			instance.setDebugLog(isDebug);
 
-			if(isDebug == true){ Log.d("AppsFlyer", "Starting Tracking");}
-			trackAppLaunch();
+			if(isDebug == true){
+                Log.d("AppsFlyer", "Starting Tracking");
+			}
 
-			instance.startTracking(AppsFlyerPlugin.this.cordova.getActivity().getApplication(), devKey);
+			trackAppLaunch();
+			instance.startTracking(c.getApplication(), devKey);
 
 
 			if(isConversionData == true){
+
+                if(mAttributionDataListener == null) {
+                    mAttributionDataListener = callbackContext;
+                }
 
 				if(mConversionListener == null){
 					mConversionListener = callbackContext;
 				}
 
-//                if(mAttributionDataListener == null){
-//                    mAttributionDataListener = callbackContext;
-//                }
+                registerConversionListener(instance);
+                sendPluginNoResult(callbackContext);
 
-				registerConversionListener(instance);
-				sendPluginNoResult(callbackContext);
 			}
 			else{
 				callbackContext.success(SUCCESS);
@@ -157,8 +164,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 			@Override
 			public void onAppOpenAttribution(Map<String, String> attributionData) {
                 mAttributionData = attributionData;
+                intentURI =  c.getIntent().getData();
 
-                if(mAttributionDataListener != null) {
+                if(mAttributionDataListener != null && newIntentURI != intentURI) {
                     PluginResult result = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
                     result.setKeepCallback(false);
 
@@ -373,15 +381,19 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 	}
 
     private boolean onResume(JSONArray parameters, CallbackContext callbackContext){
+        Intent intent = cordova.getActivity().getIntent();
+        newIntentURI = intent.getData();
 
-        if(mAttributionData != null){
-            PluginResult r = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
-            callbackContext.sendPluginResult(r);
-            mAttributionData = null;
-        }
-        else {
-            mAttributionDataListener = callbackContext;
-            sendPluginNoResult(callbackContext);
+        if (newIntentURI != intentURI) {
+            if (mAttributionData != null) {
+                PluginResult r = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
+                callbackContext.sendPluginResult(r);
+                mAttributionData = null;
+            } else {
+                mAttributionDataListener = callbackContext;
+                sendPluginNoResult(callbackContext);
+            }
+            intentURI = newIntentURI;
         }
         return true;
     }
