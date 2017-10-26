@@ -166,13 +166,14 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 mAttributionData = attributionData;
                 intentURI =  c.getIntent().getData();
 
-                if(mAttributionDataListener != null && newIntentURI != intentURI) {
+                if(mAttributionDataListener != null) {
                     PluginResult result = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
                     result.setKeepCallback(false);
 
                     mAttributionDataListener.sendPluginResult(result);
                     mAttributionDataListener = null;
                 }
+
 			}
 
 			@Override
@@ -183,6 +184,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 			@Override
 			public void onInstallConversionDataLoaded(Map<String, String> conversionData) {
 				handleSuccess(AF_ON_INSTALL_CONVERSION_DATA_LOADED, conversionData);
+
 			}
 
 			@Override
@@ -393,6 +395,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 mAttributionDataListener = callbackContext;
                 sendPluginNoResult(callbackContext);
             }
+            
             intentURI = newIntentURI;
         }
         return true;
