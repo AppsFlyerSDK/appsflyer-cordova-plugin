@@ -1,4 +1,3 @@
-
     var exec = require('cordova/exec'),
         argscheck = require('cordova/argscheck'),
         AppsFlyerError = require('./AppsFlyerError');
@@ -31,14 +30,14 @@
                  }
                  exec(successCB, errorCB, "AppsFlyerPlugin", "initSdk", [args]);
      
-                if (/iphone|ipad|ipod/.test( userAgent )) {
-                    document.addEventListener("resume", this.onResume.bind(this), false);
-     
-                    callbackMap = { 
-                        suc: successCB,
-                        err: errorCB
-                    };
-                }
+
+                document.addEventListener("resume", this.onResume.bind(this), false);
+
+                callbackMap = {
+                    suc: successCB,
+                    err: errorCB
+                };
+
             }
         };
      

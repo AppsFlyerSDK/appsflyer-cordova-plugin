@@ -1,5 +1,6 @@
 package com.appsflyer.cordova.plugin;
 
+import android.net.Uri;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -17,21 +18,27 @@ import com.appsflyer.AppsFlyerConversionListener;
 import com.appsflyer.AppsFlyerLib;
 import com.appsflyer.AppsFlyerProperties;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import android.os.Build;
+
 
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.*;
 
 public class AppsFlyerPlugin extends CordovaPlugin {
 
 	private CallbackContext mConversionListener = null;
+    private CallbackContext mAttributionDataListener = null;
+    private Map<String, String> mAttributionData = null;
+    private Uri intentURI = null;
+    private Uri newIntentURI = null;
+    private Activity c;
 
 	@Override
 	public void initialize(CordovaInterface cordova, CordovaWebView webView) {
 		super.initialize(cordova, webView);
-	}
+    }
 
 	/**
 	 * Called when the activity receives a new intent.
@@ -39,7 +46,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 	@Override
 	public void onNewIntent(Intent intent) {
 		cordova.getActivity().setIntent(intent);
-		AppsFlyerLib.getInstance().sendDeepLinkData(cordova.getActivity());
+        AppsFlyerLib.getInstance().sendDeepLinkData(cordova.getActivity());
 	}
 
 	@Override
@@ -74,14 +81,17 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		{
 			return enableUninstallTracking(args, callbackContext);
 		}
+		else if("resumeSDK".equals(action))
+		{
+			return onResume(args, callbackContext);
+		}
 
 		return false;
 	}
 
-
-
-    private void trackAppLaunch(){
-        Context c = this.cordova.getActivity().getApplicationContext();
+    private void trackAppLaunch() {
+        c = this.cordova.getActivity();
+        AppsFlyerLib.getInstance().sendDeepLinkData(c);
         AppsFlyerLib.getInstance().trackEvent(c, null, null);
     }
 
@@ -114,20 +124,27 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 			instance.setDebugLog(isDebug);
 
-			if(isDebug == true){ Log.d("AppsFlyer", "Starting Tracking");}
-			trackAppLaunch();
+			if(isDebug == true){
+                Log.d("AppsFlyer", "Starting Tracking");
+			}
 
-			instance.startTracking(AppsFlyerPlugin.this.cordova.getActivity().getApplication(), devKey);
+			trackAppLaunch();
+			instance.startTracking(c.getApplication(), devKey);
 
 
 			if(isConversionData == true){
+
+                if(mAttributionDataListener == null) {
+                    mAttributionDataListener = callbackContext;
+                }
 
 				if(mConversionListener == null){
 					mConversionListener = callbackContext;
 				}
 
-				registerConversionListener(instance);
-				sendPluginNoResult(callbackContext);
+                registerConversionListener(instance);
+                sendPluginNoResult(callbackContext);
+
 			}
 			else{
 				callbackContext.success(SUCCESS);
@@ -146,7 +163,17 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 			@Override
 			public void onAppOpenAttribution(Map<String, String> attributionData) {
-				handleSuccess(AF_ON_APP_OPEN_ATTRIBUTION, attributionData);
+                mAttributionData = attributionData;
+                intentURI =  c.getIntent().getData();
+
+                if(mAttributionDataListener != null) {
+                    PluginResult result = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
+                    result.setKeepCallback(false);
+
+                    mAttributionDataListener.sendPluginResult(result);
+                    mAttributionDataListener = null;
+                }
+
 			}
 
 			@Override
@@ -157,6 +184,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 			@Override
 			public void onInstallConversionDataLoaded(Map<String, String> conversionData) {
 				handleSuccess(AF_ON_INSTALL_CONVERSION_DATA_LOADED, conversionData);
+
 			}
 
 			@Override
@@ -353,6 +381,25 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		callbackContext.success(SUCCESS);
 		return true;
 	}
+
+    private boolean onResume(JSONArray parameters, CallbackContext callbackContext){
+        Intent intent = cordova.getActivity().getIntent();
+        newIntentURI = intent.getData();
+
+        if (newIntentURI != intentURI) {
+            if (mAttributionData != null) {
+                PluginResult r = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
+                callbackContext.sendPluginResult(r);
+                mAttributionData = null;
+            } else {
+                mAttributionDataListener = callbackContext;
+                sendPluginNoResult(callbackContext);
+            }
+            
+            intentURI = newIntentURI;
+        }
+        return true;
+    }
 
 	private void sendPluginNoResult(CallbackContext callbackContext) {
 		PluginResult pluginResult = new PluginResult(
