@@ -2,7 +2,6 @@
         argscheck = require('cordova/argscheck'),
         AppsFlyerError = require('./AppsFlyerError');
     
-     var userAgent = window.navigator.userAgent.toLowerCase();
      var callbackMap = {};
 
     if (!window.CustomEvent) {
