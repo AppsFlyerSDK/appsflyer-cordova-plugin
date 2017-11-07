@@ -11,6 +11,7 @@ static NSString *const SUCCESS         = @"Success";
 
  NSString* mConversionListener;
  NSString* mConversionListenerOnResume;
+ NSString* mInviteListener;
  BOOL isConversionData = NO;
     
 - (void)pluginInitialize{}
@@ -175,6 +176,119 @@ static NSString *const SUCCESS         = @"Success";
     }
 }
 
+//USER INVITES
+    
+- (void)setAppInviteOneLinkID:(CDVInvokedUrlCommand*)command {
+    if ([command.arguments count] == 0) {
+        return;
+    }
+    NSString* oneLinkID = [command.arguments objectAtIndex:0];
+    [AppsFlyerTracker sharedTracker].appInviteOneLinkID = oneLinkID;
+}
+    
+- (void)generateInviteLink:(CDVInvokedUrlCommand*)command {
+    NSDictionary* inviteLinkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
+    NSDictionary* customParams = [command argumentAtIndex:1 withDefault:[NSNull null]];
+    
+    NSString *channel = nil;
+    NSString *campaign = nil;
+    NSString *referrerName = nil;
+    NSString *referrerImageUrl = nil;
+    NSString *customerID = nil;
+    NSString *baseDeepLink = nil;
+    
+    if (![inviteLinkOptions isKindOfClass:[NSNull class]]) {
+        channel = (NSString*)[inviteLinkOptions objectForKey: afUiChannel];
+        campaign = (NSString*)[inviteLinkOptions objectForKey: afUiCampaign];
+        referrerName = (NSString*)[inviteLinkOptions objectForKey: afUiRefName];
+        referrerImageUrl = (NSString*)[inviteLinkOptions objectForKey: afUiImageUrl];
+        customerID = (NSString*)[inviteLinkOptions objectForKey: afUiCustomerID];
+        baseDeepLink = (NSString*)[inviteLinkOptions objectForKey: afUiBaseDeepLink];
+        
+        [AppsFlyerShareInviteHelper generateInviteUrlWithLinkGenerator:^AppsFlyerLinkGenerator * _Nonnull(AppsFlyerLinkGenerator * _Nonnull generator) {
+            if (channel != nil && ![channel isEqualToString:@""]) {
+                [generator setChannel:channel];
+            }
+            if (campaign != nil && ![campaign isEqualToString:@""]) {
+                [generator setCampaign:campaign];
+            }
+            if (referrerName != nil && ![referrerName isEqualToString:@""]) {
+                [generator setReferrerName:referrerName];
+            }
+            if (referrerImageUrl != nil && ![referrerImageUrl isEqualToString:@""]) {
+                [generator setReferrerImageURL:referrerImageUrl];
+            }
+            if (customerID != nil && ![customerID isEqualToString:@""]) {
+                [generator setReferrerCustomerId:customerID];
+            }
+            if (baseDeepLink != nil && ![baseDeepLink isEqualToString:@""]) {
+                [generator setDeeplinkPath:baseDeepLink];
+            }
+            
+            if (![customParams isKindOfClass:[NSNull class]]) {
+                    [generator addParameters:customParams];
+            }
+            
+            return generator;
+        } completionHandler: ^(NSURL * _Nullable url) {
+            mInviteListener = url.absoluteString;
+                if (mInviteListener != nil) {
+                CDVPluginResult *pluginResult = [ CDVPluginResult
+                                                 resultWithStatus    : CDVCommandStatus_OK
+                                                 messageAsString: mInviteListener
+                                                 ];
+                
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+            }
+         }];
+    }
+}
+    
+//CROSS PROMOTION
+-(void)trackCrossPromotionImpression:(CDVInvokedUrlCommand*) command {
+    
+    if ([command.arguments count] == 0) {
+        return;
+    }
+    
+    NSString* campaign = nil;
+    NSString* promtAppID = [command.arguments objectAtIndex:0];
+    campaign = [command.arguments objectAtIndex:1];
+    
+    if (promtAppID != nil && ![promtAppID isEqualToString:@""]) {
+        [AppsFlyerCrossPromotionHelper trackCrossPromoteImpression:promtAppID campaign:campaign];
+    }
+}
+
+-(void)trackAndOpenStore:(CDVInvokedUrlCommand*) command {
+    
+    if ([command.arguments count] == 0) {
+        return;
+    }
+
+    NSString* promtAppID = [command.arguments objectAtIndex:0];
+    NSString* campaign = [command.arguments objectAtIndex:1];
+    NSDictionary* customParams = [command argumentAtIndex:2 withDefault:[NSNull null]];
+    
+    if (promtAppID != nil && ![promtAppID isEqualToString:@""]) {
+        [AppsFlyerShareInviteHelper generateInviteUrlWithLinkGenerator:^AppsFlyerLinkGenerator * _Nonnull(AppsFlyerLinkGenerator * _Nonnull generator) {
+            if (campaign != nil && ![campaign isEqualToString:@""]) {
+                [generator setCampaign:campaign];
+            }
+            if (![customParams isKindOfClass:[NSNull class]]) {
+                [generator addParameters:customParams];
+            }
+            
+            return generator;
+        } completionHandler: ^(NSURL * _Nullable url) {
+            NSString *appLink = url.absoluteString;
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:appLink] options:@{} completionHandler:^(BOOL success) {
+                CDVPluginResult* pluginResult =  [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+                [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+            }];
+        }];
+    }
+}
 
 -(void)onConversionDataReceived:(NSDictionary*) installData {
     
