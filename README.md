@@ -30,7 +30,12 @@ In order for us to provide optimal support, we would kindly ask you to submit an
  - [setAppUserId](#setAppUserId)
  - [enableUninstallTracking](#enableUninstallTracking)
  - [setGCMProjectID](#setGCMProjectID)
+ - [updateServerUninstallToken](#updateServerUninstallToken)
  - [getAppsFlyerUID](#getAppsFlyerUID)
+ - [setAppInviteOneLinkID](#setAppInviteOneLinkID)
+ - [generateInviteLink](#generateInviteLink)
+ - [trackCrossPromotionImpression](#trackCrossPromotionImpression)
+ - [trackAndOpenStore](#trackAndOpenStore)
 - [Deep linking Tracking](#deep-linking-tracking) 
  - [Android](#dl-android)
  - [iOS URL Types](#dl-ios)
@@ -46,8 +51,8 @@ In order for us to provide optimal support, we would kindly ask you to submit an
 
 ### <a id="plugin-build-for"> This plugin is built for
 
-- iOS AppsFlyerSDK **v4.7.11**
-- Android AppsFlyerSDK **v4.7.4**
+- iOS AppsFlyerSDK **v4.8.1**
+- Android AppsFlyerSDK **v4.8.3**
 
 
 ## <a id="installation-using-cli"> Installation using CLI:
@@ -299,6 +304,32 @@ Enables app uninstall tracking.
 
 ---
 
+##### <a id="setGCMProjectID"> **`setGCMProjectID(GCMProjectNumber): void`**
+
+AppsFlyer requires a Google Project Number to enable uninstall tracking.
+<a href="https://support.appsflyer.com/hc/en-us/articles/208004986-Android-Uninstall-Tracking">More Information</a>
+
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `GCMProjectNumber`   | `String`           | GCM/FCM Token |
+
+
+---
+
+##### <a id="updateServerUninstallToken"> **`updateServerUninstallToken("token"): void`** 
+
+Allows to pass GCM/FCM Tokens that where collected by third party plugins to the AppsFlyer server.
+Can be used for Uninstall Tracking.
+
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `token`   | `String`                      | GCM/FCM Token|
+
+
+---
+
 ##### <a id="getAppsFlyerUID"> **`getAppsFlyerUID(successCB): void`**  (Advanced)
 
 Get AppsFlyer’s proprietary Device ID. The AppsFlyer Device ID is the main ID used by AppsFlyer in Reports and APIs.
@@ -323,6 +354,103 @@ window.plugins.appsFlyer.getAppsFlyerUID(getUserIdCallbackFn);
 
 ---
 
+##### <a id="setAppInviteOneLinkID"> **`setAppInviteOneLinkID(OneLinkID): void`**  (User Invite / Cross Promotion)
+
+Set AppsFlyer’s OneLink ID. Setting a valid OneLink ID will result in shortened User Invite links, when one is generated. The OneLink ID can be obtained on the AppsFlyer Dashboard.
+
+*Example:*
+```javascript
+window.plugins.appsFlyer.setAppInviteOneLinkID("Ab1C");
+```
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `OneLinkID` | `String`                    | OneLink ID |
+
+
+---
+
+##### <a id="generateInviteLink"> **`generateInviteLink(options, onSuccess, onError): void`**  (User Invite)
+
+Allowing your existing users to invite their friends and contacts as new users to your app can be a key growth factor for your app. AppsFlyer allows you to track and attribute new installs originating from user invites within your app.
+
+*Example:*
+```javascript
+var inviteOptions {
+  channel: "gmail",
+  campaign: "myCampaign",
+  customerID: "1234",
+  
+  userParams {
+    myParam : "newUser",
+    anotherParam : "fromWeb",
+    amount : 1
+  }
+};
+
+var onInviteLinkSuccess = function(link) {
+  console.log(link); // Handle Generated Link Here
+}
+
+function onInviteLinkError(err) {
+  console.log(err);
+}
+
+window.plugins.appsFlyer.generateInviteLink(inviteOptions, onInviteLinkSuccess, onInviteLinkError);
+```
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `inviteOptions` | `Object`                    |Parameters for Invite link  |
+| `onInviteLinkSuccess` | `() => void`                | Success callback (generated link) |
+| `onInviteLinkError` | `() => void`                | Error callback |
+
+A complete list of supported parameters is available <a href="https://support.appsflyer.com/hc/en-us/articles/115004480866-User-Invite-Tracking">here</a>.
+Custom parameters can be passed using a `userParams{}` nested object, as in the example above.
+
+---
+
+##### <a id="trackCrossPromotionImpression"> **`trackCrossPromotionImpression("appID", "campaign"): void`**  (Cross Promotion)
+
+Use this call to track an impression use the following API call. Make sure to use the promoted App ID as it appears within the AppsFlyer dashboard.
+
+*Example:*
+```javascript
+window.plugins.appsFlyer.trackCrossPromotionImpression("com.myandroid.app", "myCampaign");
+```
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `appID` | `String`                    | Promoted Application ID |
+| `campaign` | `String`                    | Promoted Campaign |
+
+For more details about Cross-Promotion tracking please see <a href="https://support.appsflyer.com/hc/en-us/articles/115004481946-Cross-Promotion-Tracking">here</a>.
+
+---
+
+##### <a id="trackAndOpenStore"> **`trackAndOpenStore("appID","campaign", options): void`**  (Cross Promotion)
+
+Use this call to track the click and launch the app store's app page (via Browser)
+
+*Example:*
+```javascript
+var crossPromOptions {
+  customerID: "1234",
+  myCustomParameter: "newUser"
+};
+
+window.plugins.appsFlyer.trackAndOpenStore("com.myandroid.app", "myCampaign", crossPromOptions);
+```
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `appID` | `String`                    | Promoted Application ID |
+| `campaign` | `String`                    | Promoted Campaign |
+| `options` | `Object`                    | Additional Parameters to track |
+
+For more details about Cross-Promotion tracking please see <a href="https://support.appsflyer.com/hc/en-us/articles/115004481946-Cross-Promotion-Tracking">here</a>.
+
+---
 
 ### <a id="deep-linking-tracking"> Deep linking Tracking
 

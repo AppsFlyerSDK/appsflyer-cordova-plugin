@@ -17,6 +17,10 @@ import org.json.JSONException;
 import com.appsflyer.AppsFlyerConversionListener;
 import com.appsflyer.AppsFlyerLib;
 import com.appsflyer.AppsFlyerProperties;
+import com.appsflyer.CreateOneLinkHttpTask;
+import com.appsflyer.share.CrossPromotionHelper;
+import com.appsflyer.share.LinkGenerator;
+import com.appsflyer.share.ShareInviteHelper;
 
 import android.app.Activity;
 import android.content.Context;
@@ -31,6 +35,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 	private CallbackContext mConversionListener = null;
     private CallbackContext mAttributionDataListener = null;
     private Map<String, String> mAttributionData = null;
+    private CallbackContext mInviteListener = null;
     private Uri intentURI = null;
     private Uri newIntentURI = null;
     private Activity c;
@@ -81,6 +86,21 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		{
 			return enableUninstallTracking(args, callbackContext);
 		}
+		else if ("updateServerUninstallToken".equals(action)) {
+			return updateServerUninstallToken(args, callbackContext);
+		}
+		else if ("setAppInviteOneLinkID".equals(action)) {
+			return setAppInviteOneLinkID(args, callbackContext);
+		}
+		else if ("generateInviteLink".equals(action)) {
+            return generateInviteLink(args, callbackContext);
+        }
+        else if ("trackCrossPromotionImpression".equals(action)) {
+        	return trackCrossPromotionImpression(args, callbackContext);
+        }
+        else if ("trackAndOpenStore".equals(action)) {
+            return trackAndOpenStore(args, callbackContext);
+        }
 		else if("resumeSDK".equals(action))
 		{
 			return onResume(args, callbackContext);
@@ -368,6 +388,20 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		return true;
 	}
 
+	private boolean updateServerUninstallToken(JSONArray parameters, CallbackContext callbackContext) {
+		String token = parameters.optString(0);
+		if (token != null && token.length() > 0) {
+			Context c = this.cordova.getActivity().getApplicationContext();
+			AppsFlyerLib.getInstance().updateServerUninstallToken(c,token);
+			callbackContext.success(SUCCESS);
+			return true;
+		}
+		else {
+			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "Not a valid token"));
+		}
+		return true;
+	}
+
 	private boolean enableUninstallTracking(JSONArray parameters, CallbackContext callbackContext){
 
 		String gcmProjectNumber = parameters.optString(0);
@@ -397,6 +431,158 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
             
             intentURI = newIntentURI;
+        }
+        return true;
+    }
+
+    // USER INVITE
+	private boolean setAppInviteOneLinkID(JSONArray parameters, CallbackContext callbackContext) {
+		try {
+			String oneLinkID = parameters.getString(0);
+			if (oneLinkID == null || oneLinkID.length() == 0) {
+				return true; //TODO error
+			}
+			AppsFlyerLib.getInstance().setAppInviteOneLink(oneLinkID);
+			callbackContext.success(SUCCESS);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return true; //TODO error
+		}
+		return true;
+	}
+
+	private boolean generateInviteLink(JSONArray args, CallbackContext callbackContext) {
+
+        String channel = null;
+        String campaign = null;
+        String referrerName = null;
+        String referrerImageUrl = null;
+        String customerID = null;
+        String baseDeepLink = null;
+
+        try {
+            final JSONObject options = args.getJSONObject(0);
+
+            channel = options.optString(INVITE_CHANNEL, "");
+            campaign = options.optString(INVITE_CAMPAIGN, "");
+            referrerName = options.optString(INVITE_REFERRER, "");
+            referrerImageUrl = options.optString(INVITE_IMAGEURL, "");
+            customerID = options.optString(INVITE_CUSTOMERID, "");
+            baseDeepLink = options.optString(INVITE_DEEPLINK, "");
+
+			Context context = this.cordova.getActivity().getApplicationContext();
+			LinkGenerator linkGenerator = ShareInviteHelper.generateInviteUrl(context);
+
+            if (channel !=null && channel != ""){
+                linkGenerator.setChannel(channel);
+            }
+            if (campaign !=null && campaign != ""){
+                linkGenerator.setCampaign(campaign);
+            }
+            if (referrerName !=null && referrerName != ""){
+                linkGenerator.setReferrerName(referrerName);
+            }
+            if (referrerImageUrl !=null && referrerImageUrl != ""){
+                linkGenerator.setReferrerImageURL(referrerImageUrl);
+            }
+            if (customerID !=null && customerID != ""){
+                linkGenerator.setReferrerCustomerId(customerID);
+            }
+            if (baseDeepLink !=null && baseDeepLink != ""){
+                linkGenerator.setBaseDeeplink(baseDeepLink);
+            }
+
+            if (options.length() > 1 && !options.get("userParams").equals("")) {
+                JSONObject jsonCustomValues = options.getJSONObject("userParams");
+
+                Iterator<?> keys = jsonCustomValues.keys();
+
+                while( keys.hasNext() ) {
+                    String key = (String)keys.next();
+                    Object keyvalue = jsonCustomValues.get(key);
+                    linkGenerator.addParameter(key, keyvalue.toString());
+                }
+            }
+
+			linkGenerator.generateLink(context, new inviteCallbacksImpl());
+            mInviteListener = callbackContext;
+            sendPluginNoResult(mInviteListener);
+		}
+		catch (JSONException e) {
+            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, INVITE_FAIL));
+		}
+        return  true;
+    }
+
+    private class inviteCallbacksImpl implements CreateOneLinkHttpTask.ResponseListener {
+        @Override
+        public void onResponse(String s) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, s);
+            result.setKeepCallback(false);
+            mInviteListener.sendPluginResult(result);
+        }
+
+        @Override
+        public void onResponseError(String s) {
+
+        }
+    }
+
+    // CROSS PROMOTION
+    public boolean trackCrossPromotionImpression(JSONArray parameters, CallbackContext callbackContext) {
+    	String promotedAppId = null;
+        String campaign = null;
+
+        try {
+            final JSONObject options = parameters.getJSONObject(0);
+
+            promotedAppId = options.optString(PROMOTE_ID, "");
+            campaign = options.optString(INVITE_CAMPAIGN, "");
+
+            if (promotedAppId !=null && promotedAppId != "") {
+                Context context = this.cordova.getActivity().getApplicationContext();
+                CrossPromotionHelper.trackCrossPromoteImpression(context,promotedAppId,campaign);
+            }
+            else {
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromoted App ID Not set"));
+                return true;
+            }
+
+        } catch (JSONException e) {
+            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromotionImpression Failed"));
+        }
+        return true;
+
+    }
+
+           public boolean trackAndOpenStore(JSONArray parameters, CallbackContext callbackContext) {
+        String promotedAppId = null;
+        String campaign = null;
+        Map<String, String> userParams = null;
+        try {
+            promotedAppId = parameters.getString(0);
+            campaign = parameters.getString(1);
+            if (promotedAppId !=null && promotedAppId != "") {
+                Context context = this.cordova.getActivity().getApplicationContext();
+                if (!parameters.isNull(2)) {
+                    Map<String,String> newUserParams = new HashMap<String,String>();
+                    JSONObject usrParams = parameters.optJSONObject(2);
+                    Iterator<?> keys = usrParams.keys();
+                    while (keys.hasNext()) {
+                        String key = (String) keys.next();
+                        Object keyvalue = usrParams.get(key);
+                        newUserParams.put(key,keyvalue.toString());
+                    }
+                    userParams = newUserParams;
+                }
+                CrossPromotionHelper.trackAndOpenStore(context,promotedAppId,campaign, userParams);
+            }
+            else {
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromoted App ID Not set"));
+                return true;
+            }
+        } catch (JSONException e) {
+            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromotion Failed"));
         }
         return true;
     }

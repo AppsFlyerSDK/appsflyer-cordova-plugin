@@ -58,10 +58,7 @@
             argscheck.checkArgs('S', 'AppsFlyer.setGCMProjectNumber', arguments);
             exec(null, null, "AppsFlyerPlugin", "setGCMProjectNumber", [gcmProjectNumber]);
         };
-        // AppsFlyer.prototype.registerUninstall = function (token) {
-        //     argscheck.checkArgs('S', 'AppsFlyer.registerUninstall', arguments);
-        //     exec(null, null, "AppsFlyerPlugin", "registerUninstall", [token]);
-        // };
+
         AppsFlyer.prototype.getAppsFlyerUID = function (successCB) {
             argscheck.checkArgs('F', 'AppsFlyer.getAppsFlyerUID', arguments);
             exec(function (result) {
@@ -86,6 +83,33 @@
             argscheck.checkArgs('S', 'AppsFlyer.enableUninstallTracking', arguments);
             exec(successCB, errorCB, "AppsFlyerPlugin", "enableUninstallTracking", [gcmProjectNumber]);
         };
+
+        AppsFlyer.prototype.updateServerUninstallToken = function (token) {
+            argscheck.checkArgs('S', 'AppsFlyer.updateServerUninstallToken', arguments);
+            exec(null, null, "AppsFlyerPlugin", "updateServerUninstallToken", [token]);
+        };
+
+         // USER INVITE TRACKING
+         AppsFlyer.prototype.setAppInviteOneLinkID = function (args) {
+             argscheck.checkArgs('S', 'AppsFlyer.setAppInviteOneLinkID', arguments);
+             exec(null, null, "AppsFlyerPlugin", "setAppInviteOneLinkID", [args]);
+         };
+     
+         AppsFlyer.prototype.generateInviteLink = function (args, successCB, errorCB) {
+         argscheck.checkArgs('O', 'AppsFlyer.generateInviteLink', arguments);
+         exec(successCB, errorCB, "AppsFlyerPlugin", "generateInviteLink", [args]);
+         };
+     
+         //CROSS PROMOTION
+         AppsFlyer.prototype.trackCrossPromotionImpression = function (appId, campaign) {
+         argscheck.checkArgs('*', "AppsFlyer.trackCrossPromotionImpression", arguments);
+         exec(null, null ,"AppsFlyerPlugin","trackCrossPromotionImpression", [appId, campaign]);
+         };
+     
+         AppsFlyer.prototype.trackAndOpenStore = function (appId, campaign, params) {
+         argscheck.checkArgs('*', "AppsFlyer.trackAndOpenStore", arguments);
+         exec(null, null ,"AppsFlyerPlugin","trackAndOpenStore", [appId, campaign, params]);
+         };
 
 
         AppsFlyer.prototype.handleOpenUrl = function (url) {
