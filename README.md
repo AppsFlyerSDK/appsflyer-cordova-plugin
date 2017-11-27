@@ -279,15 +279,6 @@ window.plugins.appsFlyer.setAppUserId(userId);
 ---
 
 
-##### <a id="setGCMProjectID"> **`setGCMProjectID(GCMProjectNumber): void`**
-
-AppsFlyer requires a Google Project Number to enable uninstall tracking.
-<a href="https://support.appsflyer.com/hc/en-us/articles/208004986-Android-Uninstall-Tracking">More Information</a>
-
-
-| parameter   | type                        | description |
-| ----------- |-----------------------------|--------------|
-| `GCMProjectNumber`   | `String`                      | |
 
 
 ##### <a id="enableUninstallTracking"> **`enableUninstallTracking(token, onSuccess, onError): void`** 
@@ -297,14 +288,14 @@ Enables app uninstall tracking.
 
 | parameter   | type                        | description |
 | ----------- |-----------------------------|--------------|
-| `token`   | `String`                      | |
+| `FCM/GCM ProjectNumber`   | `String`    | GCM/FCM ProjectNumber |
 | `onSuccess` | `(message: string)=>void` | Success callback - called after successfull register uninstall. (optional)|
 | `onError`   | `(message: string)=>void` | Error callback - called when error occurs during register uninstall. (optional)|
 
 
 ---
 
-##### <a id="setGCMProjectID"> **`setGCMProjectID(GCMProjectNumber): void`**
+##### <a id="setGCMProjectID"> **`setGCMProjectID(GCMProjectNumber): void`** *Deprecated*
 
 AppsFlyer requires a Google Project Number to enable uninstall tracking.
 <a href="https://support.appsflyer.com/hc/en-us/articles/208004986-Android-Uninstall-Tracking">More Information</a>
@@ -312,7 +303,7 @@ AppsFlyer requires a Google Project Number to enable uninstall tracking.
 
 | parameter   | type                        | description |
 | ----------- |-----------------------------|--------------|
-| `GCMProjectNumber`   | `String`           | GCM/FCM Token |
+| `GCMProjectNumber`   | `String`           | GCM ProjectNumber |
 
 
 ---
