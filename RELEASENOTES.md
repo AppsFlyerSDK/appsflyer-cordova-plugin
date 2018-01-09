@@ -1,6 +1,10 @@
 # Release Notes
-### 4.3.0
+### 4.4.0
 * changed Android paths to support cordova-android 7.0.0
+
+### 4.3.0
+* Added User Invite and Cross Promotion API Calls
+* Bug Fixes
 
 ### 4.2.10 (Nov 30, 2016)
 * updated iOS Appsflyer SDK vertsion to 4.5.12
