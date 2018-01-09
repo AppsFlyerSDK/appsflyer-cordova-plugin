@@ -5,6 +5,11 @@
 [![npm version](https://badge.fury.io/js/cordova-plugin-appsflyer-sdk.svg)](https://badge.fury.io/js/cordova-plugin-appsflyer-sdk) [![Build Status](https://travis-ci.org/AppsFlyerSDK/cordova-plugin-appsflyer-sdk.svg?branch=master)](https://travis-ci.org/AppsFlyerSDK/cordova-plugin-appsflyer-sdk)
 
 ----------
+**Important!** <br>
+Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with **cordova-android@7.0.0**
+<br>For lower versions of cordova-android please use plugin version 4.3.0 available @ https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/tree/releases/4.x.x/4.3.x/4.3.0_cordova_android_6
+
+----------
 In order for us to provide optimal support, we would kindly ask you to submit any issues to support@appsflyer.com
 
 *When submitting an issue please specify your AppsFlyer sign-up (account) email , your app ID , production steps, logs, code snippets and any additional relevant information.*
