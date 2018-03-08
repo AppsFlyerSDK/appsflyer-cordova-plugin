@@ -154,7 +154,7 @@ document.addEventListener("deviceready", function(){
   $ionicPlatform.ready(function() {      
     
     var options = {
-           devKey:  'xxXXXXXxXxXXXXxXXxxxx8'// your AppsFlyer devKey               
+           devKey:  'xxXXXXXxXxXXXXxXXxx8'// your AppsFlyer devKey               
          };
                               
     if (ionic.Platform.isIOS()) {
