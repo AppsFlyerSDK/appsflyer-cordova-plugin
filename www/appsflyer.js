@@ -50,6 +50,7 @@
             exec(null, null, "AppsFlyerPlugin", "setCurrencyCode", [currencyId]);
         };
 
+
         AppsFlyer.prototype.setAppUserId = function (customerUserId) {
              argscheck.checkArgs('S', 'AppsFlyer.setAppUserId', arguments);
             exec(null, null, "AppsFlyerPlugin", "setAppUserId", [customerUserId]);

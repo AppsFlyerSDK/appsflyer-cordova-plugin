@@ -126,6 +126,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		String devKey = null;
 		boolean isConversionData;
 		boolean isDebug = false;
+		AppsFlyerConversionListener gcdListener = null;
 
 		AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
 		AppsFlyerLib instance = AppsFlyerLib.getInstance();
@@ -142,34 +143,48 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 			isDebug = options.optBoolean(AF_IS_DEBUG, false);
 
+			if(options.has(AF_COLLECT_ANDROID_ID)){
+				AppsFlyerLib.getInstance().setCollectAndroidID(options.optBoolean(AF_COLLECT_ANDROID_ID, true));
+			}
+			if(options.has(AF_COLLECT_IMEI)){
+				AppsFlyerLib.getInstance().setCollectIMEI(options.optBoolean(AF_COLLECT_IMEI, true));
+			}
+
+
+
 			instance.setDebugLog(isDebug);
 
 			if(isDebug == true){
                 Log.d("AppsFlyer", "Starting Tracking");
 			}
 
-			trackAppLaunch();
-			instance.startTracking(c.getApplication(), devKey);
-
-
 			if(isConversionData == true){
 
-                if(mAttributionDataListener == null) {
-                    mAttributionDataListener = callbackContext;
-                }
+				if(mAttributionDataListener == null) {
+					mAttributionDataListener = callbackContext;
+				}
 
 				if(mConversionListener == null){
 					mConversionListener = callbackContext;
 				}
 
-                registerConversionListener(instance);
-                sendPluginNoResult(callbackContext);
-
+				gcdListener = registerConversionListener(instance);
 			}
 			else{
 				callbackContext.success(SUCCESS);
 			}
 
+			instance.init(devKey, gcdListener, cordova.getActivity());
+
+			trackAppLaunch();
+			instance.startTracking(c.getApplication());
+
+			if(gcdListener != null){
+				sendPluginNoResult(callbackContext);
+			}
+			else{
+				callbackContext.success(SUCCESS);
+			}
 		}
 		catch (JSONException e){
 			e.printStackTrace();
@@ -178,8 +193,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		return true;
 	}
 
-	private void registerConversionListener(AppsFlyerLib instance){
-		instance.registerConversionListener(cordova.getActivity().getApplicationContext(), new AppsFlyerConversionListener(){
+	private AppsFlyerConversionListener registerConversionListener(AppsFlyerLib instance){
+		return new AppsFlyerConversionListener(){
 
 			@Override
 			public void onAppOpenAttribution(Map<String, String> attributionData) {
@@ -255,7 +270,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 					mConversionListener = null;
 				}
 			}
-		});
+		};
 	}
 
 	private boolean trackEvent(JSONArray parameters, final CallbackContext callbackContext) {
@@ -284,6 +299,35 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 		return true;
 	}
+
+
+	private boolean setCollectIMEI(JSONArray parameters) {
+
+		boolean isCollect = true;
+		try {
+			isCollect = parameters.getBoolean(0);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return true; //TODO error
+		}
+
+		AppsFlyerLib.getInstance().setCollectIMEI(isCollect);
+		return true;
+	}
+
+
+	private boolean setCollectAndroidID(JSONArray parameters){
+		boolean isCollect = true;
+		try {
+			isCollect = parameters.getBoolean(0);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return true; //TODO error
+		}
+
+		AppsFlyerLib.getInstance().setCollectAndroidID(isCollect);
+		return true;
+		    }
 
 	private boolean setCurrencyCode(JSONArray parameters){
 

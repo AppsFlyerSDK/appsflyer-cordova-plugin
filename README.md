@@ -34,7 +34,6 @@ In order for us to provide optimal support, we would kindly ask you to submit an
  - [setCurrencyCode](#setCurrencyCode)
  - [setAppUserId](#setAppUserId)
  - [enableUninstallTracking](#enableUninstallTracking)
- - [setGCMProjectID](#setGCMProjectID)
  - [updateServerUninstallToken](#updateServerUninstallToken)
  - [getAppsFlyerUID](#getAppsFlyerUID)
  - [setAppInviteOneLinkID](#setAppInviteOneLinkID)
@@ -69,6 +68,22 @@ or directly from git:
 
 ```
 $ cordova plugin add https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk.git
+```
+
+
+For Google Install referrer support:
+
+Open the build.gradle file for your application. Make sure that the repositories section includes a maven section with the "https://maven.google.com" endpoint. For example:
+
+```
+allprojects {
+    repositories {
+        jcenter()
+        maven {
+            url "https://maven.google.com"
+        }
+    }
+}
 ```
 
 ## <a id="manual-installation"> Manual installation:
@@ -187,6 +202,8 @@ initialize the SDK.
 | `devKey`   |`string` |         |   [Appsflyer Dev key](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android)    |
 | `appId`    |`string` |        | [Apple Application ID](https://support.appsflyer.com/hc/en-us/articles/207032066-AppsFlyer-SDK-Integration-iOS) (for iOS only) |
 | `isDebug`  |`boolean`| `false` | debug mode (optional)|
+| `collectIMEI`   | `boolean` | `false` |opt-out of collection of IMEI |
+| `collectAndroidID`   | `boolean` | `false` |opt-out of collection of collectAndroidID |
 | `onInstallConversionDataListener`  |`boolean`| `false` | Accessing AppsFlyer Attribution / Conversion Data from the SDK (Deferred Deeplinking). Read more: [Android](http://support.appsflyer.com/entries/69796693-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deep-linking-), [iOS](http://support.appsflyer.com/entries/22904293-Testing-AppsFlyer-iOS-SDK-Integration-Before-Submitting-to-the-App-Store-). AppsFlyer plugin will return attribution data in `onSuccess` callback. 
 
 *Example:*
@@ -300,18 +317,7 @@ Enables app uninstall tracking.
 
 ---
 
-##### <a id="setGCMProjectID"> **`setGCMProjectID(GCMProjectNumber): void`** *Deprecated*
 
-AppsFlyer requires a Google Project Number to enable uninstall tracking.
-<a href="https://support.appsflyer.com/hc/en-us/articles/208004986-Android-Uninstall-Tracking">More Information</a>
-
-
-| parameter   | type                        | description |
-| ----------- |-----------------------------|--------------|
-| `GCMProjectNumber`   | `String`           | GCM ProjectNumber |
-
-
----
 
 ##### <a id="updateServerUninstallToken"> **`updateServerUninstallToken("token"): void`** 
 
