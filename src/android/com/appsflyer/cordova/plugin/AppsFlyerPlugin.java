@@ -75,12 +75,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		else if ("stopTracking".equals(action)) {
 		    return stopTracking(args);
 		}
-		else if ("setCollectIMEI".equals(action)) {
-            return setCollectIMEI(args);
-        }
-		else if ("setCollectAndroidID".equals(action)) {
-            return setCollectAndroidID(args);
-        }
 		else if("initSdk".equals(action))
 		{
 			return initSdk(args,callbackContext);
@@ -308,35 +302,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 		return true;
 	}
-
-
-	private boolean setCollectIMEI(JSONArray parameters) {
-
-		boolean isCollect = true;
-		try {
-			isCollect = parameters.getBoolean(0);
-		} catch (JSONException e) {
-			e.printStackTrace();
-			return true; //TODO error
-		}
-
-		AppsFlyerLib.getInstance().setCollectIMEI(isCollect);
-		return true;
-	}
-
-
-	private boolean setCollectAndroidID(JSONArray parameters){
-		boolean isCollect = true;
-		try {
-			isCollect = parameters.getBoolean(0);
-		} catch (JSONException e) {
-			e.printStackTrace();
-			return true; //TODO error
-		}
-
-		AppsFlyerLib.getInstance().setCollectAndroidID(isCollect);
-		return true;
-		    }
 
 	private boolean setCurrencyCode(JSONArray parameters){
 
