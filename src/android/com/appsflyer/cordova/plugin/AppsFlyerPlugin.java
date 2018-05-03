@@ -72,6 +72,15 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		else if ("setDeviceTrackingDisabled".equals(action)) {
 			return setDeviceTrackingDisabled(args);
 		}
+		else if ("stopTracking".equals(action)) {
+		    return stopTracking(args);
+		}
+		else if ("setCollectIMEI".equals(action)) {
+            return setCollectIMEI(args);
+        }
+		else if ("setCollectAndroidID".equals(action)) {
+            return setCollectAndroidID(args);
+        }
 		else if("initSdk".equals(action))
 		{
 			return initSdk(args,callbackContext);
@@ -396,6 +405,21 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		}
 		return true;
 	}
+
+		private boolean stopTracking(JSONArray parameters){
+
+    		try
+    		{
+    			boolean isStopTracking = parameters.getBoolean(0);
+    			AppsFlyerLib.getInstance().stopTracking(isStopTracking, cordova.getActivity().getApplicationContext());
+    		}
+    		catch (JSONException e)
+    		{
+    			e.printStackTrace();
+    			return true; //TODO error
+    		}
+    		return true;
+    	}
 
 	private static Map<String,Object> jsonToMap(String inputString){
 		Map<String,Object> newMap = new HashMap<String, Object>();

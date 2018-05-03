@@ -134,6 +134,21 @@ static NSString *const SUCCESS         = @"Success";
     }
 }
 
+- (void)stopTracking:(CDVInvokedUrlCommand *)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+
+    BOOL isStopValueBool = NO;
+    id isStopValue = nil;
+    isStopValue = [command.arguments objectAtIndex:0];
+    if ([isStopValue isKindOfClass:[NSNumber class]]) {
+        isStopValueBool = [(NSNumber*)isStopValue boolValue];
+        [AppsFlyerTracker sharedTracker].isStopTracking  = isStopValueBool;
+    }
+}
+
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand *)command
 {
     NSString* userId = [[AppsFlyerTracker sharedTracker] getAppsFlyerUID];
