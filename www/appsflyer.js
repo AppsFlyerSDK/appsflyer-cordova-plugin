@@ -77,7 +77,7 @@
 
         AppsFlyer.prototype.stopTracking = function (isStopTracking) {
             argscheck.checkArgs('*', 'AppsFlyer.stopTracking', arguments);
-            exec(null,null,"AppsFlyerPlugin", stopTracking, [isStopTracking]);
+            exec(null,null,"AppsFlyerPlugin", "stopTracking", [isStopTracking]);
         };
 
         AppsFlyer.prototype.trackEvent = function (eventName, eventValue) {
