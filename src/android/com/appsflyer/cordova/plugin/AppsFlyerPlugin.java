@@ -72,6 +72,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		else if ("setDeviceTrackingDisabled".equals(action)) {
 			return setDeviceTrackingDisabled(args);
 		}
+		else if ("stopTracking".equals(action)) {
+		    return stopTracking(args);
+		}
 		else if("initSdk".equals(action))
 		{
 			return initSdk(args,callbackContext);
@@ -300,35 +303,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		return true;
 	}
 
-
-	private boolean setCollectIMEI(JSONArray parameters) {
-
-		boolean isCollect = true;
-		try {
-			isCollect = parameters.getBoolean(0);
-		} catch (JSONException e) {
-			e.printStackTrace();
-			return true; //TODO error
-		}
-
-		AppsFlyerLib.getInstance().setCollectIMEI(isCollect);
-		return true;
-	}
-
-
-	private boolean setCollectAndroidID(JSONArray parameters){
-		boolean isCollect = true;
-		try {
-			isCollect = parameters.getBoolean(0);
-		} catch (JSONException e) {
-			e.printStackTrace();
-			return true; //TODO error
-		}
-
-		AppsFlyerLib.getInstance().setCollectAndroidID(isCollect);
-		return true;
-		    }
-
 	private boolean setCurrencyCode(JSONArray parameters){
 
 		String currencyId=null;
@@ -396,6 +370,21 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		}
 		return true;
 	}
+
+		private boolean stopTracking(JSONArray parameters){
+
+    		try
+    		{
+    			boolean isStopTracking = parameters.getBoolean(0);
+    			AppsFlyerLib.getInstance().stopTracking(isStopTracking, cordova.getActivity().getApplicationContext());
+    		}
+    		catch (JSONException e)
+    		{
+    			e.printStackTrace();
+    			return true; //TODO error
+    		}
+    		return true;
+    	}
 
 	private static Map<String,Object> jsonToMap(String inputString){
 		Map<String,Object> newMap = new HashMap<String, Object>();

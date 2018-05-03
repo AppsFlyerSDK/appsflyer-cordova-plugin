@@ -75,6 +75,11 @@
             exec(null,null,"AppsFlyerPlugin","setDeviceTrackingDisabled", [isDisabled]);
         };
 
+        AppsFlyer.prototype.stopTracking = function (isStopTracking) {
+            argscheck.checkArgs('*', 'AppsFlyer.stopTracking', arguments);
+            exec(null,null,"AppsFlyerPlugin", "stopTracking", [isStopTracking]);
+        };
+
         AppsFlyer.prototype.trackEvent = function (eventName, eventValue) {
             argscheck.checkArgs('SO', 'AppsFlyer.trackEvent', arguments);
             exec(null, null, "AppsFlyerPlugin", "trackEvent", [eventName, eventValue]);
@@ -117,6 +122,7 @@
             argscheck.checkArgs('*', 'AppsFlyer.handleOpenUrl', arguments);
             exec(null, null, "AppsFlyerPlugin", "handleOpenUrl", [url]);
         };
+
 
         global.cordova.addConstructor(function () {
             if (!global.Cordova) {
