@@ -1,4 +1,34 @@
 # Release Notes
+
+
+### 4.4.8
+Release date: May 10 2018
+Release type: Major / Minor / **Hotfix**
+
+Overview and Highlights
+
+- [Android: invalid JSON in initSdk's onSuccess callback on link click](https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/issues/31)
+
+
+
+
+### 4.4.7
+Release date: May 01 2018
+Release type: Major / **Minor** / Hotfix
+
+Overview and Highlights
+
+- Android: updated  to latest SDK: 4.8.10
+
+- Android: Moved from jar to gradle 
+
+- Android: added Google install referrer
+
+- Android: Added 2 APIs: collectAndroidID and collectIMEI
+
+
+
+
 ### 4.4.0
 * changed Android paths to support cordova-android 7.0.0
 

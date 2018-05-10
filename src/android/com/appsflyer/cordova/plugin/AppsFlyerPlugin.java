@@ -205,7 +205,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 intentURI =  c.getIntent().getData();
 
                 if(mAttributionDataListener != null) {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
+                    PluginResult result = new PluginResult(PluginResult.Status.OK, new JSONObject(mAttributionData).toString());
                     result.setKeepCallback(false);
 
                     mAttributionDataListener.sendPluginResult(result);
