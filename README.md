@@ -30,9 +30,12 @@ In order for us to provide optimal support, we would kindly ask you to submit an
 - [API Methods](#api-methods) 
  - [initSdk](#initSdk) 
  - [trackEvent](#trackEvent)
+ - [setCollectIMEI](#initSdk)(Android only)
+ - [setCollectAndroidID](#initSdk)(Android only)
  - [deviceTrackingDisabled](#deviceTrackingDisabled)
  - [setCurrencyCode](#setCurrencyCode)
  - [setAppUserId](#setAppUserId)
+ - [stopTracking](#stopTracking)
  - [enableUninstallTracking](#enableUninstallTracking)
  - [updateServerUninstallToken](#updateServerUninstallToken)
  - [getAppsFlyerUID](#getAppsFlyerUID)
@@ -40,7 +43,7 @@ In order for us to provide optimal support, we would kindly ask you to submit an
  - [generateInviteLink](#generateInviteLink)
  - [trackCrossPromotionImpression](#trackCrossPromotionImpression)
  - [trackAndOpenStore](#trackAndOpenStore)
-- [Deep linking Tracking](#deep-linking-tracking) 
+ - [Deep linking Tracking](#deep-linking-tracking) 
  - [Android](#dl-android)
  - [iOS URL Types](#dl-ios)
  - [iOS Universal Links](#dl-ul)
@@ -298,8 +301,31 @@ Setting your own Custom ID enables you to cross-reference your own unique ID wit
 ```javascript
 window.plugins.appsFlyer.setAppUserId(userId);
 ```
+
 ---
 
+
+##### <a id="stopTracking"> **`stopTracking(isStopTracking): void`**
+
+
+Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs. This ID is available in AppsFlyer CSV reports along with postbacks APIs for cross-referencing with you internal IDs.
+ 
+**Note:** The ID must be set during the first launch of the app at the SDK initialization. The best practice is to call this API during the `deviceready` event, where possible.
+
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `isStopTracking`   | `boolean`                      |In some extreme cases you might want to shut down all SDK tracking due to legal and privacy compliance. This can be achieved with the isStopTracking API. Once this API is invoked, our SDK will no longer communicate with our servers and stop functioning. |
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.stopTracking(true);
+```
+
+In any event, the SDK can be reactivated by calling the same API, but to pass false.
+
+---
 
 
 

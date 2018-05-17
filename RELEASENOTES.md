@@ -26,6 +26,8 @@ Overview and Highlights
 
 - Android: Added 2 APIs: collectAndroidID and collectIMEI
 
+- stopTracking API
+
 
 
 
