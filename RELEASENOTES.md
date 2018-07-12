@@ -3,6 +3,7 @@
 
 ### 4.4.8
 Release date: May 10 2018
+
 Release type: Major / Minor / **Hotfix**
 
 Overview and Highlights
@@ -14,6 +15,7 @@ Overview and Highlights
 
 ### 4.4.7
 Release date: May 01 2018
+
 Release type: Major / **Minor** / Hotfix
 
 Overview and Highlights
