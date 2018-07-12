@@ -358,8 +358,8 @@ In any event, the SDK can be reactivated by calling the same API, but to pass fa
 
 | parameter   | type                        | description |
 | ----------- |-----------------------------|--------------|
-| `onSuccess` | `(message: Object)=>void` | Success callback - called after successful SDK initialization. (optional)|
-| `onError`   | `(message: string)=>void` | Error callback - called when error occurs during initialization. (optional)|
+| `onSuccess` | `(message: stringifed JSON)=>void` | Success callback - called after receiving data on App Open Attribution.|
+| `onError`   | `(message: stringifed JSON)=>void` | Error callback - called when error occurs.|
 
 *Example:*
 
@@ -385,7 +385,7 @@ window.plugins.appsFlyer.registerOnAppOpenAttribution(function
      */
    }, 
    function onAppOpenAttributionError(err){
-
+    //...
  });
 ```
 
