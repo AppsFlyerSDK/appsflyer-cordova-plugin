@@ -36,6 +36,7 @@ In order for us to provide optimal support, we would kindly ask you to submit an
  - [setCurrencyCode](#setCurrencyCode)
  - [setAppUserId](#setAppUserId)
  - [stopTracking](#stopTracking)
+ - [registerOnAppOpenAttribution](#registerOnAppOpenAttribution)
  - [enableUninstallTracking](#enableUninstallTracking)
  - [updateServerUninstallToken](#updateServerUninstallToken)
  - [getAppsFlyerUID](#getAppsFlyerUID)
@@ -184,7 +185,9 @@ document.addEventListener("deviceready", function(){
 ```
 
 
+
 ##<a id="api-methods"> API Methods
+
 
 ---
 
@@ -195,7 +198,7 @@ initialize the SDK.
 | parameter   | type                        | description  |
 | ----------- |-----------------------------|--------------|
 | `options`   | `Object`                    |   SDK configuration           |
-| `onSuccess` | `(message: string)=>void` | Success callback - called after successfull SDK initialization. (optional)|
+| `onSuccess` | `(message: string)=>void` | Success callback - called after successful SDK initialization. (optional)|
 | `onError`   | `(message: string)=>void` | Error callback - called when error occurs during initialization. (optional)|
 
 **`options`**
@@ -213,7 +216,27 @@ initialize the SDK.
 
 ```javascript
 var onSuccess = function(result) {
-     //handle result
+  //handle result
+  /*
+  {
+  "data": {
+    "af_dp": "https://ionic.fess.onelink.me",
+    "af_click_lookback": "7d",
+    "install_time": "2018-07-05 08:06:50.828",
+    "cost_cents_USD": "0",
+    "iscache": "true",
+    "media_source": "someMedia",
+    "click_time": "2018-07-05 08:06:02.956",
+    "orig_cost": "0.0",
+    "campaign": "someC",
+    "key": "val",
+    "af_status": "Non-organic",
+    "is_first_launch": "true"
+  },
+  "type": "onAppOpenAttribution",
+  "status": "success"
+}
+*/   
 };
 
 function onError(err) {
@@ -328,6 +351,46 @@ In any event, the SDK can be reactivated by calling the same API, but to pass fa
 ---
 
 
+##### <a id="registerOnAppOpenAttribution"> **`registerOnAppOpenAttribution(onSuccess, onError): void`**
+
+
+
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `onSuccess` | `(message: Object)=>void` | Success callback - called after successful SDK initialization. (optional)|
+| `onError`   | `(message: string)=>void` | Error callback - called when error occurs during initialization. (optional)|
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.registerOnAppOpenAttribution(function        
+   onAppOpenAttributionSuccess(res){
+     /*
+     {
+    "data": {
+      "af_deeplink": "true",
+      "campaign": "boo",
+      "key": "val",
+      "media_source": "someMedia",
+      "install_time": "2018-07-12 13:20:19",
+      "af_status": "Non-organic",
+      "path": "",
+      "scheme": "https",
+      "host": "ionic.fess.onelink.me"
+    },
+    "type": "onAppOpenAttribution",
+    "status": "success"
+  }
+     */
+   }, 
+   function onAppOpenAttributionError(err){
+
+ });
+```
+
+---
+
 
 ##### <a id="enableUninstallTracking"> **`enableUninstallTracking(token, onSuccess, onError): void`** 
 
@@ -337,7 +400,7 @@ Enables app uninstall tracking.
 | parameter   | type                        | description |
 | ----------- |-----------------------------|--------------|
 | `FCM/GCM ProjectNumber`   | `String`    | GCM/FCM ProjectNumber |
-| `onSuccess` | `(message: string)=>void` | Success callback - called after successfull register uninstall. (optional)|
+| `onSuccess` | `(message: string)=>void` | Success callback - called after successful register uninstall. (optional)|
 | `onError`   | `(message: string)=>void` | Error callback - called when error occurs during register uninstall. (optional)|
 
 

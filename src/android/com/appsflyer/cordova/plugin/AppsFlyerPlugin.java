@@ -61,6 +61,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		{
 			return setCurrencyCode(args);
 		}
+		else if("registerOnAppOpenAttribution".equals(action)){
+			return registerOnAppOpenAttribution(callbackContext);
+		}
 		else if("setAppUserId".equals(action))
 		{
 			return setAppUserId(args, callbackContext);
@@ -118,6 +121,15 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         AppsFlyerLib.getInstance().trackEvent(c, null, null);
     }
 
+    private boolean registerOnAppOpenAttribution(final CallbackContext callbackContext){
+
+		if(mAttributionDataListener == null) {
+			mAttributionDataListener = callbackContext;
+		}
+
+		return true;
+	}
+
 	/**
 	 *
 	 * @param args
@@ -163,9 +175,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 			if(isConversionData == true){
 
-				if(mAttributionDataListener == null) {
-					mAttributionDataListener = callbackContext;
-				}
+//				if(mAttributionDataListener == null) {
+//					mAttributionDataListener = callbackContext;
+//				}
 
 				if(mConversionListener == null){
 					mConversionListener = callbackContext;
@@ -204,13 +216,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 mAttributionData = attributionData;
                 intentURI =  c.getIntent().getData();
 
-                if(mAttributionDataListener != null) {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, new JSONObject(mAttributionData).toString());
-                    result.setKeepCallback(false);
+				handleSuccess(AF_ON_APP_OPEN_ATTRIBUTION, mAttributionData);
 
-                    mAttributionDataListener.sendPluginResult(result);
-                    mAttributionDataListener = null;
-                }
+
 
 			}
 
@@ -264,8 +272,22 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 				final String jsonStr = params.toString();
 
+				if(
+						( params.optString("type") == AF_ON_ATTRIBUTION_FAILURE
+						||params.optString("type") == AF_ON_APP_OPEN_ATTRIBUTION )
+								&& mAttributionDataListener != null)
+				{
+					PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
+					result.setKeepCallback(false);
 
-				if (mConversionListener != null) {
+					mAttributionDataListener.sendPluginResult(result);
+					mAttributionDataListener = null;
+				}
+				else if(
+						(params.optString("type") == AF_ON_INSTALL_CONVERSION_DATA_LOADED
+						|| params.optString("type") == AF_ON_INSTALL_CONVERSION_FAILURE)
+								&&  mConversionListener != null)
+				{
 					PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
 					result.setKeepCallback(false);
 
