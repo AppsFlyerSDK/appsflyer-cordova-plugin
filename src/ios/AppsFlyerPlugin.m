@@ -1,641 +1,463 @@
-package com.appsflyer.cordova.plugin;
+#import "AppsFlyerPlugin.h"
+#import "AppsFlyerTracker.h"
+#import "AppDelegate.h"
 
-import android.net.Uri;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaInterface;
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CordovaWebView;
-import org.apache.cordova.PluginResult;
-import org.json.JSONObject;
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import com.appsflyer.AppsFlyerConversionListener;
-import com.appsflyer.AppsFlyerLib;
-import com.appsflyer.AppsFlyerProperties;
-import com.appsflyer.CreateOneLinkHttpTask;
-import com.appsflyer.share.CrossPromotionHelper;
-import com.appsflyer.share.LinkGenerator;
-import com.appsflyer.share.ShareInviteHelper;
-
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.util.Log;
+@implementation AppsFlyerPlugin
 
 
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.*;
+static NSString *const NO_DEVKEY_FOUND = @"AppsFlyer 'devKey' is missing or empty";
+static NSString *const NO_APPID_FOUND  = @"'appId' is missing or empty";
+static NSString *const SUCCESS         = @"Success";
 
-public class AppsFlyerPlugin extends CordovaPlugin {
+ NSString* mConversionListener;
+ NSString* mAttributionDataListener;
+ NSString* mConversionListenerOnResume;
+ NSString* mInviteListener;
+ BOOL isConversionData = NO;
+    
+- (void)pluginInitialize{}
 
-    private CallbackContext mConversionListener = null;
-    private CallbackContext mAttributionDataListener = null;
-    private Map<String, String> mAttributionData = null;
-    private CallbackContext mInviteListener = null;
-    private Uri intentURI = null;
-    private Uri newIntentURI = null;
-    private Activity c;
-
-    @Override
-    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-        super.initialize(cordova, webView);
+- (void)initSdk:(CDVInvokedUrlCommand*)command
+{
+    NSDictionary* initSdkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
+    
+    NSString* devKey = nil;
+    NSString* appId = nil;
+    BOOL isDebug = NO;
+    
+    
+    if (![initSdkOptions isKindOfClass:[NSNull class]]) {
+        
+        id value = nil;
+        id isConversionDataValue = nil;
+        devKey = (NSString*)[initSdkOptions objectForKey: afDevKey];
+        appId = (NSString*)[initSdkOptions objectForKey: afAppId];
+        
+        value = [initSdkOptions objectForKey: afIsDebug];
+        if ([value isKindOfClass:[NSNumber class]]) {
+            isDebug = [(NSNumber*)value boolValue];
+        }
+        isConversionDataValue = [initSdkOptions objectForKey: afConversionData];
+        if ([isConversionDataValue isKindOfClass:[NSNumber class]]) {
+            isConversionData = [(NSNumber*)isConversionDataValue boolValue];
+        }
     }
-
-    /**
-     * Called when the activity receives a new intent.
-     */
-    @Override
-    public void onNewIntent(Intent intent) {
-        cordova.getActivity().setIntent(intent);
-        AppsFlyerLib.getInstance().sendDeepLinkData(cordova.getActivity());
+    
+    NSString* error = nil;
+    
+    if (!devKey || [devKey isEqualToString:@""]) {
+        error = NO_DEVKEY_FOUND;
     }
-
-    @Override
-    public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        Log.d("AppsFlyer", "Executing...");
-        if("setCurrencyCode".equals(action))
-        {
-            return setCurrencyCode(args);
-        }
-        else if("registerOnAppOpenAttribution".equals(action)){
-            return registerOnAppOpenAttribution(callbackContext);
-        }
-        else if("setAppUserId".equals(action))
-        {
-            return setAppUserId(args, callbackContext);
-        }
-        else if("getAppsFlyerUID".equals(action))
-        {
-            return getAppsFlyerUID(callbackContext);
-        }
-        else if ("setDeviceTrackingDisabled".equals(action)) {
-            return setDeviceTrackingDisabled(args);
-        }
-        else if ("stopTracking".equals(action)) {
-            return stopTracking(args);
-        }
-        else if("initSdk".equals(action))
-        {
-            return initSdk(args,callbackContext);
-        }
-        else if ("trackEvent".equals(action)) {
-            return trackEvent(args, callbackContext);
-        }
-        else if ("setGCMProjectID".equals(action)) {
-            return setGCMProjectNumber(args);
-        }
-        else if("enableUninstallTracking".equals(action))
-        {
-            return enableUninstallTracking(args, callbackContext);
-        }
-        else if ("updateServerUninstallToken".equals(action)) {
-            return updateServerUninstallToken(args, callbackContext);
-        }
-        else if ("setAppInviteOneLinkID".equals(action)) {
-            return setAppInviteOneLinkID(args, callbackContext);
-        }
-        else if ("generateInviteLink".equals(action)) {
-            return generateInviteLink(args, callbackContext);
-        }
-        else if ("trackCrossPromotionImpression".equals(action)) {
-            return trackCrossPromotionImpression(args, callbackContext);
-        }
-        else if ("trackAndOpenStore".equals(action)) {
-            return trackAndOpenStore(args, callbackContext);
-        }
-        else if("resumeSDK".equals(action))
-        {
-            return onResume(args, callbackContext);
-        }
-
-        return false;
+    else if (!appId || [appId isEqualToString:@""]) {
+        error = NO_APPID_FOUND;
     }
-
-    private void trackAppLaunch() {
-        c = this.cordova.getActivity();
-        AppsFlyerLib.getInstance().sendDeepLinkData(c);
-        AppsFlyerLib.getInstance().trackEvent(c, null, null);
+    
+    if(error != nil){
+        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: error];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        return;
     }
-
-    private boolean registerOnAppOpenAttribution(final CallbackContext callbackContext){
-
-        if(mAttributionDataListener == null) {
-            mAttributionDataListener = callbackContext;
-        }
-
-        return true;
-    }
-
-    /**
-     *
-     * @param args
-     * @param callbackContext
-     */
-    private boolean initSdk(final JSONArray args, final CallbackContext callbackContext) {
-
-
-        String devKey = null;
-        boolean isConversionData;
-        boolean isDebug = false;
-        AppsFlyerConversionListener gcdListener = null;
-
-        AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
-        AppsFlyerLib instance = AppsFlyerLib.getInstance();
-
-        try{
-            final JSONObject options = args.getJSONObject(0);
-
-            devKey = options.optString(AF_DEV_KEY, "");
-            isConversionData = options.optBoolean(AF_CONVERSION_DATA, false);
-
-            if(devKey.trim().equals("")){
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
-            }
-
-            isDebug = options.optBoolean(AF_IS_DEBUG, false);
-
-            if(options.has(AF_COLLECT_ANDROID_ID)){
-                AppsFlyerLib.getInstance().setCollectAndroidID(options.optBoolean(AF_COLLECT_ANDROID_ID, true));
-            }
-            if(options.has(AF_COLLECT_IMEI)){
-                AppsFlyerLib.getInstance().setCollectIMEI(options.optBoolean(AF_COLLECT_IMEI, true));
-            }
-
-            instance.setDebugLog(isDebug);
-
-            if(isDebug == true){
-                Log.d("AppsFlyer", "Starting Tracking");
-            }
-
-            if(isConversionData == true){
-                if(mConversionListener == null){
-                    mConversionListener = callbackContext;
-                }
-
-                gcdListener = registerConversionListener(instance);
-            }
-            else{
-                callbackContext.success(SUCCESS);
-            }
-
-            instance.init(devKey, gcdListener, cordova.getActivity());
-
-            trackAppLaunch();
-            instance.startTracking(c.getApplication());
-
-            if(gcdListener != null){
-                sendPluginNoResult(callbackContext);
-            }
-            else{
-                callbackContext.success(SUCCESS);
-            }
-        }
-        catch (JSONException e){
-            e.printStackTrace();
-        }
-
-        return true;
-    }
-
-    private AppsFlyerConversionListener registerConversionListener(AppsFlyerLib instance){
-        return new AppsFlyerConversionListener(){
-
-            @Override
-            public void onAppOpenAttribution(Map<String, String> attributionData) {
-                mAttributionData = attributionData;
-                intentURI =  c.getIntent().getData();
-
-                handleSuccess(AF_ON_APP_OPEN_ATTRIBUTION, mAttributionData);
-            }
-
-            @Override
-            public void onAttributionFailure(String errorMessage) {
-                handleError(AF_ON_ATTRIBUTION_FAILURE, errorMessage);
-            }
-
-            @Override
-            public void onInstallConversionDataLoaded(Map<String, String> conversionData) {
-                handleSuccess(AF_ON_INSTALL_CONVERSION_DATA_LOADED, conversionData);
-
-            }
-
-            @Override
-            public void onInstallConversionFailure(String errorMessage) {
-                handleError(AF_ON_INSTALL_CONVERSION_FAILURE, errorMessage);
-            }
-
-
-            private void handleError(String eventType, String errorMessage){
-
-                try {
-                    JSONObject obj = new JSONObject();
-
-                    obj.put("status", AF_FAILURE);
-                    obj.put("type", eventType);
-                    obj.put("data", errorMessage);
-
-                    sendEvent(obj);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            private void handleSuccess(String eventType, Map<String, String> data){
-                try {
-                    JSONObject obj = new JSONObject();
-
-                    obj.put("status", AF_SUCCESS);
-                    obj.put("type", eventType);
-                    obj.put("data", new JSONObject(data));
-
-                    sendEvent(obj);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            private void sendEvent(JSONObject params) {
-
-                final String jsonStr = params.toString();
-
-                if(
-                        ( params.optString("type") == AF_ON_ATTRIBUTION_FAILURE
-                        ||params.optString("type") == AF_ON_APP_OPEN_ATTRIBUTION )
-                                && mAttributionDataListener != null)
-                {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
-                    result.setKeepCallback(false);
-
-                    mAttributionDataListener.sendPluginResult(result);
-                    mAttributionDataListener = null;
-                }
-                else if(
-                        (params.optString("type") == AF_ON_INSTALL_CONVERSION_DATA_LOADED
-                        || params.optString("type") == AF_ON_INSTALL_CONVERSION_FAILURE)
-                                &&  mConversionListener != null)
-                {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
-                    result.setKeepCallback(false);
-
-                    mConversionListener.sendPluginResult(result);
-                    mConversionListener = null;
-                }
-            }
-        };
-    }
-
-    private boolean trackEvent(JSONArray parameters, final CallbackContext callbackContext) {
-        String eventName;
-        Map<String, Object> eventValues = null;
-        try{
-            eventName = parameters.getString(0);
-
-            if(parameters.length() >1 && !parameters.get(1).equals(null)){
-                JSONObject jsonEventValues = parameters.getJSONObject(1);
-                eventValues = jsonToMap(jsonEventValues.toString());
-            }
-        }
-        catch (JSONException e){
-            e.printStackTrace();
-            return true;
-        }
-
-        if(eventName == null || eventName.trim().length()==0){
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_EVENT_NAME_FOUND));
-            return true;
-        }
-
-        Context c = this.cordova.getActivity().getApplicationContext();
-        AppsFlyerLib.getInstance().trackEvent(c, eventName, eventValues);
-
-        return true;
-    }
-
-    private boolean setCurrencyCode(JSONArray parameters){
-
-        String currencyId=null;
-        try
-        {
-            currencyId = parameters.getString(0);
-        }
-        catch (JSONException e)
-        {
-            e.printStackTrace();
-            return true; //TODO error
-        }
-        if(currencyId == null || currencyId.length()==0)
-        {
-            return true; //TODO error
-        }
-        AppsFlyerLib.getInstance().setCurrencyCode(currencyId);
-
-        return true;
-    }
-
-    private boolean setAppUserId(JSONArray parameters, CallbackContext callbackContext){
-
-        try
-        {
-            String customeUserId = parameters.getString(0);
-            if(customeUserId == null || customeUserId.length()==0){
-                return true; //TODO error
-            }
-            AppsFlyerLib.getInstance().setAppUserId(customeUserId);
-            PluginResult r = new PluginResult(PluginResult.Status.OK);
-            r.setKeepCallback(false);
-            callbackContext.sendPluginResult(r);
-        }
-        catch (JSONException e)
-        {
-            e.printStackTrace();
-            return true; //TODO error
-        }
-
-        return true;
-    }
-
-    private boolean getAppsFlyerUID(CallbackContext callbackContext){
-
-        String id = AppsFlyerLib.getInstance().getAppsFlyerUID(cordova.getActivity().getApplicationContext());
-        PluginResult r = new PluginResult(PluginResult.Status.OK, id);
-        r.setKeepCallback(false);
-        callbackContext.sendPluginResult(r);
-
-        return true;
-    }
-
-    private boolean setDeviceTrackingDisabled(JSONArray parameters){
-
-        try
-        {
-            boolean isDisabled = parameters.getBoolean(0);
-            AppsFlyerLib.getInstance().setDeviceTrackingDisabled(isDisabled);
-        }
-        catch (JSONException e)
-        {
-            e.printStackTrace();
-            return true; //TODO error
-        }
-        return true;
-    }
-
-        private boolean stopTracking(JSONArray parameters){
-
-            try
-            {
-                boolean isStopTracking = parameters.getBoolean(0);
-                AppsFlyerLib.getInstance().stopTracking(isStopTracking, cordova.getActivity().getApplicationContext());
-            }
-            catch (JSONException e)
-            {
-                e.printStackTrace();
-                return true; //TODO error
-            }
-            return true;
-        }
-
-    private static Map<String,Object> jsonToMap(String inputString){
-        Map<String,Object> newMap = new HashMap<String, Object>();
-
-        try {
-            JSONObject jsonObject = new JSONObject(inputString);
-            Iterator iterator = jsonObject.keys();
-            while (iterator.hasNext()){
-                String key = (String) iterator.next();
-                newMap.put(key,jsonObject.getString(key));
-
-            }
-        } catch(JSONException e) {
-            return null;
-        }
-
-        return newMap;
-    }
-
-    @Deprecated
-    private boolean setGCMProjectNumber(JSONArray parameters) {
-        String gcmProjectId = null;
-        try {
-            gcmProjectId = parameters.getString(0);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        if(gcmProjectId == null || gcmProjectId.length()==0){
-            return true;//TODO error
-        }
-        Context c = this.cordova.getActivity().getApplicationContext();
-        AppsFlyerLib.getInstance().setGCMProjectNumber(c, gcmProjectId);
-        return true;
-    }
-
-    private boolean updateServerUninstallToken(JSONArray parameters, CallbackContext callbackContext) {
-        String token = parameters.optString(0);
-        if (token != null && token.length() > 0) {
-            Context c = this.cordova.getActivity().getApplicationContext();
-            AppsFlyerLib.getInstance().updateServerUninstallToken(c,token);
-            callbackContext.success(SUCCESS);
-            return true;
-        }
-        else {
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "Not a valid token"));
-        }
-        return true;
-    }
-
-    private boolean enableUninstallTracking(JSONArray parameters, CallbackContext callbackContext){
-
-        String gcmProjectNumber = parameters.optString(0);
-
-        if(gcmProjectNumber == null || gcmProjectNumber.length()==0){
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_GCM_PROJECT_NUMBER_PROVIDED));
-            return true;
-        }
-
-        AppsFlyerLib.getInstance().enableUninstallTracking(gcmProjectNumber);
-        callbackContext.success(SUCCESS);
-        return true;
-    }
-
-    private boolean onResume(JSONArray parameters, CallbackContext callbackContext){
-        Intent intent = cordova.getActivity().getIntent();
-        newIntentURI = intent.getData();
-
-        if (newIntentURI != intentURI) {
-            if (mAttributionData != null) {
-                PluginResult r = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
-                callbackContext.sendPluginResult(r);
-                mAttributionData = null;
-            } else {
-                mAttributionDataListener = callbackContext;
-                sendPluginNoResult(callbackContext);
-            }
+    else{
+        
+        [AppsFlyerTracker sharedTracker].appleAppID = appId;
+        [AppsFlyerTracker sharedTracker].appsFlyerDevKey = devKey;
+        [AppsFlyerTracker sharedTracker].isDebug = isDebug;
+        [[AppsFlyerTracker sharedTracker] trackAppLaunch];
+
+        
+        if(isConversionData == YES){
+          CDVPluginResult* pluginResult = nil;
+          mConversionListener = command.callbackId;
             
-            intentURI = newIntentURI;
+          [AppsFlyerTracker sharedTracker].delegate = self;
+         
+          pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+          [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
         }
-        return true;
-    }
-
-    // USER INVITE
-    private boolean setAppInviteOneLinkID(JSONArray parameters, CallbackContext callbackContext) {
-        try {
-            String oneLinkID = parameters.getString(0);
-            if (oneLinkID == null || oneLinkID.length() == 0) {
-                return true; //TODO error
-            }
-            AppsFlyerLib.getInstance().setAppInviteOneLink(oneLinkID);
-            callbackContext.success(SUCCESS);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return true; //TODO error
-        }
-        return true;
-    }
-
-    private boolean generateInviteLink(JSONArray args, CallbackContext callbackContext) {
-
-        String channel = null;
-        String campaign = null;
-        String referrerName = null;
-        String referrerImageUrl = null;
-        String customerID = null;
-        String baseDeepLink = null;
-
-        try {
-            final JSONObject options = args.getJSONObject(0);
-
-            channel = options.optString(INVITE_CHANNEL, "");
-            campaign = options.optString(INVITE_CAMPAIGN, "");
-            referrerName = options.optString(INVITE_REFERRER, "");
-            referrerImageUrl = options.optString(INVITE_IMAGEURL, "");
-            customerID = options.optString(INVITE_CUSTOMERID, "");
-            baseDeepLink = options.optString(INVITE_DEEPLINK, "");
-
-            Context context = this.cordova.getActivity().getApplicationContext();
-            LinkGenerator linkGenerator = ShareInviteHelper.generateInviteUrl(context);
-
-            if (channel !=null && channel != ""){
-                linkGenerator.setChannel(channel);
-            }
-            if (campaign !=null && campaign != ""){
-                linkGenerator.setCampaign(campaign);
-            }
-            if (referrerName !=null && referrerName != ""){
-                linkGenerator.setReferrerName(referrerName);
-            }
-            if (referrerImageUrl !=null && referrerImageUrl != ""){
-                linkGenerator.setReferrerImageURL(referrerImageUrl);
-            }
-            if (customerID !=null && customerID != ""){
-                linkGenerator.setReferrerCustomerId(customerID);
-            }
-            if (baseDeepLink !=null && baseDeepLink != ""){
-                linkGenerator.setBaseDeeplink(baseDeepLink);
-            }
-
-            if (options.length() > 1 && !options.get("userParams").equals("")) {
-                JSONObject jsonCustomValues = options.getJSONObject("userParams");
-
-                Iterator<?> keys = jsonCustomValues.keys();
-
-                while( keys.hasNext() ) {
-                    String key = (String)keys.next();
-                    Object keyvalue = jsonCustomValues.get(key);
-                    linkGenerator.addParameter(key, keyvalue.toString());
-                }
-            }
-
-            linkGenerator.generateLink(context, new inviteCallbacksImpl());
-            mInviteListener = callbackContext;
-            sendPluginNoResult(mInviteListener);
-        }
-        catch (JSONException e) {
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, INVITE_FAIL));
-        }
-        return  true;
-    }
-
-    private class inviteCallbacksImpl implements CreateOneLinkHttpTask.ResponseListener {
-        @Override
-        public void onResponse(String s) {
-            PluginResult result = new PluginResult(PluginResult.Status.OK, s);
-            result.setKeepCallback(false);
-            mInviteListener.sendPluginResult(result);
-        }
-
-        @Override
-        public void onResponseError(String s) {
-
+        else{
+            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:SUCCESS];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         }
     }
+  }
+    
+- (void)resumeSDK:(CDVInvokedUrlCommand *)command
+  {
+      [[AppsFlyerTracker sharedTracker] trackAppLaunch];
+      
+      
+      if (isConversionData == YES) {
+          CDVPluginResult* pluginResult = nil;
+          mConversionListenerOnResume = command.callbackId;
+          
+          pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+          [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+      }
+      else {
+          CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:SUCCESS];
+          [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+      }
+  }
 
-    // CROSS PROMOTION
-    public boolean trackCrossPromotionImpression(JSONArray parameters, CallbackContext callbackContext) {
-        String promotedAppId = null;
-        String campaign = null;
-
-        try {
-            final JSONObject options = parameters.getJSONObject(0);
-
-            promotedAppId = options.optString(PROMOTE_ID, "");
-            campaign = options.optString(INVITE_CAMPAIGN, "");
-
-            if (promotedAppId !=null && promotedAppId != "") {
-                Context context = this.cordova.getActivity().getApplicationContext();
-                CrossPromotionHelper.trackCrossPromoteImpression(context,promotedAppId,campaign);
-            }
-            else {
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromoted App ID Not set"));
-                return true;
-            }
-
-        } catch (JSONException e) {
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromotionImpression Failed"));
-        }
-        return true;
-
+    
+- (void)setCurrencyCode:(CDVInvokedUrlCommand*)command
+{
+    if ([command.arguments count] == 0) {
+        return;
     }
+    
+    NSString* currencyId = [command.arguments objectAtIndex:0];
+    [AppsFlyerTracker sharedTracker].currencyCode = currencyId;
+}
 
-           public boolean trackAndOpenStore(JSONArray parameters, CallbackContext callbackContext) {
-        String promotedAppId = null;
-        String campaign = null;
-        Map<String, String> userParams = null;
-        try {
-            promotedAppId = parameters.getString(0);
-            campaign = parameters.getString(1);
-            if (promotedAppId !=null && promotedAppId != "") {
-                Context context = this.cordova.getActivity().getApplicationContext();
-                if (!parameters.isNull(2)) {
-                    Map<String,String> newUserParams = new HashMap<String,String>();
-                    JSONObject usrParams = parameters.optJSONObject(2);
-                    Iterator<?> keys = usrParams.keys();
-                    while (keys.hasNext()) {
-                        String key = (String) keys.next();
-                        Object keyvalue = usrParams.get(key);
-                        newUserParams.put(key,keyvalue.toString());
-                    }
-                    userParams = newUserParams;
-                }
-                CrossPromotionHelper.trackAndOpenStore(context,promotedAppId,campaign, userParams);
-            }
-            else {
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromoted App ID Not set"));
-                return true;
-            }
-        } catch (JSONException e) {
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromotion Failed"));
-        }
-        return true;
+- (void)setAppUserId:(CDVInvokedUrlCommand *)command
+{
+    if ([command.arguments count] == 0) {
+        return;
     }
+    
+    NSString* userId = [command.arguments objectAtIndex:0];
+    [AppsFlyerTracker sharedTracker].customerUserID  = userId;
+}
 
-    private void sendPluginNoResult(CallbackContext callbackContext) {
-        PluginResult pluginResult = new PluginResult(
-                PluginResult.Status.NO_RESULT);
-        pluginResult.setKeepCallback(true);
-        callbackContext.sendPluginResult(pluginResult);
+- (void)setDeviceTrackingDisabled:(CDVInvokedUrlCommand *)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+    
+    BOOL isDisValueBool = NO;
+    id isDisValue = nil;
+    isDisValue = [command.arguments objectAtIndex:0];
+    if ([isDisValue isKindOfClass:[NSNumber class]]) {
+        isDisValueBool = [(NSNumber*)isDisValue boolValue];
+        [AppsFlyerTracker sharedTracker].deviceTrackingDisabled  = isDisValueBool;
     }
 }
+
+- (void)stopTracking:(CDVInvokedUrlCommand *)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+
+    BOOL isStopValueBool = NO;
+    id isStopValue = nil;
+    isStopValue = [command.arguments objectAtIndex:0];
+    if ([isStopValue isKindOfClass:[NSNumber class]]) {
+        isStopValueBool = [(NSNumber*)isStopValue boolValue];
+        [AppsFlyerTracker sharedTracker].isStopTracking  = isStopValueBool;
+    }
+}
+
+- (void)getAppsFlyerUID:(CDVInvokedUrlCommand *)command
+{
+    NSString* userId = [[AppsFlyerTracker sharedTracker] getAppsFlyerUID];
+    CDVPluginResult *pluginResult = [ CDVPluginResult
+                                    resultWithStatus    : CDVCommandStatus_OK
+                                    messageAsString: userId
+                                    ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command
+{
+    mAttributionDataListener = command.callbackId;
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+}
+
+- (void)sendTrackingWithEvent:(CDVInvokedUrlCommand *)command
+{
+    if ([command.arguments count] < 2) {
+        return;
+    }
+    
+    NSString* eventName = [command.arguments objectAtIndex:0];
+    NSString* eventValue = [command.arguments objectAtIndex:1];
+    [[AppsFlyerTracker sharedTracker] trackEvent:eventName withValue:eventValue];
+}
+
+
+- (void)trackEvent:(CDVInvokedUrlCommand*)command {
+
+    NSString* eventName = [command.arguments objectAtIndex:0];
+    NSDictionary* eventValues = [command.arguments objectAtIndex:1];
+    [[AppsFlyerTracker sharedTracker] trackEvent:eventName withValues:eventValues];
+
+}
+
+- (void)registerUninstall:(CDVInvokedUrlCommand*)command {
+
+    NSData* token = [command.arguments objectAtIndex:0];
+    NSString *deviceToken = [NSString stringWithFormat:@"%@",token];
+    
+    if(deviceToken!=nil){
+        [[AppsFlyerTracker sharedTracker] registerUninstall:token];
+    }else{
+        NSLog(@"Invalid device token");
+    }
+}
+
+//USER INVITES
+    
+- (void)setAppInviteOneLinkID:(CDVInvokedUrlCommand*)command {
+    if ([command.arguments count] == 0) {
+        return;
+    }
+    NSString* oneLinkID = [command.arguments objectAtIndex:0];
+    [AppsFlyerTracker sharedTracker].appInviteOneLinkID = oneLinkID;
+}
+    
+- (void)generateInviteLink:(CDVInvokedUrlCommand*)command {
+    NSDictionary* inviteLinkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
+    NSDictionary* customParams = [command argumentAtIndex:1 withDefault:[NSNull null]];
+    
+    NSString *channel = nil;
+    NSString *campaign = nil;
+    NSString *referrerName = nil;
+    NSString *referrerImageUrl = nil;
+    NSString *customerID = nil;
+    NSString *baseDeepLink = nil;
+    
+    if (![inviteLinkOptions isKindOfClass:[NSNull class]]) {
+        channel = (NSString*)[inviteLinkOptions objectForKey: afUiChannel];
+        campaign = (NSString*)[inviteLinkOptions objectForKey: afUiCampaign];
+        referrerName = (NSString*)[inviteLinkOptions objectForKey: afUiRefName];
+        referrerImageUrl = (NSString*)[inviteLinkOptions objectForKey: afUiImageUrl];
+        customerID = (NSString*)[inviteLinkOptions objectForKey: afUiCustomerID];
+        baseDeepLink = (NSString*)[inviteLinkOptions objectForKey: afUiBaseDeepLink];
+        
+        [AppsFlyerShareInviteHelper generateInviteUrlWithLinkGenerator:^AppsFlyerLinkGenerator * _Nonnull(AppsFlyerLinkGenerator * _Nonnull generator) {
+            if (channel != nil && ![channel isEqualToString:@""]) {
+                [generator setChannel:channel];
+            }
+            if (campaign != nil && ![campaign isEqualToString:@""]) {
+                [generator setCampaign:campaign];
+            }
+            if (referrerName != nil && ![referrerName isEqualToString:@""]) {
+                [generator setReferrerName:referrerName];
+            }
+            if (referrerImageUrl != nil && ![referrerImageUrl isEqualToString:@""]) {
+                [generator setReferrerImageURL:referrerImageUrl];
+            }
+            if (customerID != nil && ![customerID isEqualToString:@""]) {
+                [generator setReferrerCustomerId:customerID];
+            }
+            if (baseDeepLink != nil && ![baseDeepLink isEqualToString:@""]) {
+                [generator setDeeplinkPath:baseDeepLink];
+            }
+            
+            if (![customParams isKindOfClass:[NSNull class]]) {
+                    [generator addParameters:customParams];
+            }
+            
+            return generator;
+        } completionHandler: ^(NSURL * _Nullable url) {
+            mInviteListener = url.absoluteString;
+                if (mInviteListener != nil) {
+                CDVPluginResult *pluginResult = [ CDVPluginResult
+                                                 resultWithStatus    : CDVCommandStatus_OK
+                                                 messageAsString: mInviteListener
+                                                 ];
+                
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+            }
+         }];
+    }
+}
+    
+//CROSS PROMOTION
+-(void)trackCrossPromotionImpression:(CDVInvokedUrlCommand*) command {
+    
+    if ([command.arguments count] == 0) {
+        return;
+    }
+    
+    NSString* campaign = nil;
+    NSString* promtAppID = [command.arguments objectAtIndex:0];
+    campaign = [command.arguments objectAtIndex:1];
+    
+    if (promtAppID != nil && ![promtAppID isEqualToString:@""]) {
+        [AppsFlyerCrossPromotionHelper trackCrossPromoteImpression:promtAppID campaign:campaign];
+    }
+}
+
+-(void)trackAndOpenStore:(CDVInvokedUrlCommand*) command {
+    
+    if ([command.arguments count] == 0) {
+        return;
+    }
+
+    NSString* promtAppID = [command.arguments objectAtIndex:0];
+    NSString* campaign = [command.arguments objectAtIndex:1];
+    NSDictionary* customParams = [command argumentAtIndex:2 withDefault:[NSNull null]];
+    
+    if (promtAppID != nil && ![promtAppID isEqualToString:@""]) {
+        [AppsFlyerShareInviteHelper generateInviteUrlWithLinkGenerator:^AppsFlyerLinkGenerator * _Nonnull(AppsFlyerLinkGenerator * _Nonnull generator) {
+            if (campaign != nil && ![campaign isEqualToString:@""]) {
+                [generator setCampaign:campaign];
+            }
+            if (![customParams isKindOfClass:[NSNull class]]) {
+                [generator addParameters:customParams];
+            }
+            
+            return generator;
+        } completionHandler: ^(NSURL * _Nullable url) {
+            NSString *appLink = url.absoluteString;
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:appLink] options:@{} completionHandler:^(BOOL success) {
+                CDVPluginResult* pluginResult =  [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+                [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+            }];
+        }];
+    }
+}
+
+-(void)onConversionDataReceived:(NSDictionary*) installData {
+    
+    NSDictionary* message = @{
+                              @"status": afSuccess,
+                              @"type": afOnInstallConversionDataLoaded,
+                              @"data": installData
+                              };
+    
+    [self performSelectorOnMainThread:@selector(handleCallback:) withObject:message waitUntilDone:NO];
+}
+
+
+-(void)onConversionDataRequestFailure:(NSError *) _errorMessage {
+    
+    NSDictionary* errorMessage = @{
+                                   @"status": afFailure,
+                                   @"type": afOnInstallConversionFailure,
+                                   @"data": _errorMessage.localizedDescription
+                                   };
+    
+    [self performSelectorOnMainThread:@selector(handleCallback:) withObject:errorMessage waitUntilDone:NO];
+}
+
+
+- (void) onAppOpenAttribution:(NSDictionary*) attributionData {
+    
+    NSDictionary* message = @{
+                              @"status": afSuccess,
+                              @"type": afOnAppOpenAttribution,
+                              @"data": attributionData
+                              };
+    
+    [self performSelectorOnMainThread:@selector(handleCallback:) withObject:message waitUntilDone:NO];
+}
+
+- (void) onAppOpenAttributionFailure:(NSError *)_errorMessage {
+    
+    NSDictionary* errorMessage = @{
+                                   @"status": afFailure,
+                                   @"type": afOnAttributionFailure,
+                                   @"data": _errorMessage.localizedDescription
+                                   };
+    
+    [self performSelectorOnMainThread:@selector(handleCallback:) withObject:errorMessage waitUntilDone:NO];
+}
+
+
+-(void) handleCallback:(NSDictionary *) message{
+    NSError *error;
+    
+    NSData *jsonMessage = [NSJSONSerialization dataWithJSONObject:message
+                                                          options:0
+                                                            error:&error];
+    if (jsonMessage) {
+        NSString *jsonMessageStr = [[NSString alloc] initWithBytes:[jsonMessage bytes] length:[jsonMessage length] encoding:NSUTF8StringEncoding];
+        
+        NSString* status = (NSString*)[message objectForKey: @"status"];
+        NSString* type = (NSString*)[message objectForKey: @"type"];
+        
+        if([status isEqualToString:afSuccess]){
+            [self reportOnSuccess:jsonMessageStr withType:type];
+        }
+        else{
+            [self reportOnFailure:jsonMessageStr withType:type];
+        }
+        
+        NSLog(@"jsonMessageStr = %@",jsonMessageStr);
+    } else {
+        NSLog(@"%@",error);
+    }
+}
+
+-(void) reportOnFailure:(NSString *)errorMessage withType:(NSString *)type{
+    
+    if([type isEqualToString:afOnAttributionFailure]){
+        //TODO
+    }
+    else if([type isEqualToString:afOnInstallConversionFailure]){
+        if (mConversionListenerOnResume != nil) {
+            mConversionListenerOnResume = nil;
+        }
+        
+        if(mConversionListener != nil){
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:errorMessage];
+            [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListener];
+            
+            mConversionListener = nil;
+        }
+    }
+}
+
+-(void) reportOnSuccess:(NSString *)data withType:(NSString *)type {
+    
+    if([type isEqualToString:afOnAppOpenAttribution]){
+        if(mAttributionDataListener != nil){
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
+            [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:mAttributionDataListener];
+            mAttributionDataListener = nil;
+        }
+    }
+    else if([type isEqualToString:afOnInstallConversionDataLoaded]){
+        if (mConversionListenerOnResume != nil) {
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
+            [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListenerOnResume];
+            
+            mConversionListenerOnResume = nil;
+        }
+        
+        if(mConversionListener != nil){
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
+            [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListener];
+            
+            mConversionListener = nil;
+        }
+    }
+}
+- (void) handleOpenUrl:(CDVInvokedUrlCommand*)command {
+    NSURL *url = [NSURL URLWithString:
+        [[command.arguments objectAtIndex:0]
+            stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    [[AppsFlyerTracker sharedTracker] handleOpenUrl:url options:nil];
+}
+
+
+@end
+
+
+// Universal Links Support - AppDelegate interface:
+@interface AppDelegate (AppsFlyerPlugin)
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler;
+
+@end
+
+// Universal Links Support - AppDelegate implementation:
+@implementation AppDelegate (AppsFlyerPlugin)
+
+- (BOOL) application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray *_Nullable))restorationHandler
+{
+    [[AppsFlyerTracker sharedTracker] continueUserActivity:userActivity restorationHandler:restorationHandler];
+    return YES;
+}
+
+@end
