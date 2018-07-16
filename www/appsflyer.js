@@ -32,23 +32,32 @@ if (!window.CustomEvent) {
 
       document.addEventListener("resume", this.onResume.bind(this), false);
 
-      callbackMap = {
-        suc: successCB,
-        err: errorCB
-      };
+      callbackMap.convSuc = successCB;
+      callbackMap.convErr = errorCB;
 
     }
   };
 
   AppsFlyer.prototype.registerOnAppOpenAttribution = function (onAppOpenAttributionSuccess, onAppOpenAttributionError) {
     argscheck.checkArgs('FF', 'AppsFlyer.registerOnAppOpenAttribution', arguments);
+
+    callbackMap.attrSuc = onAppOpenAttributionSuccess;
+    callbackMap.attrErr = onAppOpenAttributionError;
+
     exec(onAppOpenAttributionSuccess, onAppOpenAttributionError, "AppsFlyerPlugin", "registerOnAppOpenAttribution", []);
     };
 
 
 
   AppsFlyer.prototype.onResume = function() {
-    exec(callbackMap.suc, callbackMap.err, "AppsFlyerPlugin", "resumeSDK", []);
+    
+    if(callbackMap.convSuc){
+      exec(callbackMap.convSuc, callbackMap.convErr, "AppsFlyerPlugin", "resumeSDK", []);
+    }
+
+    if(callbackMap.attrSuc){
+      exec(callbackMap.attrSuc, callbackMap.attrErr, "AppsFlyerPlugin", "registerOnAppOpenAttribution", []);
+    }    
   };
 
 
