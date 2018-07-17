@@ -21,7 +21,7 @@
 - (void)generateInviteLink:(CDVInvokedUrlCommand*)command;
 - (void)trackCrossPromotionImpression:(CDVInvokedUrlCommand *)command;
 - (void)trackAndOpenStore:(CDVInvokedUrlCommand *)command;
-
+- (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command;
 @end
 
 
