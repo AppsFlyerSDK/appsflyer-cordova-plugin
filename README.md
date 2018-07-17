@@ -219,6 +219,8 @@ var onSuccess = function(result) {
   //handle result
   /*
   {
+  "status": "success",
+  "type": "onInstallConversionDataLoaded",
   "data": {
     "af_dp": "https://ionic.fess.onelink.me",
     "af_click_lookback": "7d",
@@ -228,13 +230,11 @@ var onSuccess = function(result) {
     "media_source": "someMedia",
     "click_time": "2018-07-05 08:06:02.956",
     "orig_cost": "0.0",
-    "campaign": "someC",
+    "campaign": "boo",
     "key": "val",
     "af_status": "Non-organic",
-    "is_first_launch": "true"
-  },
-  "type": "onAppOpenAttribution",
-  "status": "success"
+    "is_first_launch": "false"
+  }
 }
 */   
 };
