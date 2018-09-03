@@ -16,11 +16,12 @@
 - (void)registerUninstall:(CDVInvokedUrlCommand*)command;
 - (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
 - (void)setDeviceTrackingDisabled:(CDVInvokedUrlCommand *)command;
+- (void)stopTracking:(CDVInvokedUrlCommand *) command;
 - (void)setAppInviteOneLinkID:(CDVInvokedUrlCommand *)command;
 - (void)generateInviteLink:(CDVInvokedUrlCommand*)command;
 - (void)trackCrossPromotionImpression:(CDVInvokedUrlCommand *)command;
 - (void)trackAndOpenStore:(CDVInvokedUrlCommand *)command;
-
+- (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command;
 @end
 
 

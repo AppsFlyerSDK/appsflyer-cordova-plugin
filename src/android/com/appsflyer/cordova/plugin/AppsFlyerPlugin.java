@@ -61,6 +61,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		{
 			return setCurrencyCode(args);
 		}
+		else if("registerOnAppOpenAttribution".equals(action)){
+			return registerOnAppOpenAttribution(callbackContext);
+		}
 		else if("setAppUserId".equals(action))
 		{
 			return setAppUserId(args, callbackContext);
@@ -71,6 +74,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		}
 		else if ("setDeviceTrackingDisabled".equals(action)) {
 			return setDeviceTrackingDisabled(args);
+		}
+		else if ("stopTracking".equals(action)) {
+		    return stopTracking(args);
 		}
 		else if("initSdk".equals(action))
 		{
@@ -115,6 +121,15 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         AppsFlyerLib.getInstance().trackEvent(c, null, null);
     }
 
+    private boolean registerOnAppOpenAttribution(final CallbackContext callbackContext){
+
+		if(mAttributionDataListener == null) {
+			mAttributionDataListener = callbackContext;
+		}
+
+		return true;
+	}
+
 	/**
 	 *
 	 * @param args
@@ -126,6 +141,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		String devKey = null;
 		boolean isConversionData;
 		boolean isDebug = false;
+		AppsFlyerConversionListener gcdListener = null;
 
 		AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
 		AppsFlyerLib instance = AppsFlyerLib.getInstance();
@@ -142,34 +158,48 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 			isDebug = options.optBoolean(AF_IS_DEBUG, false);
 
+			if(options.has(AF_COLLECT_ANDROID_ID)){
+				AppsFlyerLib.getInstance().setCollectAndroidID(options.optBoolean(AF_COLLECT_ANDROID_ID, true));
+			}
+			if(options.has(AF_COLLECT_IMEI)){
+				AppsFlyerLib.getInstance().setCollectIMEI(options.optBoolean(AF_COLLECT_IMEI, true));
+			}
+
+
+
 			instance.setDebugLog(isDebug);
 
 			if(isDebug == true){
                 Log.d("AppsFlyer", "Starting Tracking");
 			}
 
-			trackAppLaunch();
-			instance.startTracking(c.getApplication(), devKey);
-
-
 			if(isConversionData == true){
 
-                if(mAttributionDataListener == null) {
-                    mAttributionDataListener = callbackContext;
-                }
+//				if(mAttributionDataListener == null) {
+//					mAttributionDataListener = callbackContext;
+//				}
 
 				if(mConversionListener == null){
 					mConversionListener = callbackContext;
 				}
 
-                registerConversionListener(instance);
-                sendPluginNoResult(callbackContext);
-
+				gcdListener = registerConversionListener(instance);
 			}
 			else{
 				callbackContext.success(SUCCESS);
 			}
 
+			instance.init(devKey, gcdListener, cordova.getActivity());
+
+			trackAppLaunch();
+			instance.startTracking(c.getApplication());
+
+			if(gcdListener != null){
+				sendPluginNoResult(callbackContext);
+			}
+			else{
+				callbackContext.success(SUCCESS);
+			}
 		}
 		catch (JSONException e){
 			e.printStackTrace();
@@ -178,21 +208,17 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		return true;
 	}
 
-	private void registerConversionListener(AppsFlyerLib instance){
-		instance.registerConversionListener(cordova.getActivity().getApplicationContext(), new AppsFlyerConversionListener(){
+	private AppsFlyerConversionListener registerConversionListener(AppsFlyerLib instance){
+		return new AppsFlyerConversionListener(){
 
 			@Override
 			public void onAppOpenAttribution(Map<String, String> attributionData) {
                 mAttributionData = attributionData;
                 intentURI =  c.getIntent().getData();
 
-                if(mAttributionDataListener != null) {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
-                    result.setKeepCallback(false);
+				handleSuccess(AF_ON_APP_OPEN_ATTRIBUTION, mAttributionData);
 
-                    mAttributionDataListener.sendPluginResult(result);
-                    mAttributionDataListener = null;
-                }
+
 
 			}
 
@@ -246,8 +272,22 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 				final String jsonStr = params.toString();
 
+				if(
+						( params.optString("type") == AF_ON_ATTRIBUTION_FAILURE
+						||params.optString("type") == AF_ON_APP_OPEN_ATTRIBUTION )
+								&& mAttributionDataListener != null)
+				{
+					PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
+					result.setKeepCallback(false);
 
-				if (mConversionListener != null) {
+					mAttributionDataListener.sendPluginResult(result);
+					mAttributionDataListener = null;
+				}
+				else if(
+						(params.optString("type") == AF_ON_INSTALL_CONVERSION_DATA_LOADED
+						|| params.optString("type") == AF_ON_INSTALL_CONVERSION_FAILURE)
+								&&  mConversionListener != null)
+				{
 					PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
 					result.setKeepCallback(false);
 
@@ -255,7 +295,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 					mConversionListener = null;
 				}
 			}
-		});
+		};
 	}
 
 	private boolean trackEvent(JSONArray parameters, final CallbackContext callbackContext) {
@@ -353,6 +393,21 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 		return true;
 	}
 
+		private boolean stopTracking(JSONArray parameters){
+
+    		try
+    		{
+    			boolean isStopTracking = parameters.getBoolean(0);
+    			AppsFlyerLib.getInstance().stopTracking(isStopTracking, cordova.getActivity().getApplicationContext());
+    		}
+    		catch (JSONException e)
+    		{
+    			e.printStackTrace();
+    			return true; //TODO error
+    		}
+    		return true;
+    	}
+
 	private static Map<String,Object> jsonToMap(String inputString){
 		Map<String,Object> newMap = new HashMap<String, Object>();
 
@@ -418,20 +473,20 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     private boolean onResume(JSONArray parameters, CallbackContext callbackContext){
         Intent intent = cordova.getActivity().getIntent();
-		if (intent != null) {
-			newIntentURI = intent.getData();
-			if (newIntentURI != intentURI) {
-				if (mAttributionData != null) {
-					PluginResult r = new PluginResult(PluginResult.Status.OK, mAttributionData.toString());
-					callbackContext.sendPluginResult(r);
-					mAttributionData = null;
-				} else {
-					mAttributionDataListener = callbackContext;
-					sendPluginNoResult(callbackContext);
-				}
-				intentURI = newIntentURI;
-			}
-		}
+        newIntentURI = intent.getData();
+
+        if (newIntentURI != intentURI) {
+            if (mAttributionData != null) {
+                PluginResult r = new PluginResult(PluginResult.Status.OK, new JSONObject(mAttributionData).toString());
+                callbackContext.sendPluginResult(r);
+                mAttributionData = null;
+            } else {
+                mAttributionDataListener = callbackContext;
+                sendPluginNoResult(callbackContext);
+            }
+            
+            intentURI = newIntentURI;
+        }
         return true;
     }
 

@@ -2,7 +2,7 @@
 //  AppsFlyerTracker.h
 //  AppsFlyerLib
 //
-//  AppsFlyer iOS SDK 4.8.1 (602)
+//  AppsFlyer iOS SDK 4.8.9 (728)
 //  Copyright (c) 2013 AppsFlyer Ltd. All rights reserved.
 //
 
@@ -37,9 +37,13 @@
 #define AFEventLocation                 @"af_location_coordinates"
 #define AFEventCustomerSegment          @"af_customer_segment"
 
-
+#define AFEventSubscribe                @"af_subscribe"
+#define AFEventStartTrial               @"af_start_trial"
+#define AFEventAdClick                  @"af_ad_click"
+#define AFEventAdView                   @"af_ad_view"
 
 // In app event parameter names
+#define AFEventParamContent                @"af_content"
 #define AFEventParamAchievenmentId         @"af_achievement_id"
 #define AFEventParamLevel                  @"af_level"
 #define AFEventParamScore                  @"af_score"
@@ -112,12 +116,17 @@
 #define AFEventParamHotelScore              @"af_hotel_score"
 #define AFEventParamPurchaseCurrency        @"af_purchase_currency"
 
-#define AFEventParamPreferredStarRatings    @"af_preferred_star_ratings"	//array of int (basically a tupple (min,max) but we'll use array of int and instruct the developer to use two values)
+#define AFEventParamPreferredStarRatings    @"af_preferred_star_ratings"    //array of int (basically a tupple (min,max) but we'll use array of int and instruct the developer to use two values)
 
-#define AFEventParamPreferredPriceRange     @"af_preferred_price_range"	//array of int (basically a tupple (min,max) but we'll use array of int and instruct the developer to use two values)
+#define AFEventParamPreferredPriceRange     @"af_preferred_price_range"    //array of int (basically a tupple (min,max) but we'll use array of int and instruct the developer to use two values)
 #define AFEventParamPreferredNeighborhoods  @"af_preferred_neighborhoods" //array of string
 #define AFEventParamPreferredNumStops       @"af_preferred_num_stops"
 
+#define AFEventParamAdRevenueAdType              @"af_adrev_ad_type"
+#define AFEventParamAdRevenueNetworkName         @"af_adrev_network_name"
+#define AFEventParamAdRevenuePlacementId         @"af_adrev_placement_id"
+#define AFEventParamAdRevenueAdSize              @"af_adrev_ad_size"
+#define AFEventParamAdRevenueMediatedNetworkName @"af_adrev_mediated_network_name"
 
 #define kAppsFlyerOneLinkVersion @"oneLinkVersion"
 #define kAppsFlyerOneLinkScheme  @"oneLinkScheme"
@@ -149,15 +158,7 @@ typedef enum  {
 
 @end
 
-@interface AppsFlyerTracker : NSObject {
-
-    BOOL _isDebug;
-    BOOL permitAggregateiAdData;
-    BOOL _useReceiptValidationSandbox;
-    BOOL _useUninstallSandbox;
-    EmailCryptType emailCryptType;
-    NSArray *userEmails;
-}
+@interface AppsFlyerTracker : NSObject
 
 +(AppsFlyerTracker*) sharedTracker;
 
@@ -180,10 +181,6 @@ typedef enum  {
  */
 @property (nonatomic, strong) NSString *currencyCode;
 
-
-/* AppsFlyer's SDK send the data to AppsFlyer's servers over HTTPS. You can set the isHTTPS property to NO in order to use regular HTTP. */
-//@property BOOL isHTTPS;
-
 /* 
  * AppsFLyer SDK collect Apple's advertisingIdentifier if the AdSupport framework included in the SDK.
  * You can disable this behavior by setting the following property to YES.
@@ -197,8 +194,8 @@ typedef enum  {
 @property (nonatomic, setter = setIsDebug:) BOOL isDebug;
 
 
-/*
- * Set this flag to NO, to not collect the device name.
+/*!
+ *  Set this flag to `YES`, to collect the current device name. Default value is `NO`
  */
 @property (nonatomic, setter = setShouldCollectDeviceName:) BOOL shouldCollectDeviceName;
 
@@ -293,12 +290,12 @@ typedef enum  {
 /*
  * In case you want to track deep linking, call this method from your delegate's openURL method.
  */
-- (void) handleOpenURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication __attribute__((deprecated));
+- (void) handleOpenURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication;
 
 /*
  * In case you want to track deep linking, call this method from your delegate's openURL method with refferer.
  */
-- (void) handleOpenURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication withAnnotation:(id) annotation __attribute__((deprecated));
+- (void) handleOpenURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication withAnnotation:(id) annotation;
 
 
 - (void) handleOpenUrl:(NSURL *) url options:(NSDictionary *)options;
@@ -325,11 +322,6 @@ typedef enum  {
 
 - (void) remoteDebuggingCallWithData:(NSString *) data;
 
-//- (void) crossPromotionViewed:(NSString*) appID campaign:(NSString*) campaign;
-//- (void) openAppStoreForAppID:(NSString*) appID campaign:(NSString*)
-//campaign paramters:(NSDictionary*) parameters
-//               viewController: (UIViewController*) viewController;
-
 /*!
  *  @brief This property accepts a string value representing the host name for all enpoints.
  *  @warning To use `default` SDK endpoint – set value to `nil`.
@@ -348,5 +340,10 @@ typedef enum  {
  *  Default value is 5 seconds.
  */
 @property (atomic) NSUInteger minTimeBetweenSessions;
-    
+
+/*!
+ *  WARNING! This will disable all requests from AppsFlyer SDK
+ */
+@property (atomic) BOOL isStopTracking;
+
 @end
