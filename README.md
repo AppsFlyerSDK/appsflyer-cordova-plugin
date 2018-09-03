@@ -53,8 +53,8 @@ In order for us to provide optimal support, we would kindly ask you to submit an
 
 ### <a id="plugin-build-for"> This plugin is built for
 
-- iOS AppsFlyerSDK **v4.8.1**
-- Android AppsFlyerSDK **v4.8.3**
+- iOS AppsFlyerSDK **v4.8.8**
+- Android AppsFlyerSDK **v4.8.15**
 
 
 ## <a id="installation-using-cli"> Installation using CLI:
