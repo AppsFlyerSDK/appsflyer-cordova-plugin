@@ -1,3 +1,4 @@
+
 <img src="https://www.appsflyer.com/wp-content/uploads/2016/11/logo-1.svg"  width="200">
 
 # Cordova AppsFlyer plugin for Android and iOS. 
@@ -31,6 +32,7 @@ In order for us to provide optimal support, we would kindly ask you to submit an
  - [enableUninstallTracking](#enableUninstallTracking)
  - [setGCMProjectID](#setGCMProjectID)
  - [updateServerUninstallToken](#updateServerUninstallToken)
+ -  [stopTracking](#stopTracking)
  - [getAppsFlyerUID](#getAppsFlyerUID)
  - [setAppInviteOneLinkID](#setAppInviteOneLinkID)
  - [generateInviteLink](#generateInviteLink)
@@ -315,6 +317,68 @@ AppsFlyer requires a Google Project Number to enable uninstall tracking.
 | `GCMProjectNumber`   | `String`           | GCM/FCM Token |
 
 
+---
+  
+##### <a id="stopTracking"> **`stopTracking(isStopTracking): void`**
+
+
+Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs. This ID is available in AppsFlyer CSV reports along with postbacks APIs for cross-referencing with you internal IDs.
+ 
+**Note:** The ID must be set during the first launch of the app at the SDK initialization. The best practice is to call this API during the `deviceready` event, where possible.
+
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `isStopTracking`   | `boolean`                      |In some extreme cases you might want to shut down all SDK tracking due to legal and privacy compliance. This can be achieved with the isStopTracking API. Once this API is invoked, our SDK will no longer communicate with our servers and stop functioning. |
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.stopTracking(true);
+```
+
+In any event, the SDK can be reactivated by calling the same API, but to pass false.
+
+---
+
+
+##### <a id="registerOnAppOpenAttribution"> **`registerOnAppOpenAttribution(onSuccess, onError): void`**
+
+
+
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `onSuccess` | `(message: stringifed JSON)=>void` | Success callback - called after receiving data on App Open Attribution.|
+| `onError`   | `(message: stringifed JSON)=>void` | Error callback - called when error occurs.|
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.registerOnAppOpenAttribution(function        
+   onAppOpenAttributionSuccess(res){
+     /*
+     {
+    "data": {
+      "af_deeplink": "true",
+      "campaign": "boo",
+      "key": "val",
+      "media_source": "someMedia",
+      "install_time": "2018-07-12 13:20:19",
+      "af_status": "Non-organic",
+      "path": "",
+      "scheme": "https",
+      "host": "ionic.fess.onelink.me"
+    },
+    "type": "onAppOpenAttribution",
+    "status": "success"
+  }
+     */
+   }, 
+   function onAppOpenAttributionError(err){
+    //...
+ });
+```
 ---
 
 ##### <a id="updateServerUninstallToken"> **`updateServerUninstallToken("token"): void`** 

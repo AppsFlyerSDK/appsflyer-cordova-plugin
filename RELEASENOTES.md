@@ -1,9 +1,22 @@
+#Release Notes
+### 4.3.3 (Sept 3, 2018)
+Updated the  Cordova@6.x (android@7.x) compatible plugin:
+* onConversionData/onAppOpenAttribution cannot return at once bug fix
+* stopTracking() API for Android and iOS
+* Android SDK v4.8.15
+* iOS SDK v.4.8.8
+
+### 4.3.1 (Jul 24 2018)
+iOS SDK v4.8.1
+Android SDK v4.8.3
+
+
 # Release Notes
 ### 4.2.10 (Nov 30, 2016)
 * updated iOS Appsflyer SDK vertsion to 4.5.12
 * updated Android Appsflyer SDK vertsion to 4.6.1
 
-# Release Notes
+
 ### 4.2.9 (Nov 25, 2016)
 * moved from PhoneGap to cordova-plugin-appsflyer-sdk
 * onInstallConversionDataListener added to `initSdk`
