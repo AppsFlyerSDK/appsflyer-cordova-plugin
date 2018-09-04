@@ -2,7 +2,7 @@
 //  AppsFlyerTracker.h
 //  AppsFlyerLib
 //
-//  AppsFlyer iOS SDK 4.8.4 (636)
+//  AppsFlyer iOS SDK 4.8.9 (728)
 //  Copyright (c) 2013 AppsFlyer Ltd. All rights reserved.
 //
 
@@ -37,6 +37,10 @@
 #define AFEventLocation                 @"af_location_coordinates"
 #define AFEventCustomerSegment          @"af_customer_segment"
 
+#define AFEventSubscribe                @"af_subscribe"
+#define AFEventStartTrial               @"af_start_trial"
+#define AFEventAdClick                  @"af_ad_click"
+#define AFEventAdView                   @"af_ad_view"
 
 // In app event parameter names
 #define AFEventParamContent                @"af_content"
@@ -112,12 +116,17 @@
 #define AFEventParamHotelScore              @"af_hotel_score"
 #define AFEventParamPurchaseCurrency        @"af_purchase_currency"
 
-#define AFEventParamPreferredStarRatings    @"af_preferred_star_ratings"	//array of int (basically a tupple (min,max) but we'll use array of int and instruct the developer to use two values)
+#define AFEventParamPreferredStarRatings    @"af_preferred_star_ratings"    //array of int (basically a tupple (min,max) but we'll use array of int and instruct the developer to use two values)
 
-#define AFEventParamPreferredPriceRange     @"af_preferred_price_range"	//array of int (basically a tupple (min,max) but we'll use array of int and instruct the developer to use two values)
+#define AFEventParamPreferredPriceRange     @"af_preferred_price_range"    //array of int (basically a tupple (min,max) but we'll use array of int and instruct the developer to use two values)
 #define AFEventParamPreferredNeighborhoods  @"af_preferred_neighborhoods" //array of string
 #define AFEventParamPreferredNumStops       @"af_preferred_num_stops"
 
+#define AFEventParamAdRevenueAdType              @"af_adrev_ad_type"
+#define AFEventParamAdRevenueNetworkName         @"af_adrev_network_name"
+#define AFEventParamAdRevenuePlacementId         @"af_adrev_placement_id"
+#define AFEventParamAdRevenueAdSize              @"af_adrev_ad_size"
+#define AFEventParamAdRevenueMediatedNetworkName @"af_adrev_mediated_network_name"
 
 #define kAppsFlyerOneLinkVersion @"oneLinkVersion"
 #define kAppsFlyerOneLinkScheme  @"oneLinkScheme"
