@@ -4,6 +4,6 @@ repositories {
 
 dependencies {
 	compile 'com.android.installreferrer:installreferrer:1.0'
-	compile 'com.appsflyer:af-android-sdk:4.8.11@aar'
+	compile 'com.appsflyer:af-android-sdk:4.8.15@aar'
 
 }

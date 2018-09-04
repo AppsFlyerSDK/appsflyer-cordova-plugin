@@ -1,3 +1,4 @@
+
 <img src="https://www.appsflyer.com/wp-content/uploads/2016/11/logo-1.svg"  width="200">
 
 # Cordova AppsFlyer plugin for Android and iOS. 
@@ -7,7 +8,7 @@
 ----------
 **Important!** <br>
 Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with **cordova-android@7.0.0**
-<br>For lower versions of cordova-android please use plugin version 4.3.0 available @ https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/tree/releases/4.x.x/4.3.x/4.3.0_cordova_android_6
+<br>For lower versions of cordova-android please use plugin version 4.3.3 available @ https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/tree/4.3.3
 
 ----------
 In order for us to provide optimal support, we would kindly ask you to submit any issues to support@appsflyer.com
@@ -59,8 +60,8 @@ In order for us to provide optimal support, we would kindly ask you to submit an
 
 ### <a id="plugin-build-for"> This plugin is built for
 
-- iOS AppsFlyerSDK **v4.8.4**
-- Android AppsFlyerSDK **v4.8.11**
+- iOS AppsFlyerSDK **v4.8.9**
+- Android AppsFlyerSDK **v4.8.15**
 
 
 ## <a id="installation-using-cli"> Installation using CLI:
