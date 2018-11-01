@@ -139,6 +139,10 @@ if (!window.CustomEvent) {
     exec(null, null, "AppsFlyerPlugin", "handleOpenUrl", [url]);
   };
 
+  AppsFlyer.prototype.registerUninstall = function (token) {
+    argscheck.checkArgs('*', 'AppsFlyer.registerUninstall', arguments);
+    exec(null, null, "AppsFlyerPlugin", "registerUninstall", [token]);
+  };
 
   global.cordova.addConstructor(function () {
     if (!global.Cordova) {
