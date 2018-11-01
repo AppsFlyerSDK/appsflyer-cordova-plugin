@@ -38,8 +38,9 @@ In order for us to provide optimal support, we would kindly ask you to submit an
  - [setAppUserId](#setAppUserId)
  - [stopTracking](#stopTracking)
  - [registerOnAppOpenAttribution](#registerOnAppOpenAttribution)
- - [enableUninstallTracking](#enableUninstallTracking)
- - [updateServerUninstallToken](#updateServerUninstallToken)
+ - [enableUninstallTracking](#enableUninstallTracking)(Android only)
+ - [updateServerUninstallToken](#updateServerUninstallToken)(Android only)
+ - [registerUninstall](#registerUninstall)(iOS only)
  - [getAppsFlyerUID](#getAppsFlyerUID)
  - [setAppInviteOneLinkID](#setAppInviteOneLinkID)
  - [generateInviteLink](#generateInviteLink)
@@ -395,7 +396,7 @@ window.plugins.appsFlyer.registerOnAppOpenAttribution(function
 
 ##### <a id="enableUninstallTracking"> **`enableUninstallTracking(token, onSuccess, onError): void`** 
 
-Enables app uninstall tracking.
+(Android) Enables app uninstall tracking.
 <a href="https://support.appsflyer.com/hc/en-us/articles/211211963-iOS-Uninstall-Tracking">More Information</a>
 
 | parameter   | type                        | description |
@@ -411,13 +412,26 @@ Enables app uninstall tracking.
 
 ##### <a id="updateServerUninstallToken"> **`updateServerUninstallToken("token"): void`** 
 
-Allows to pass GCM/FCM Tokens that where collected by third party plugins to the AppsFlyer server.
+(Android) Allows to pass GCM/FCM Tokens that where collected by third party plugins to the AppsFlyer server.
 Can be used for Uninstall Tracking.
 
 
 | parameter   | type                        | description |
 | ----------- |-----------------------------|--------------|
 | `token`   | `String`                      | GCM/FCM Token|
+
+
+---
+
+##### <a id="registerUninstall"> **`registerUninstall("token"): void`** 
+
+(iOS) Allows to pass APN Tokens that where collected by third party plugins to the AppsFlyer server.
+Can be used for Uninstall Tracking.
+
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `token`   | `String`                      | APN Token|
 
 
 ---
