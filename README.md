@@ -61,8 +61,8 @@ In order for us to provide optimal support, we would kindly ask you to submit an
 
 ### <a id="plugin-build-for"> This plugin is built for
 
-- iOS AppsFlyerSDK **v4.8.9**
-- Android AppsFlyerSDK **v4.8.15**
+- iOS AppsFlyerSDK **v4.8.10**
+- Android AppsFlyerSDK **v4.8.17**
 
 
 ## <a id="installation-using-cli"> Installation using CLI:
@@ -422,6 +422,8 @@ Can be used for Uninstall Tracking.
 
 
 ---
+
+
 
 ##### <a id="registerUninstall"> **`registerUninstall("token"): void`** 
 

@@ -1,6 +1,22 @@
 # Release Notes
 
 
+### 4.4.10
+Release date: **Nov 01 2018**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- Added new method API for iOS: `registerUninstall`
+
+- Updated Android SDK to latest 4.8.17
+
+- Updated iOS SDK to latest 4.8.10
+
+
+---
+
+
 ### 4.4.8
 Release date: May 10 2018
 
@@ -9,6 +25,10 @@ Release type: Major / Minor / **Hotfix**
 Overview and Highlights
 
 - [Android: invalid JSON in initSdk's onSuccess callback on link click](https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/issues/31)
+
+
+
+---
 
 
 
@@ -29,6 +49,10 @@ Overview and Highlights
 - Android: Added 2 APIs: collectAndroidID and collectIMEI
 
 - stopTracking API
+
+
+
+---
 
 
 
