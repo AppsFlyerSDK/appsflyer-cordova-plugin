@@ -1,5 +1,17 @@
 # Release Notes
 
+### 4.4.12
+Release date **Nov 14 2018**
+Release type: Major / Minor / **Hotfix**
+
+**Overview and Highlights:**
+
+- Fixed Android platform <source-file /> tag to work with Cordova-Android 7.1.0 and above
+
+- Updated Android SDK to v4.8.18
+
+- Updated iOS SDK to v4.8.10
+
 
 ### 4.4.10
 Release date: **Nov 01 2018**
