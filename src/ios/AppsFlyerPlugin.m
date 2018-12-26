@@ -454,10 +454,11 @@ static NSString *const SUCCESS         = @"Success";
 // Universal Links Support - AppDelegate implementation:
 @implementation AppDelegate (AppsFlyerPlugin)
 
-- (BOOL) application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray *_Nullable))restorationHandler
-{
-    [[AppsFlyerTracker sharedTracker] continueUserActivity:userActivity restorationHandler:restorationHandler];
-    return YES;
-}
+// Depricated: swizzeled method see AppsFlyerX+AppController.m
+// - (BOOL) application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray *_Nullable))restorationHandler
+// {
+//     [[AppsFlyerTracker sharedTracker] continueUserActivity:userActivity restorationHandler:restorationHandler];
+//     return YES;
+// }
 
 @end
