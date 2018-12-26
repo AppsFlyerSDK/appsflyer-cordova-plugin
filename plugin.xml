@@ -21,7 +21,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="cordova-plugin-appsflyer-sdk"
-        version="4.2.18">
+        version="4.4.13">
     <name>AppsFlyer</name>
     <description>Cordova Plugin AppsFlyer</description>
     <license>Apache 2.0</license>
@@ -49,11 +49,11 @@
                 <param name="android-package" value="com.appsflyer.cordova.plugin.AppsFlyerPlugin"/>
             </feature>
         </config-file>
-        <config-file target="AndroidManifest.xml" parent="/manifest">
+        <config-file target="app/src/main/AndroidManifest.xml" parent="/manifest" mode="merge">
             <uses-permission android:name="android.permission.INTERNET"/>
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
         </config-file>
-        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+        <config-file target="app/src/main/AndroidManifest.xml" parent="/manifest/application" mode="merge">
             <receiver android:name="com.appsflyer.MultipleInstallBroadcastReceiver" android:exported="true">
                 <intent-filter>
                     <action android:name="com.android.vending.INSTALL_REFERRER" />
@@ -63,10 +63,9 @@
 
         <source-file src="src/android/com/appsflyer/cordova/plugin/AppsFlyerPlugin.java" target-dir="src/com/appsflyer/cordova/plugin" />
         <source-file src="src/android/com/appsflyer/cordova/plugin/AppsFlyerConstants.java" target-dir="src/com/appsflyer/cordova/plugin" />
-        <source-file src="src/android/libs/AF-Android-SDK.jar" target-dir="libs"/>
+        
         <framework src="src/android/cordovaAF.gradle" custom="true" type="gradleReference" />
     </platform>
-
 
 
     <!-- ios -->
@@ -79,6 +78,9 @@
         <header-file src="src/ios/AppsFlyerPlugin.h" />
         <header-file src="src/ios/AppsFlyerTracker.h" />
         <source-file src="src/ios/AppsFlyerPlugin.m" />
+        <header-file src="src/ios/AppsFlyerLinkGenerator.h" />
+        <header-file src="src/ios/AppsFlyerCrossPromotionHelper.h" />
+        <header-file src="src/ios/AppsFlyerShareInviteHelper.h" />
         <source-file src="src/ios/libAppsFlyerLib.a" compiler-flags="-lAppsFlyerLib" framework="true" />
         <framework src="AdSupport.framework" weak="true" />
         <framework src="iAd.framework" weak="true" />

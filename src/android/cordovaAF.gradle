@@ -1,3 +1,9 @@
+repositories {
+	mavenCentral()
+}
+
 dependencies {
-	compile files('libs/AF-Android-SDK.jar')
+	compile 'com.android.installreferrer:installreferrer:1.0'
+	compile 'com.appsflyer:af-android-sdk:4.8.18@aar'
+
 }
