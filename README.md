@@ -582,17 +582,11 @@ var handleOpenURL = function(url) {
 #### <a id='dl-ul'>Universal Links in iOS
 To enable Universal Links in iOS please follow the guide <a href="https://support.appsflyer.com/hc/en-us/articles/207032266-Setting-Deeplinking-on-iOS9-using-iOS-Universal-Links">here</a>.
 
-##### **Note**: Our plugin utilizes the
+##### **Note**: Our plugin uses method swizzeling for
 
  ` - (BOOL)application:(UIApplication *)application 
  continueUserActivity:(NSUserActivity *)userActivity
  restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler; ` 
-
-##### method for Universal Links support. 
-
-##### ***If additional instances of the method exist in your code - merge all calls into one***
-
-##### (Available on cordova-plugin-appsflyer-sdk 4.2.24 and higher )
 
 ---
 
