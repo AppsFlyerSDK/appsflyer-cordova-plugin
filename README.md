@@ -154,39 +154,35 @@ Add the following lines to your code to be able to initialize tracking with your
 
 ##### <a id="usage-pure"> **for pure Cordova:**
 ```javascript
-document.addEventListener("deviceready", function(){
-    
-   var options = {
-             devKey:  'xxXXXXXxXxXXXXxXXxxxx8'// your AppsFlyer devKey               
-           };
+document.addEventListener('deviceready', function() {
+  var options = {
+    devKey: 'xxXXXXXxXxXXXXxXXxxxx8' // your AppsFlyer devKey               
+  };
 
-    var userAgent = window.navigator.userAgent.toLowerCase();
-                          
-    if (/iphone|ipad|ipod/.test( userAgent )) {
-        options.appId = "123456789";            // your ios app id in app store        
-    }
-    window.plugins.appsFlyer.initSdk(options);
+  var userAgent = window.navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test( userAgent )) {
+    options.appId = '123456789'; // your ios app id in app store        
+  }
+   
+  window.plugins.appsFlyer.initSdk(options);
 }, false);
 ```
 
 ##### <a id="usage-ionic1"> **For Ionic 1**
 
 ```javascript
-  $ionicPlatform.ready(function() {      
-    
-    var options = {
-           devKey:  'xxXXXXXxXxXXXXxXXxx8'// your AppsFlyer devKey               
-         };
+$ionicPlatform.ready(function() { 
+  var options = {
+    devKey: 'xxXXXXXxXxXXXXxXXxx8' // your AppsFlyer devKey               
+  };
                               
-    if (ionic.Platform.isIOS()) {
-        options.appId = "123456789";            // your ios app id in app store 
-    }
+  if (ionic.Platform.isIOS()) {
+    options.appId = '123456789¡; // your ios app id in app store 
+  }
 
-      window.plugins.appsFlyer.initSdk(options);      
-  });
+  window.plugins.appsFlyer.initSdk(options);      
+});
 ```
-
-
 
 ##<a id="api-methods"> API Methods
 
@@ -218,9 +214,9 @@ initialize the SDK.
 
 ```javascript
 var onSuccess = function(result) {
-  //handle result
+  // handle result
   /*
-  {
+{
   "status": "success",
   "type": "onInstallConversionDataLoaded",
   "data": {
@@ -242,14 +238,14 @@ var onSuccess = function(result) {
 };
 
 function onError(err) {
-    // handle error
+  // handle error
 }
 var options = {
-               devKey:  'd3Ac9qPardVYZxfWmCspwL',
-               appId: '123456789',
-               isDebug: false,
-               onInstallConversionDataListener: true
-             };
+  devKey: 'd3Ac9qPardVYZxfWmCspwL',
+  appId: '123456789',
+  isDebug: false,
+  onInstallConversionDataListener: true
+};
 window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
 ```
 
@@ -272,12 +268,12 @@ to track ROI (Return on Investment) and LTV (Lifetime Value).
 *Example:*
 
 ```javascript
-var eventName = "af_add_to_cart";
+var eventName = 'af_add_to_cart';
 var eventValues = {
-           "af_content_id": "id123",
-           "af_currency":"USD",
-           "af_revenue": "2"
-           };
+  'af_content_id': 'id123',
+  'af_currency': 'USD',
+  'af_revenue': '2'
+};
 window.plugins.appsFlyer.trackEvent(eventName, eventValues);
 ```
 ---
@@ -303,8 +299,8 @@ window.plugins.appsFlyer.setDeviceTrackingDisabled(true);
 *Examples:*
 
 ```javascript
-window.plugins.appsFlyer.setCurrencyCode("USD");
-window.plugins.appsFlyer.setCurrencyCode("GBP"); // British Pound
+window.plugins.appsFlyer.setCurrencyCode('USD');
+window.plugins.appsFlyer.setCurrencyCode('GBP'); // British Pound
 ```
 
 ---
@@ -331,12 +327,6 @@ window.plugins.appsFlyer.setAppUserId(userId);
 
 
 ##### <a id="stopTracking"> **`stopTracking(isStopTracking): void`**
-
-
-Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs. This ID is available in AppsFlyer CSV reports along with postbacks APIs for cross-referencing with you internal IDs.
- 
-**Note:** The ID must be set during the first launch of the app at the SDK initialization. The best practice is to call this API during the `deviceready` event, where possible.
-
 
 | parameter   | type                        | description |
 | ----------- |-----------------------------|--------------|
@@ -366,10 +356,9 @@ In any event, the SDK can be reactivated by calling the same API, but to pass fa
 *Example:*
 
 ```javascript
-window.plugins.appsFlyer.registerOnAppOpenAttribution(function        
-   onAppOpenAttributionSuccess(res){
-     /*
-     {
+window.plugins.appsFlyer.registerOnAppOpenAttribution(function(res) {
+  /*
+  {
     "data": {
       "af_deeplink": "true",
       "campaign": "boo",
@@ -384,11 +373,11 @@ window.plugins.appsFlyer.registerOnAppOpenAttribution(function
     "type": "onAppOpenAttribution",
     "status": "success"
   }
-     */
-   }, 
-   function onAppOpenAttributionError(err){
-    //...
- });
+  */
+}, 
+function onAppOpenAttributionError(err){
+  // ...
+});
 ```
 
 ---
@@ -468,7 +457,7 @@ Set AppsFlyer’s OneLink ID. Setting a valid OneLink ID will result in shortene
 
 *Example:*
 ```javascript
-window.plugins.appsFlyer.setAppInviteOneLinkID("Ab1C");
+window.plugins.appsFlyer.setAppInviteOneLinkID('Ab1C');
 ```
 
 | parameter   | type                        | description |
@@ -485,14 +474,13 @@ Allowing your existing users to invite their friends and contacts as new users t
 *Example:*
 ```javascript
 var inviteOptions {
-  channel: "gmail",
-  campaign: "myCampaign",
-  customerID: "1234",
-  
+  channel: 'gmail',
+  campaign: 'myCampaign',
+  customerID: '1234',
   userParams {
-    myParam : "newUser",
-    anotherParam : "fromWeb",
-    amount : 1
+    myParam: 'newUser',
+    anotherParam: 'fromWeb',
+    amount: 1
   }
 };
 
@@ -543,11 +531,11 @@ Use this call to track the click and launch the app store's app page (via Browse
 *Example:*
 ```javascript
 var crossPromOptions {
-  customerID: "1234",
-  myCustomParameter: "newUser"
+  customerID: '1234',
+  myCustomParameter: 'newUser'
 };
 
-window.plugins.appsFlyer.trackAndOpenStore("com.myandroid.app", "myCampaign", crossPromOptions);
+window.plugins.appsFlyer.trackAndOpenStore('com.myandroid.app', 'myCampaign', crossPromOptions);
 ```
 
 | parameter   | type                        | description |
