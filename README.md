@@ -177,7 +177,7 @@ $ionicPlatform.ready(function() {
   };
                               
   if (ionic.Platform.isIOS()) {
-    options.appId = '123456789¡; // your ios app id in app store 
+    options.appId = '123456789'; // your ios app id in app store 
   }
 
   window.plugins.appsFlyer.initSdk(options);      
