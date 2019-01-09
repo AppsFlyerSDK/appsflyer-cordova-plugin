@@ -81,6 +81,8 @@
         <header-file src="src/ios/AppsFlyerLinkGenerator.h" />
         <header-file src="src/ios/AppsFlyerCrossPromotionHelper.h" />
         <header-file src="src/ios/AppsFlyerShareInviteHelper.h" />
+        <header-file src="src/ios/AppsFlyerX+AppController.h" />
+        <source-file src="src/ios/AppsFlyerX+AppController.m" />
         <source-file src="src/ios/libAppsFlyerLib.a" compiler-flags="-lAppsFlyerLib" framework="true" />
         <framework src="AdSupport.framework" weak="true" />
         <framework src="iAd.framework" weak="true" />
