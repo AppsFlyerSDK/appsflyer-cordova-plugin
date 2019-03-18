@@ -270,4 +270,4 @@ npm run setup_a
 -  `npm run demo_a.ri` - runs iOS
 -  `npm run demo_a.bi` - builds iOS
 
-![demo printscreen](examples/demo_example.png?raw=true)
+![demo printscreen](../examples/demo_example.png?raw=true)
