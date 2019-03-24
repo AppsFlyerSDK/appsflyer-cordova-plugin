@@ -211,7 +211,7 @@ static NSString *const SUCCESS         = @"Success";
     
 - (void)generateInviteLink:(CDVInvokedUrlCommand*)command {
     NSDictionary* inviteLinkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
-    NSDictionary* customParams = [command argumentAtIndex:1 withDefault:[NSNull null]];
+    NSDictionary* customParams = (NSDictionary*)[inviteLinkOptions objectForKey: @"userParams"];
     
     NSString *channel = nil;
     NSString *campaign = nil;
