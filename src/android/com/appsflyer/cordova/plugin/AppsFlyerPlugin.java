@@ -186,19 +186,40 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 				gcdListener = registerConversionListener(instance);
 			}
 			else{
-				callbackContext.success(SUCCESS);
+				//callbackContext.success(SUCCESS);
 			}
 
 			instance.init(devKey, gcdListener, cordova.getActivity());
 
 			trackAppLaunch();
+
+
+            if (mConversionListener == null) {
+                instance.startTracking(c.getApplication(), devKey, new AppsFlyerTrackingRequestListener() {
+                    @Override
+                    public void onTrackingRequestSuccess() {
+                        callbackContext.success(SUCCESS);
+                    }
+
+                    @Override
+                    public void onTrackingRequestFailure(String s) {
+                        callbackContext.success(FAILURE);
+                    }
+                });
+            } else {
+                instance.startTracking(c.getApplication());
+            }
+
+
+
+
 			instance.startTracking(c.getApplication());
 
 			if(gcdListener != null){
 				sendPluginNoResult(callbackContext);
 			}
 			else{
-				callbackContext.success(SUCCESS);
+				//callbackContext.success(SUCCESS);
 			}
 		}
 		catch (JSONException e){
