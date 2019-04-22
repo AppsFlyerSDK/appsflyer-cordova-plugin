@@ -466,16 +466,21 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 	}
 
 	private boolean updateServerUninstallToken(JSONArray parameters, CallbackContext callbackContext) {
-		String token = parameters.optString(0);
-		if (token != null && token.length() > 0) {
-			Context c = this.cordova.getActivity().getApplicationContext();
-			AppsFlyerLib.getInstance().updateServerUninstallToken(c,token);
-			callbackContext.success(SUCCESS);
-			return true;
-		}
-		else {
-			callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "Not a valid token"));
-		}
+		cordova.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				String token = parameters.optString(0);
+				if (token != null && token.length() > 0) {
+					Context c = cordova.getActivity().getApplicationContext();
+					AppsFlyerLib.getInstance().updateServerUninstallToken(c,token);
+					callbackContext.success(SUCCESS);
+				}
+				else {
+					callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "Not a valid token"));
+				}
+			}
+		});
+
 		return true;
 	}
 
