@@ -65,25 +65,18 @@ Add the following lines to your code to be able to initialize tracking with your
 ```javascript
 document.addEventListener('deviceready', function() {
 
-  var options = {
-    devKey: '**********spwL', // your AppsFlyer devKey
-    isDebug: false,
-  };
-
-  var userAgent = window.navigator.userAgent.toLowerCase();
-  if (/iphone|ipad|ipod/.test( userAgent )) {
-    options.appId = '123456789'; // your ios app id in app store        
-  }
-   
-  var onSuccess = function(result) {
-    console.log(result);
-  };
-  
-  function onError(err) {
-    console.log(err);
-  }
-  
-  window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
+   window.plugins.appsFlyer.initSdk({
+      devKey: 'K2***************99', // your AppsFlyer devKey
+      isDebug: false,
+      appId: '41*****44' // your ios appID
+    },
+      (result) => {
+        console.log(result);
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
   
 }, false);
 ```
