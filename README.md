@@ -44,6 +44,8 @@ $ cordova plugin add cordova-plugin-appsflyer-sdk
 
 To install cordova manually check out the doc [here](/docs/Installation.md).
 
+> **_NOTE:_** for Ionic installation see [this](#ionic) section
+
  ## <a id="guides"> 📖 Guides
 
 Great installation and setup guides can be viewed [here](/docs/Guides.md).
