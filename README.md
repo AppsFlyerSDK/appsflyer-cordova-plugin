@@ -27,6 +27,7 @@ Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with 
 - [Setup](#setup)
 - [API](#api) 
 - [Demo](#demo)  
+- [Ionic](#ionic)
 
 
 ### <a id="plugin-build-for"> This plugin is built for
@@ -92,3 +93,35 @@ See the full [API](/docs/API.md) available for this plugin.
 ## <a id="demo"> 📱 Demo
   
   Check out the demo for this project [here](docs/Guides.md#demo).
+
+## <a id="ionic"> 📍 Ionic
+
+In case you are using Ionic framework, run this commands:
+```
+$ ionic cordova plugin add cordova-plugin-appsflyer-sdk
+$ npm install @ionic-nativa/appsflyer
+```
+
+add the following to `app.module.ts`
+```
+import { Appsflyer } from "@ionic-native/appsflyer/ngx";
+...
+providers: [
+    Appsflyer,
+  	...,
+]
+```
+
+and in your main ts file: 
+```
+import { Appsflyer } from '@ionic-native/appsflyer/ngx';
+
+
+constructor(private appsflyer: Appsflyer) { }
+
+...
+
+this.appsflyer.initSdk(options);
+```
+
+Check out the full [API](/docs/API.md) for more information
