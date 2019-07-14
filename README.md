@@ -101,7 +101,7 @@ See the full [API](/docs/API.md) available for this plugin.
 In case you are using Ionic framework, run this commands:
 ```
 $ ionic cordova plugin add cordova-plugin-appsflyer-sdk
-$ npm install @ionic-nativa/appsflyer
+$ npm install @ionic-native/appsflyer
 ```
 
 add the following to `app.module.ts`
