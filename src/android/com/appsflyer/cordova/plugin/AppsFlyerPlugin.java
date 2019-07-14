@@ -499,6 +499,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 	}
 
     private boolean onResume(JSONArray parameters, CallbackContext callbackContext){
+	mConversionListener = callbackContext;
         Intent intent = cordova.getActivity().getIntent();
         newIntentURI = intent.getData();
 
