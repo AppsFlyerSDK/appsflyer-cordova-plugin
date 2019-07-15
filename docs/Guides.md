@@ -175,30 +175,31 @@ Essentially, the Universal Links method links between an iOS mobile app and an a
 
 ###  <a id="android-uninstall"> Android Uninstall Setup
     
+There are 2 main approaches of enabling uninstall measurement for Android:
+
+1. Use FirebaseMessagingService from AppsFlyer SDK - only needs change to AndroidManifest
+2. Manually pass token to SDK - should be used if you have custom logic in place when token us updated.
+
 For more info on Android Uninstall setup check out the guide [here](https://support.appsflyer.com/hc/en-us/articles/210289286-Uninstall-Measurement#android-uninstall-android-uninstall-measurement).   
 
+In JavaScript level a third party plugin is required to fetch the token and pass it to AppsFlyer. <br>
 
-A third party plugin is required to fetch the token and pass it to AppsFlyer. <br>
-A known plugin is [cordova-plugin-firebase](https://arnesson.github.io/cordova-plugin-firebase/).
+A known plugin is [cordova-plugin-firebase-messaging](https://github.com/chemerisuk/cordova-plugin-firebase-messaging).
 
 Set-up Steps:<br>
-1 . Add the plugin -  `cordova plugin add cordova-plugin-firebase --save`<br>
-2. Download the google-services.json from firebase, and place them in the root folder of your cordova project<br>
-3. Send the token to AppsFlyer by calling `updateServerUninstallToken`.<br>
+1. Add the plugin -  `cordova plugin add cordova-plugin-firebase-messaging --save`<br>
+Plugin depends on cordova-support-google-services for setting up google services properly. Please read the plugin documentation carefully in order to avoid common issues with a project configuration.
+2. Send the token to AppsFlyer by calling `updateServerUninstallToken`.<br>
 
 ```javascript
 window.plugins.appsFlyer.initSdk(options , onSuccess , onError);
 
-var senderID = "52*******84";
-window.plugins.appsFlyer.enableUninstallTracking(senderID, onSuccess, onError);
-
-
-window.FirebasePlugin.onTokenRefresh(function(token) {
-    // send the token to AppsFlyer 
-    window.plugins.appsFlyer.updateServerUninstallToken(token);
-}, function(error) {
-    console.error(error);
-});
+cordova.plugins.firebase.messaging.onTokenRefresh(function() {
+    console.log("Device token updated");
+    cordova.plugins.firebase.messaging.getToken().then(function(token) {
+        window.plugins.appsFlyer.updateServerUninstallToken(token);
+    });
+})
    
 ```
 
