@@ -499,22 +499,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 	}
 
     private boolean onResume(JSONArray parameters, CallbackContext callbackContext){
-	mConversionListener = callbackContext;
-        Intent intent = cordova.getActivity().getIntent();
-        newIntentURI = intent.getData();
-
-        if (newIntentURI != intentURI) {
-            if (mAttributionData != null) {
-                PluginResult r = new PluginResult(PluginResult.Status.OK, new JSONObject(mAttributionData).toString());
-                callbackContext.sendPluginResult(r);
-                mAttributionData = null;
-            } else {
-                mAttributionDataListener = callbackContext;
-                sendPluginNoResult(callbackContext);
-            }
-            
-            intentURI = newIntentURI;
-        }
+	if (mConversionListener == null) {
+		mConversionListener = callbackContext;
+	}
         return true;
     }
 
