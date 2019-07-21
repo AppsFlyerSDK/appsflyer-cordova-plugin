@@ -39,7 +39,7 @@ export class HomePage {
 
   async presentToast(message) {
     const toast = await this.toastController.create({
-      message: "Clicked",
+      message: message,
       duration: 2000
     });
     toast.present();
