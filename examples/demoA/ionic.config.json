@@ -1,4 +1,6 @@
 {
   "name": "demoA",
-  "app_id": ""
+  "integrations": {
+    "cordova": {}
+  }
 }
