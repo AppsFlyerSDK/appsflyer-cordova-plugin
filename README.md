@@ -98,7 +98,9 @@ See the full [API](/docs/API.md) available for this plugin.
 
 ## <a id="ionic"> 📍 Ionic
 
-In case you are using Ionic framework, run this commands:
+In case you are using Ionic framework, you have 2 options:
+1 - Using Ionic native plugin
+run this commands:
 ```
 $ ionic cordova plugin add cordova-plugin-appsflyer-sdk
 $ npm install @ionic-native/appsflyer
@@ -125,5 +127,8 @@ constructor(private appsflyer: Appsflyer) { }
 
 this.appsflyer.initSdk(options);
 ```
+
+2. You can use the plugin the same way like in Cordova with only one exception:
+instead of `window.plugins...` use `window['plugins']...`
 
 Check out the full [API](/docs/API.md) for more information
