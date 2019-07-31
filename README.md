@@ -99,16 +99,23 @@ See the full [API](/docs/API.md) available for this plugin.
 ## <a id="ionic"> 📍 Ionic
 
 In case you are using Ionic framework, you have 2 options:
-1 - Using Ionic native plugin
-run this commands:
+1. Using Ionic Native
+2. Using the `window` object directly
+
+### 1. Using Ionic Native
+
+#### Ionic 4
+
+Run these commands:
 ```
 $ ionic cordova plugin add cordova-plugin-appsflyer-sdk
 $ npm install @ionic-native/appsflyer
 ```
 
-add the following to `app.module.ts`
+Then add the following to `app.module.ts`
 ```
 import { Appsflyer } from "@ionic-native/appsflyer/ngx";
+
 ...
 providers: [
     Appsflyer,
@@ -116,10 +123,11 @@ providers: [
 ]
 ```
 
-and in your main ts file: 
+And finally in your main ts file: 
 ```
 import { Appsflyer } from '@ionic-native/appsflyer/ngx';
 
+...
 
 constructor(private appsflyer: Appsflyer) { }
 
@@ -128,7 +136,41 @@ constructor(private appsflyer: Appsflyer) { }
 this.appsflyer.initSdk(options);
 ```
 
-2. You can use the plugin the same way like in Cordova with only one exception:
-instead of `window.plugins...` use `window['plugins']...`
+#### Ionic 2/3
+
+If you're using Ionic 2/3, you'd need to install a previous version of the Ionic Native dependency (notice the **@4** at the end of the npm install command):
+
+```
+$ ionic cordova plugin add cordova-plugin-appsflyer-sdk
+$ npm install @ionic-native/appsflyer@4
+```
+
+Then add the following to `app.module.ts`
+```
+import { Appsflyer } from "@ionic-native/appsflyer";
+
+...
+providers: [
+    Appsflyer,
+  	...,
+]
+```
+
+And finally in your main ts file: 
+```
+import { Appsflyer } from '@ionic-native/appsflyer';
+
+...
+
+constructor(private appsflyer: Appsflyer) { }
+
+...
+
+this.appsflyer.initSdk(options);
+```
+
+### 2. Using the `window` object directly
+
+You can use the plugin the same way like in Cordova with only one exception: instead of `window.plugins...` use `window['plugins']...`.
 
 Check out the full [API](/docs/API.md) for more information
