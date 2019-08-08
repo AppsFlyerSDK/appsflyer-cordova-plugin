@@ -2,7 +2,8 @@ import { Component } from "@angular/core";
 import { ToastController } from "@ionic/angular";
 
 import { Appsflyer } from "@ionic-native/appsflyer/ngx";
-import { ThrowStmt } from "@angular/compiler";
+
+// declare var window;
 
 @Component({
   selector: "app-home",
@@ -10,19 +11,37 @@ import { ThrowStmt } from "@angular/compiler";
   styleUrls: ["home.page.scss"]
 })
 export class HomePage {
+  oaoa = "open the app from a deep link";
+  gcd = "loading...";
+
   constructor(
     public toastController: ToastController,
     private appsflyer: Appsflyer
   ) {
-    const options = { devKey: "enteryourkey", isDebug: true };
-    this.appsflyer.initSdk(options);
+    const options = {
+      devKey: "enteryourkey",
+      isDebug: true,
+      onInstallConversionDataListener: true
+    };
+    this.appsflyer
+      .initSdk(options)
+      .then(res => {
+        console.log("INIT SDK");
+        this.gcd = res.data;
+        console.log(res);
+      })
+      .catch(err => {
+        console.log(err);
+      });
     this.appsflyer
       .registerOnAppOpenAttribution()
       .then(res => {
-        this.presentToast(res);
+        console.log("OAOA");
+        this.oaoa = res.data;
+        console.log(res);
       })
       .catch(err => {
-        this.presentToast(err);
+        console.log(err);
       });
   }
 

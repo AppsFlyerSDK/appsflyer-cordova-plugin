@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      AppsFlyer Test
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content center text-center>
+  <div class="ion-padding">
+    <ion-grid>
+      <ion-row center>
+        <ion-col>
+          Conversion Data:
+        </ion-col>
+        <ion-col>
+          <ion-textarea
+            disabled
+            value="{{ gcd }}"
+            placeholder="gcd data"
+          ></ion-textarea>
+        </ion-col>
+      </ion-row>
+      <ion-row center>
+        <ion-col>
+          On App Open Attribution:
+        </ion-col>
+        <ion-col>
+          <ion-textarea disabled value="{{ oaoa }}" name="oaoa"></ion-textarea>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <ion-button expand="full" (click)="trackEvent()">Track Event</ion-button>
+  </div>
+</ion-content>
