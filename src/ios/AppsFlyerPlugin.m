@@ -318,7 +318,7 @@ static NSString *const SUCCESS         = @"Success";
     NSDictionary* message = @{
                               @"status": afSuccess,
                               @"type": afOnInstallConversionDataLoaded,
-                              @"data": installData
+                              @"data": [installData copy]
                               };
     
     [self performSelectorOnMainThread:@selector(handleCallback:) withObject:message waitUntilDone:NO];
