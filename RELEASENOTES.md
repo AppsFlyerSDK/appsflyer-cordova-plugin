@@ -1,5 +1,14 @@
 # Release Notes
 
+### 4.4.22
+Release date **Sep 16 2019**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- Update iOS SDK to 4.10.4, for iOS 13 push token retrieval needed for Uninstall Measurement
+- Bug fixes and maintenance
+
 ### 4.4.12
 Release date **Nov 14 2018**
 Release type: Major / Minor / **Hotfix**
