@@ -148,8 +148,30 @@ In your app’s manifest add the following intent-filter to your relevant activi
 #### App Links
 For more on App Links check out the guide [here](https://support.appsflyer.com/hc/en-us/articles/115005314223-Deep-Linking-Users-with-Android-App-Links#what-are-android-app-links).
 
-
 ###  <a id="ios-deeplink"> iOS Deeplink Setup
+
+#### URI Scheme
+
+For more on URI-schemes check out hte guid [here](https://support.appsflyer.com/hc/en-us/articles/208874366-OneLink-deep-linking-guide#setups-uri-scheme-for-ios-8-and-below)
+
+Add the following lines to your code to be able to track deeplinks with AppsFlyer attribution data:
+
+for pure Cordova - add a function 'handleOpenUrl' to your root, and call our SDK as shown:
+```javascript
+window.plugins.appsFlyer.handleOpenUrl(url);
+```
+It appears as follows:
+
+```javascript
+var handleOpenURL = function(url) {
+window.plugins.appsFlyer.handleOpenUrl(url);
+}
+```
+
+Now you will get deep link information in the onAppOpenAttribution callback
+
+### Universal Links
+    
 For more on Universal Links check out the guide [here](https://support.appsflyer.com/hc/en-us/articles/208874366-OneLink-Deep-Linking-Guide#setups-universal-links).
     
 Essentially, the Universal Links method links between an iOS mobile app and an associate website/domain, such as AppsFlyer’s OneLink domain (xxx.onelink.me). To do so, it is required to:
@@ -170,6 +192,13 @@ Essentially, the Universal Links method links between an iOS mobile app and an a
 </plist>
 ```
 
+##### **Note**: Our plugin uses method swizzeling for
+
+` - (BOOL)application:(UIApplication *)application 
+continueUserActivity:(NSUserActivity *)userActivity
+restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler; ` 
+
+Now you will get deep link information in the onAppOpenAttribution callback
 
 ##  <a id="uninstall"> Uninstall Measurement
 
