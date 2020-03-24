@@ -300,4 +300,13 @@ npm run setup_a
 -  `npm run demo_a.ri` - runs iOS
 -  `npm run demo_a.bi` - builds iOS
 
+For Ionic-native:
+```sh
+npm run setup_ionic-native
+```
+-  `npm run demo_In.ra` - runs Android
+-  `npm run demo_In.ba` - builds Android
+-  `npm run demo_In.ri` - runs iOS
+-  `npm run demo_In.bi` - builds iOS
+
 ![demo printscreen](../examples/demo_example.png?raw=true)
