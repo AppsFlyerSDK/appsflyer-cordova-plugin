@@ -39,7 +39,7 @@
     "test": "npm run jshint",
     "jshint": "node node_modules/jshint/bin/jshint www && node node_modules/jshint/bin/jshint src && node node_modules/jshint/bin/jshint tests",
     "preparedemo_a": "cd examples/demoA; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova plugin add cordova-plugin-appsflyer-sdk --save; cordova platform rm android; cordova platform add android; cordova platform rm ios; cordova platform add ios",
-    "preparedemo_c": "cd examples/demoC; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova plugin add cordova-plugin-appsflyer-sdk --save; cordova plugin rm phonegap-plugin-push --save; cordova plugin add phonegap-plugin-push@1.7.0 --variable SENDER_ID=12345 --save; cordova plugin rm cordova-plugin-console --save; cordova plugin add cordova-plugin-console --save; cordova platform rm android; cordova platform add android; cordova platform rm ios; cordova platform add ios",
+    "preparedemo_c": "cd examples/demoC; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova plugin add ../.. --save; cordova plugin rm phonegap-plugin-push --save; cordova plugin add phonegap-plugin-push@1.7.0 --variable SENDER_ID=12345 --save; cordova plugin rm cordova-plugin-console --save; cordova plugin add cordova-plugin-console --save; cordova platform rm android; cordova platform add android; cordova platform rm ios; cordova platform add ios",
     "preparedemo_ionic": "cd examples/Ionic-native; cordova platform rm android; cordova platform add android; cordova platform rm ios; cordova platform add ios",
     "setup_a": "cd examples/demoA; npm install; cd ../..; npm run preparedemo_a;",
     "setup_c": "cd examples/demoC; npm install; cd ../..; npm run preparedemo_c;",

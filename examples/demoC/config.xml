@@ -23,7 +23,7 @@
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
     </platform>
-     <plugin name="cordova-plugin-appsflyer-sdk" spec="../.." />
+     <plugin name="cordova-plugin-appsflyer-sdk" spec="5.2.0" />
     <plugin name="phonegap-plugin-push" spec="~1.7.0">
         <variable name="SENDER_ID" value="12345" />
     </plugin>
