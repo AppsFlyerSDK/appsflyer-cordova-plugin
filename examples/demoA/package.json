@@ -3,7 +3,6 @@
   "version": "1.1.1",
   "description": "demoA: An Ionic project",
   "dependencies": {
-    "cordova-plugin-appsflyer-sdk": "5.2.0",
     "cordova-plugin-console": "1.1.0",
     "cordova-plugin-device": "2.0.3",
     "cordova-plugin-splashscreen": "5.0.3",
@@ -45,8 +44,7 @@
       "cordova-plugin-whitelist": {},
       "cordova-plugin-splashscreen": {},
       "cordova-plugin-statusbar": {},
-      "ionic-plugin-keyboard": {},
-      "cordova-plugin-appsflyer-sdk": {}
+      "ionic-plugin-keyboard": {}
     },
     "platforms": []
   }

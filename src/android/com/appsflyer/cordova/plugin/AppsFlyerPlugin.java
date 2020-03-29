@@ -426,7 +426,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
-    private boolean updateServerUninstallToken(JSONArray parameters, CallbackContext callbackContext) {
+    private boolean updateServerUninstallToken(final JSONArray parameters, final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {

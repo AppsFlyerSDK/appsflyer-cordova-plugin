@@ -8,12 +8,11 @@
       "cordova-plugin-whitelist": {},
       "phonegap-plugin-push": {
         "SENDER_ID": "12345"
-      },
-      "cordova-plugin-appsflyer-sdk": {}
+      }
     },
     "platforms": []
   },
   "dependencies": {
-    "cordova-plugin-appsflyer-sdk": "5.2.0"
+    
   }
 }
