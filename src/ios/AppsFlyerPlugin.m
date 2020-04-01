@@ -313,7 +313,9 @@ static NSString *const SUCCESS         = @"Success";
     }
 }
 
--(void)onConversionDataReceived:(NSDictionary*) installData {
+
+//5.2.0 - 'onConversionDataReceived' changed to 'onConversionDataSuccess'
+-(void)onConversionDataSuccess:(NSDictionary*) installData {
     
     NSDictionary* message = @{
                               @"status": afSuccess,
@@ -324,8 +326,8 @@ static NSString *const SUCCESS         = @"Success";
     [self performSelectorOnMainThread:@selector(handleCallback:) withObject:message waitUntilDone:NO];
 }
 
-
--(void)onConversionDataRequestFailure:(NSError *) _errorMessage {
+//5.2.0 - 'onConversionDataRequestFailure' changed to 'onConversionDataFail'
+-(void)onConversionDataFail:(NSError *) _errorMessage {
     
     NSDictionary* errorMessage = @{
                                    @"status": afFailure,

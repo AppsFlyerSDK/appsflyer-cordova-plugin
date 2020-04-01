@@ -3,7 +3,7 @@ repositories {
 }
 
 dependencies {
-	compile 'com.android.installreferrer:installreferrer:1.0'
-	compile 'com.appsflyer:af-android-sdk:4.11.0@aar'
+	implementation 'com.android.installreferrer:installreferrer:1.0'
+	implementation 'com.appsflyer:af-android-sdk:5.2.0@aar'
 
 }

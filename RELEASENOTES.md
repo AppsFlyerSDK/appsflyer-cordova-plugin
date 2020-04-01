@@ -1,5 +1,19 @@
 # Release Notes
 
+### 5.2.0
+Release date **March 10 2020**
+
+**Overview and Highlights:**
+
+- Extended logging and debugging capabilities
+
+- Bug fixes and maintenance
+
+- Updated Android SDK to v5.2.0
+
+- Updated iOS SDK to v5.2.0
+
+
 ### 4.4.22
 Release date **Sep 16 2019**
 Release type: Major / **Minor** / Hotfix
