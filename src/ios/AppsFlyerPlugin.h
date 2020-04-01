@@ -10,8 +10,8 @@
 - (void)setAppUserId:(CDVInvokedUrlCommand*)command;
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand*)command;
 - (void)sendTrackingWithEvent:(CDVInvokedUrlCommand*)command;
-- (void)onConversionDataReceived:(NSDictionary*) installData;
-- (void)onConversionDataRequestFailure:(NSError *) error;
+- (void)onConversionDataSuccess:(NSDictionary*) installData;
+- (void)onConversionDataFail:(NSError *) error;
 - (void)trackEvent:(CDVInvokedUrlCommand*)command;
 - (void)registerUninstall:(CDVInvokedUrlCommand*)command;
 - (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
