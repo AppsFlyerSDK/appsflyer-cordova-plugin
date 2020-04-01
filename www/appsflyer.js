@@ -144,6 +144,10 @@ if (!window.CustomEvent) {
     exec(null, null, "AppsFlyerPlugin", "registerUninstall", [token]);
   };
 
+  AppsFlyer.prototype.getSdkVersion = function (successCB) {
+    exec(successCB, null, "AppsFlyerPlugin", "getSdkVersion", []);
+  };
+
   global.cordova.addConstructor(function () {
     if (!global.Cordova) {
       global.Cordova = global.cordova;

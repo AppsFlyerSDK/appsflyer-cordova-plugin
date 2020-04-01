@@ -22,6 +22,7 @@
 - (void)trackCrossPromotionImpression:(CDVInvokedUrlCommand *)command;
 - (void)trackAndOpenStore:(CDVInvokedUrlCommand *)command;
 - (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command;
+- (void)getSdkVersion:(CDVInvokedUrlCommand *)command;
 @end
 
 
