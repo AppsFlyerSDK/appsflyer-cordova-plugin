@@ -22,19 +22,24 @@ if (!window.CustomEvent) {
         errorCB(AppsFlyerError.INVALID_ARGUMENT_ERROR);
       }
     } else {
-      if(args.appId !== undefined && typeof args.appId != 'string'){
-        if (errorCB) {
-          errorCB(AppsFlyerError.APPID_NOT_VALID);
-        }
+        if(args.appId !== undefined && typeof args.appId != 'string'){
+          if (errorCB) {
+            alert(AppsFlyerError.APPID_NOT_VALID);
+            errorCB(AppsFlyerError.APPID_NOT_VALID);
+            }
+        }else if(args.devKey !== undefined && typeof args.devKey != 'string'){
+              if (errorCB) {
+              alert(AppsFlyerError.DEVKEY_NOT_VALID);
+              errorCB(AppsFlyerError.DEVKEY_NOT_VALID);
+             }
+        }else{
+          exec(successCB, errorCB, "AppsFlyerPlugin", "initSdk", [args]);
+
+          document.addEventListener("resume", this.onResume.bind(this),false);
+
+          callbackMap.convSuc = successCB;
+          callbackMap.convErr = errorCB;
       }
-      exec(successCB, errorCB, "AppsFlyerPlugin", "initSdk", [args]);
-
-
-      document.addEventListener("resume", this.onResume.bind(this), false);
-
-      callbackMap.convSuc = successCB;
-      callbackMap.convErr = errorCB;
-
     }
   };
 
