@@ -91,6 +91,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return trackAndOpenStore(args, callbackContext);
         } else if ("resumeSDK".equals(action)) {
             return onResume(args, callbackContext);
+        } else if ("getSdkVersion".equals(action)) {
+            return getSdkVersion(callbackContext);
         }
 
         return false;
@@ -634,5 +636,12 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 PluginResult.Status.NO_RESULT);
         pluginResult.setKeepCallback(true);
         callbackContext.sendPluginResult(pluginResult);
+    }
+
+    private boolean getSdkVersion(CallbackContext callbackContext) {
+        final String version = AppsFlyerLib.getInstance().getSdkVersion();
+        final PluginResult result = new PluginResult(PluginResult.Status.OK, version);
+        callbackContext.sendPluginResult(result);
+        return true;
     }
 }

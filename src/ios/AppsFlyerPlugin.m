@@ -199,6 +199,15 @@ static NSString *const SUCCESS         = @"Success";
     }
 }
 
+- (void)getSdkVersion:(CDVInvokedUrlCommand*)command {
+    NSString* version = [[AppsFlyerTracker sharedTracker] getSDKVersion];
+    CDVPluginResult *pluginResult = [CDVPluginResult
+                                        resultWithStatus: CDVCommandStatus_OK
+                                        messageAsString: version
+                                        ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 //USER INVITES
     
 - (void)setAppInviteOneLinkID:(CDVInvokedUrlCommand*)command {
