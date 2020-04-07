@@ -153,15 +153,5 @@ if (!window.CustomEvent) {
     exec(successCB, null, "AppsFlyerPlugin", "getSdkVersion", []);
   };
 
-  global.cordova.addConstructor(function () {
-    if (!global.Cordova) {
-      global.Cordova = global.cordova;
-    }
-
-    if (!global.plugins) {
-      global.plugins = {};
-    }
-
-    global.plugins.appsFlyer = new AppsFlyer();
-  });
+  module.exports = new AppsFlyer();
 } (window));
