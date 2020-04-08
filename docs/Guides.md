@@ -234,7 +234,7 @@ cordova.plugins.firebase.messaging.onTokenRefresh(function() {
 
 ###  <a id="ios-uninstall"> iOS Uninstall Setup
     
-##### Option 1 - Send the token to AppsFlyer natively
+##### Option 1 - Send the token as NSData to AppsFlyer natively
 
 Code sample for Classes/AppDelegate.m:
 
@@ -267,7 +267,7 @@ Code sample for Classes/AppDelegate.m:
 @end
 ```    
     
-##### Option 2 - Pass the token to AppsFlyer in the js code
+##### Option 2 - Pass the token as a String to AppsFlyer in the js code
 
 Note : If you use this method you will need to collect the APNs token using a third party platform of your choice. 
 
