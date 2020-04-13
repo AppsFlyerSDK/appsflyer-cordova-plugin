@@ -26,6 +26,7 @@ The list of available methods for this plugin is described below.
 | [`trackCrossPromotionImpression`](#trackCrossPromotionImpression) | `(String appId, String campaign)` | Track cross promotion impression |
 | [`trackAndOpenStore`](#trackAndOpenStore) | `(String appId, String campaign, Object params)` | Launch the app store's app page (via Browser) |
 | [`handleOpenUrl`](#initSdk) | `(String url)` |  |
+| [`getSdkVersion`](#getSdkVersion) | `((function success)` | Get the current SDK version |
 
 
 ---
@@ -371,6 +372,23 @@ For more details about Cross-Promotion tracking please see <a href="https://supp
 
 ---
 
+##### <a id="getSdkVersion"> **`getSdkVersion(successCB): void`**
+
+Get the current SDK version
+
+*Example:*
+```javascript
+var getSdkVersionCallbackFn = function(v) {
+alert('SDK version: ' + v);
+}
+window.plugins.appsFlyer.getSdkVersion(getSdkVersionCallbackFn);
+```
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `getSdkVersionCallbackFn` | `void`                   | Success callback |
+
+---
 ### <a id="deep-linking-tracking"> Deep linking Tracking
 
 #### <a id="dl-android"> Android
