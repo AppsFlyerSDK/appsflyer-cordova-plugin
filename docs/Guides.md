@@ -272,7 +272,7 @@ Code sample for Classes/AppDelegate.m:
 Note : If you use this method you will need to collect the APNs token using a third party platform of your choice. 
 
 ```javascript
-window.plugins.appsFlyer.registerUninstall("token");
+window.plugins.appsFlyer.registerUninstall("<token>");
 ```
 
 

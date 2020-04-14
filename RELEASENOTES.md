@@ -1,5 +1,12 @@
 # Release Notes
 
+### 5.2.1
+Release date **April 14 2020**
+
+**Overview and Highlights:**
+
+- add useUninstallSandbox option for iOS uninstall
+
 ### 5.2.0
 Release date **March 10 2020**
 
