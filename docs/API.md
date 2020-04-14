@@ -48,6 +48,7 @@ initialize the SDK.
 | `devKey`   |`string` |         |   [Appsflyer Dev key](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android)    |
 | `appId`    |`string` |        | [Apple Application ID](https://support.appsflyer.com/hc/en-us/articles/207032066-AppsFlyer-SDK-Integration-iOS) (for iOS only) |
 | `isDebug`  |`boolean`| `false` | debug mode (optional)|
+| `useUninstallSandbox`  |`boolean`| `false` | For iOS only, to test uninstall in Sandbox environment (optional)|
 | `collectIMEI`   | `boolean` | `false` |opt-out of collection of IMEI |
 | `collectAndroidID`   | `boolean` | `false` |opt-out of collection of collectAndroidID |
 | `onInstallConversionDataListener`  |`boolean`| `false` | Accessing AppsFlyer Attribution / Conversion Data from the SDK (Deferred Deeplinking). Read more: [Android](http://support.appsflyer.com/entries/69796693-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deep-linking-), [iOS](http://support.appsflyer.com/entries/22904293-Testing-AppsFlyer-iOS-SDK-Integration-Before-Submitting-to-the-App-Store-). AppsFlyer plugin will return attribution data in `onSuccess` callback. 
@@ -238,7 +239,7 @@ Can be used for Uninstall Tracking.
 
 
 
-##### <a id="registerUninstall"> **`registerUninstall("token"): void`** 
+##### <a id="registerUninstall"> **`registerUninstall("<token>"): void`** 
 
 (iOS) Allows to pass APN Tokens that where collected by third party plugins to the AppsFlyer server.
 Can be used for Uninstall Tracking.
