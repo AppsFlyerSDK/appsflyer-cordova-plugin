@@ -24,12 +24,14 @@ static NSString *const SUCCESS         = @"Success";
     NSString* devKey = nil;
     NSString* appId = nil;
     BOOL isDebug = NO;
+    BOOL useUninstallSandbox = NO;
     
     
     if (![initSdkOptions isKindOfClass:[NSNull class]]) {
         
         id value = nil;
         id isConversionDataValue = nil;
+        id sandboxValue = nil;
         devKey = (NSString*)[initSdkOptions objectForKey: afDevKey];
         appId = (NSString*)[initSdkOptions objectForKey: afAppId];
         
@@ -40,6 +42,10 @@ static NSString *const SUCCESS         = @"Success";
         isConversionDataValue = [initSdkOptions objectForKey: afConversionData];
         if ([isConversionDataValue isKindOfClass:[NSNumber class]]) {
             isConversionData = [(NSNumber*)isConversionDataValue boolValue];
+        }
+        sandboxValue = [initSdkOptions objectForKey: afSanboxUninstall];
+        if ([sandboxValue isKindOfClass:[NSNumber class]]) {
+            useUninstallSandbox = [(NSNumber*)sandboxValue boolValue];
         }
     }
     
@@ -62,6 +68,7 @@ static NSString *const SUCCESS         = @"Success";
         [AppsFlyerTracker sharedTracker].appleAppID = appId;
         [AppsFlyerTracker sharedTracker].appsFlyerDevKey = devKey;
         [AppsFlyerTracker sharedTracker].isDebug = isDebug;
+        [AppsFlyerTracker sharedTracker].useUninstallSandbox = useUninstallSandbox;
         [[AppsFlyerTracker sharedTracker] trackAppLaunch];
 
         

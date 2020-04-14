@@ -32,6 +32,7 @@
 #define afDevKey                        @"devKey"
 #define afAppId                         @"appId"
 #define afIsDebug						@"isDebug"
+#define afSanboxUninstall				@"useUninstallSandbox"
 
 // User Invites, Cross Promotion
 #define afCpAppID                       @"crossPromotedAppId"
