@@ -295,7 +295,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         Map<String, Object> eventValues = null;
         try {
             eventName = parameters.getString(0);
-            Log.i("Event name amit:", eventName + "");
 
             if (parameters.length() > 1 && !parameters.get(1).equals(null)) {
                 JSONObject jsonEventValues = parameters.getJSONObject(1);
