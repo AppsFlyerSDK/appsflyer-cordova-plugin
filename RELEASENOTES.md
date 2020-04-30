@@ -1,4 +1,11 @@
 # Release Notes
+### 5.2.2
+Release date **April 30 2020**
+Release type: Major / Minor / **Hotfix**
+
+**Overview and Highlights:**
+
+- remove undefined alerts
 
 ### 5.2.1
 Release date **April 14 2020**

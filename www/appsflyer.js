@@ -24,12 +24,10 @@ if (!window.CustomEvent) {
     } else {
         if(args.appId !== undefined && typeof args.appId != 'string'){
           if (errorCB) {
-            alert(AppsFlyerError.APPID_NOT_VALID);
             errorCB(AppsFlyerError.APPID_NOT_VALID);
             }
         }else if(args.devKey !== undefined && typeof args.devKey != 'string'){
               if (errorCB) {
-              alert(AppsFlyerError.DEVKEY_NOT_VALID);
               errorCB(AppsFlyerError.DEVKEY_NOT_VALID);
              }
         }else{
