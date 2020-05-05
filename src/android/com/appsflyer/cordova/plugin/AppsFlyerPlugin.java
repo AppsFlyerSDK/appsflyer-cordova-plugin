@@ -196,7 +196,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             if (gcdListener != null) {
                 sendPluginNoResult(callbackContext);
             } else {
-                //callbackContext.success(SUCCESS);
+                callbackContext.success(SUCCESS);
             }
         } catch (JSONException e) {
             e.printStackTrace();
