@@ -60,7 +60,7 @@ var onSuccess = function(result) {
 // handle result  
 };
 
-function onError(err) {
+var onError = function(err) {
 // handle error
 }
 
@@ -76,7 +76,7 @@ window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
 
 ---
 
-##### <a id="trackEvent"> **`trackEvent(eventName, eventValues): void`** (optional)
+##### <a id="trackEvent"> **`trackEvent(eventName, eventValues, onSuccess, onError): void`** (optional)
 
 
 - These in-app events help you track how loyal users discover your app, and attribute them to specific 
