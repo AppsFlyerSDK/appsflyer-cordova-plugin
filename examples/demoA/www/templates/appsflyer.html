@@ -4,46 +4,52 @@
     </ion-header-bar>
     <ion-content>
 
-        <row-data-directive 
+        <row-data-directive
             button-text="initSDK"
             data='viewModel.initSdkResponse'
-            on-click="onClick(data)">                
+            on-click="onClick(data)">
         </row-data-directive>
-        
-        <row-data-directive 
+
+        <row-data-directive
             button-text="trackEvent"
             data='viewModel.trackEventResponse'
-            on-click="onClick(data)">                
+            on-click="onClick(data)">
         </row-data-directive>
-        
-        
-        <row-data-directive 
+
+
+        <row-data-directive
             button-text="getAppsflyerUID"
             data='viewModel.appsFlyerUID'
-            on-click="onClick(data)">                
+            on-click="onClick(data)">
         </row-data-directive>
-        
+
+        <row-data-directive
+            button-text="SDKVersion"
+            data='viewModel.SDKVersion'
+            on-click="onClick(data)">
+        </row-data-directive>
+
         <row-data-directive ng-if="$root.isIOS === true"
             button-text="trackLocation"
             data='viewModel.trackLocation'
-            on-click="onClick(data)">                
+            on-click="onClick(data)">
         </row-data-directive>
-        
-        
+
+
         <row-data-directive ng-if="$root.isAndroid === true"
             button-text="enableUninstallTracking"
             data='viewModel.enableUninstallTrackingResponse'
-            on-click="onClick(data)">                
+            on-click="onClick(data)">
         </row-data-directive>
-        
+
         <row-data-directive ng-if="$root.isAndroid === true"
             button-text="gcmProjectNumber"
             data='viewModel.gcmProjectNumberResponse'
-            on-click="onClick(data)">                
+            on-click="onClick(data)">
         </row-data-directive>
-        
-        
-        
+
+
+
     </ion-content>
 </ion-pane>
 

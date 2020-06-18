@@ -10,7 +10,7 @@ The list of available methods for this plugin is described below.
 | method name| params| description|
 | ----------- |-----------------------------|--------------|
 | [`initSdk`](#initSdk) | `(Object args, function success, function error)`  | Initialize the SDK|
-| [`trackEvent`](#trackEvent) | `(String eventName, Object eventValue)` | Track rich in-app events |
+| [`trackEvent`](#trackEvent) | `(String eventName, Object eventValue, function success, function error)` | Track rich in-app events |
 | [`registerOnAppOpenAttribution`](#registerOnAppOpenAttribution) | `(function success, function error)` | Get the deeplink data |
 | [`setCurrencyCode`](#setCurrencyCode) | `(String currencyId)` | Set currency code |
 | [`setAppUserId`](#setAppUserId) | `(String customerUserId)` | Set custom_user_id  |
@@ -25,7 +25,7 @@ The list of available methods for this plugin is described below.
 | [`generateInviteLink`](#generateInviteLink) | `(Object args, function success, function error)` | Error callback |
 | [`trackCrossPromotionImpression`](#trackCrossPromotionImpression) | `(String appId, String campaign)` | Track cross promotion impression |
 | [`trackAndOpenStore`](#trackAndOpenStore) | `(String appId, String campaign, Object params)` | Launch the app store's app page (via Browser) |
-| [`handleOpenUrl`](#initSdk) | `(String url)` |  |
+| [`handleOpenUrl`](#deep-linking-tracking) | `(String url)` |  |
 | [`getSdkVersion`](#getSdkVersion) | `((function success)` | Get the current SDK version |
 
 
@@ -38,8 +38,8 @@ initialize the SDK.
 | parameter   | type                        | description  |
 | ----------- |-----------------------------|--------------|
 | `options`   | `Object`                    |   SDK configuration           |
-| `onSuccess` | `(message: string)=>void` | Success callback - called after successful SDK initialization. (optional)|
-| `onError`   | `(message: string)=>void` | Error callback - called when error occurs during initialization. (optional)|
+| `onSuccess` | `(message: string)=>void` | Success callback - called after successful SDK initialization. |
+| `onError`   | `(message: string)=>void` | Error callback - called when error occurs during initialization. |
 
 **`options`**
 
@@ -51,7 +51,7 @@ initialize the SDK.
 | `useUninstallSandbox`  |`boolean`| `false` | For iOS only, to test uninstall in Sandbox environment (optional)|
 | `collectIMEI`   | `boolean` | `false` |opt-out of collection of IMEI |
 | `collectAndroidID`   | `boolean` | `false` |opt-out of collection of collectAndroidID |
-| `onInstallConversionDataListener`  |`boolean`| `false` | Accessing AppsFlyer Attribution / Conversion Data from the SDK (Deferred Deeplinking). Read more: [Android](http://support.appsflyer.com/entries/69796693-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deep-linking-), [iOS](http://support.appsflyer.com/entries/22904293-Testing-AppsFlyer-iOS-SDK-Integration-Before-Submitting-to-the-App-Store-). AppsFlyer plugin will return attribution data in `onSuccess` callback. 
+| `onInstallConversionDataListener`  |`boolean`| `false` | Accessing AppsFlyer Attribution / Conversion Data from the SDK (Deferred Deeplinking). Read more: [Android](http://support.appsflyer.com/entries/69796693-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deep-linking-), [iOS](http://support.appsflyer.com/entries/22904293-Testing-AppsFlyer-iOS-SDK-Integration-Before-Submitting-to-the-App-Store-). AppsFlyer plugin will return attribution data in `onSuccess` callback.
 
 *Example:*
 
@@ -68,7 +68,7 @@ var options = {
 devKey: 'd3Ac9qPardVYZxfWmCspwL',
 appId: '123456789',
 isDebug: false,
-onInstallConversionDataListener: true
+onInstallConversionDataListener: true //optional
 };
 
 window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
@@ -89,17 +89,27 @@ to track ROI (Return on Investment) and LTV (Lifetime Value).
 | ----------- |-----------------------------|--------------|
 | `eventName` | `String`                    | custom event name, is presented in your dashboard.  See the Event list [HERE](https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/blob/master/src/ios/AppsFlyerTracker.h)  |
 | `eventValue` | `Object`                    | event details |
+| `onSuccess` | `(message: string)=>void`                    | event details |
+| `onError` | `(message: string)=>void`                    | event details |
 
 *Example:*
 
 ```javascript
+var successTrackEvent = function(success){
+    alert(success);
+}
+
+var failureTrackEvent = function(failure){
+    alert(failure);
+}
+
 var eventName = 'af_add_to_cart';
 var eventValues = {
 'af_content_id': 'id123',
 'af_currency': 'USD',
 'af_revenue': '2'
 };
-window.plugins.appsFlyer.trackEvent(eventName, eventValues);
+window.plugins.appsFlyer.trackEvent(eventName, eventValues, successTrackEvent, failureTrackEvent);
 ```
 ---
 
