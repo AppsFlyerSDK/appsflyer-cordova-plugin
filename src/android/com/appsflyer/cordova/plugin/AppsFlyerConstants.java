@@ -12,6 +12,9 @@ public class AppsFlyerConstants {
     final static String FAILURE = "Failure";
     final static String NO_EVENT_NAME_FOUND   = "No 'eventName' found or its empty";
     final static String NO_EVENT_VALUES_FOUND = "No 'eventValues' found or Dictionary its empty";
+    final static String EVENT_SENT_SUCCESSFULY = "Event sent successfully!";
+    final static String NO_VALID_TOKEN = "Not a valid token";
+    final static String NO_CUSTOMER_ID = "No customer id found";
 
 
     final static String AF_IS_DEBUG = "isDebug";

@@ -56,6 +56,14 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         AppsFlyerLib.getInstance().sendDeepLinkData(cordova.getActivity());
     }
 
+    /**
+     * 
+     * @param action The action name to call into.
+     * @param args Arguments to pass into the native environment.
+     * @param callbackContext Success and Error function callback (optionally with an error/success parameter)
+     * @return
+     * @throws JSONException
+     */
     @Override
     public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         Log.d("AppsFlyer", "Executing...");
@@ -98,12 +106,22 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return false;
     }
 
+    /**
+     * Tells the sdk to start tracking app launch
+     */
     private void trackAppLaunch() {
         c = this.cordova.getActivity();
         AppsFlyerLib.getInstance().sendDeepLinkData(c);
         AppsFlyerLib.getInstance().trackEvent(c, null, null);
     }
 
+    /**
+     *  Get the deeplink data
+     * @param callbackContext
+     *      Success callback - called after receiving data on App Open Attribution.
+     *      Error callback - called when error occurs.
+     * @return
+     */
     private boolean registerOnAppOpenAttribution(final CallbackContext callbackContext) {
 
         if (mAttributionDataListener == null) {
@@ -113,9 +131,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
-    /**
-     * @param args
-     * @param callbackContext
+    /** initialize the SDK.
+     * @param args SDK configuration
+     * @param callbackContext Success callback - called after successful SDK initialization.
+     *                        errorCB: Error callback - called when error occurs during initialization.
      */
     private boolean initSdk(final JSONArray args, final CallbackContext callbackContext) {
 
@@ -183,7 +202,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
                     @Override
                     public void onTrackingRequestFailure(String s) {
-                        callbackContext.success(FAILURE);
+                        callbackContext.error(FAILURE);
                     }
                 });
             } else {
@@ -205,6 +224,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * GCD listener. handles success and errors in conversion data .
+     * @param instance
+     * @return
+     */
     private AppsFlyerConversionListener registerConversionListener(AppsFlyerLib instance) {
         return new AppsFlyerConversionListener() {
 
@@ -233,6 +257,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
 
 
+            /**
+             * Handle error while sending conversion data
+             * @param eventType error type ("onAttributionFailure").
+             * @param errorMessage error message ().
+             */
             private void handleError(String eventType, String errorMessage) {
 
                 try {
@@ -248,6 +277,12 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 }
             }
 
+            /**
+             * Sending success conversion data
+             * @param eventType
+             * @param conversionData
+             * @param attributionData
+             */
             private void handleSuccess(String eventType, Map<String, Object> conversionData, Map<String, String> attributionData) {
                 JSONObject obj = new JSONObject();
 
@@ -263,6 +298,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 }
             }
 
+            /**
+             * send the event as a conversion data
+             * @param params
+             */
             private void sendEvent(JSONObject params) {
 
                 final String jsonStr = params.toString();
@@ -289,7 +328,14 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
         };
     }
-
+    /**
+     * Track rich in-app events
+     * @param parameters eventName: custom event name, is presented in your dashboard.
+     *                   eventValue: event details
+     * @param callbackContext Success callback - called after successful event tracking.
+     *                        Error callback - called when error occurs.
+     * @return
+     */
     private boolean trackEvent(JSONArray parameters, final CallbackContext callbackContext) {
         String eventName;
         Map<String, Object> eventValues = null;
@@ -312,10 +358,16 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
         Context c = this.cordova.getActivity().getApplicationContext();
         AppsFlyerLib.getInstance().trackEvent(c, eventName, eventValues);
+        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, eventName));
 
         return true;
     }
 
+    /**
+     * Sets new currency code.
+     * @param parameters currencyId: ISO 4217 Currency Codes.
+     * @return
+     */
     private boolean setCurrencyCode(JSONArray parameters) {
 
         String currencyId = null;
@@ -333,12 +385,19 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs.
+     * @param parameters customerUserId
+     * @param callbackContext Success and Error callbacks.
+     * @return
+     */
     private boolean setAppUserId(JSONArray parameters, CallbackContext callbackContext) {
 
         try {
             String customeUserId = parameters.getString(0);
             if (customeUserId == null || customeUserId.length() == 0) {
-                return true; //TODO error
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_CUSTOMER_ID));
+                return true;
             }
 //            AppsFlyerLib.getInstance().setAppUserId(customeUserId);
             //5.2.0 - setAppUserId replaced with setCustomerUserId
@@ -355,6 +414,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * Get the Appsflyer ID
+     * @param callbackContext
+     * @return
+     */
     private boolean getAppsFlyerUID(CallbackContext callbackContext) {
 
         String id = AppsFlyerLib.getInstance().getAppsFlyerUID(cordova.getActivity().getApplicationContext());
@@ -365,6 +429,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * End User Opt-Out from AppsFlyer analytics.
+     * @param parameters boolean isDisabled
+     * @return
+     */
     private boolean setDeviceTrackingDisabled(JSONArray parameters) {
 
         try {
@@ -377,6 +446,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * Shut down all SDK tracking
+     * @param parameters boolean isStopTracking
+     * @return
+     */
     private boolean stopTracking(JSONArray parameters) {
 
         try {
@@ -389,6 +463,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * Converts Json to Map.
+     * @param inputString
+     * @return
+     */
     private static Map<String, Object> jsonToMap(String inputString) {
         Map<String, Object> newMap = new HashMap<String, Object>();
 
@@ -407,6 +486,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return newMap;
     }
 
+    /**
+     * Use updateServerUninstallToken
+     * @param parameters
+     * @return
+     */
     @Deprecated
     private boolean setGCMProjectNumber(JSONArray parameters) {
         String gcmProjectId = null;
@@ -427,6 +511,12 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * (Android) Allows to pass GCM/FCM Tokens that where collected by third party plugins to the AppsFlyer server. Can be used for Uninstall Tracking.
+     * @param parameters token
+     * @param callbackContext null in this case. We dont use callbacks for this method
+     * @return
+     */
     private boolean updateServerUninstallToken(JSONArray parameters, CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             @Override
@@ -437,7 +527,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                     AppsFlyerLib.getInstance().updateServerUninstallToken(c, token);
                     callbackContext.success(SUCCESS);
                 } else {
-                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "Not a valid token"));
+                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_VALID_TOKEN));
                 }
             }
         });
@@ -445,6 +535,13 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * (Android) Enables app uninstall tracking
+     * @param parameters GCM/FCM ProjectNumber
+     * @param callbackContext Success callback - called after successful register uninstall.
+     *                        Error callback - called when error occurs during register uninstall.
+     * @return
+     */
     private boolean enableUninstallTracking(JSONArray parameters, CallbackContext callbackContext) {
 
         String gcmProjectNumber = parameters.optString(0);
@@ -482,6 +579,12 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     }
 
     // USER INVITE
+    /**
+     * Set AppsFlyer’s OneLink ID
+     * @param parameters oneLinkID.
+     * @param callbackContext null in this case. We dont use callbacks for this method
+     * @return
+     */
     private boolean setAppInviteOneLinkID(JSONArray parameters, CallbackContext callbackContext) {
         try {
             String oneLinkID = parameters.getString(0);
@@ -497,6 +600,12 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * Allowing your existing users to invite their friends and contacts as new users to your app
+     * @param args Parameters for Invite link
+     * @param callbackContext Success callback (generated link) and Error callback.
+     * @return
+     */
     private boolean generateInviteLink(JSONArray args, CallbackContext callbackContext) {
 
         String channel = null;
@@ -559,6 +668,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * Callback function for the link generator
+     */
     private class inviteCallbacksImpl implements CreateOneLinkHttpTask.ResponseListener {
         @Override
         public void onResponse(String s) {
@@ -573,7 +685,13 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         }
     }
 
-    // CROSS PROMOTION
+    /**
+     * Track cross promotion impression. Make sure to use the promoted App ID as it appears within the AppsFlyer dashboard.
+     * @param parameters appId: Promoted Application ID
+     *                   campaign: Promoted Campaign
+     * @param callbackContext
+     * @return
+     */
     public boolean trackCrossPromotionImpression(JSONArray parameters, CallbackContext callbackContext) {
         String promotedAppId = null;
         String campaign = null;
@@ -599,6 +717,14 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     }
 
+    /**
+     * Use this call to track the click and launch the app store's app page (via Browser)
+     * @param parameters promotedAppId: Promoted Application ID
+     *                   campaign: Promoted Campaign
+     *                   userParams: Additional Parameters to track
+     * @param callbackContext
+     * @return
+     */
     public boolean trackAndOpenStore(JSONArray parameters, CallbackContext callbackContext) {
         String promotedAppId = null;
         String campaign = null;
@@ -630,6 +756,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * Helper function to send a callback with no results.
+     * @param callbackContext 
+     */
     private void sendPluginNoResult(CallbackContext callbackContext) {
         PluginResult pluginResult = new PluginResult(
                 PluginResult.Status.NO_RESULT);
@@ -637,6 +767,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         callbackContext.sendPluginResult(pluginResult);
     }
 
+    /**
+     * Get the current SDK version
+     * @param callbackContext successCB: Success callback that returns the SDK version.
+     * @return
+     */
     private boolean getSdkVersion(CallbackContext callbackContext) {
         final String version = AppsFlyerLib.getInstance().getSdkVersion();
         final PluginResult result = new PluginResult(PluginResult.Status.OK, version);

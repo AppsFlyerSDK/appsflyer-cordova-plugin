@@ -16,78 +16,92 @@
  * specific language governing permissions and limitations
  * under the License.
  */
- //
-var handleOpenURL = function(url) {
-    window.plugins.appsFlyer.handleOpenUrl(url);
-}
-var app = {
-    // Application Constructor
-    initialize: function() {
-        this.bindEvents();
-    },
-    // Bind Event Listeners
-    //
-    // Bind any events that are required on startup. Common events are:
-    // 'load', 'deviceready', 'offline', and 'online'.
-    bindEvents: function() {
-        document.addEventListener('deviceready', this.onDeviceReady, false);
-    },
-    // deviceready Event Handler
-    //
-    // The scope of 'this' is the event. In order to call the 'receivedEvent'
-    // function, we must explicitly call 'app.receivedEvent(...);'
-//    onDeviceReady: function() {
-//        app.receivedEvent('deviceready');
-//    },
-//    // Update DOM on a Received Event
-//    receivedEvent: function(id) {
-//        var parentElement = document.getElementById(id);
-//        var listeningElement = parentElement.querySelector('.listening');
-//        var receivedElement = parentElement.querySelector('.received');
 //
-//        listeningElement.setAttribute('style', 'display:none;');
-//        receivedElement.setAttribute('style', 'display:block;');
-//
-//        console.log('Received Event: ' + id);
-//    }
+var handleOpenURL = function (url) {
+  window.plugins.appsFlyer.handleOpenUrl(url);
 };
-document.addEventListener("deviceready", function(){
 
-   var options = {
-             devKey:  'xxxxXxxxXxxxxXXx8',
-             isDebug: true,
-            onInstallConversionDataListener: true
-           };
+// Success callback for init SDK
+var handleSuccessInit = function (success) {
+  console.log(success);
+};
+// Failure callback for init SDK
+var handleFailureInit = function (failure) {
+  console.log(failure);
+};
+
+var app = {
+  // Application Constructor
+  initialize: function () {
+    this.bindEvents();
+  },
+  // Bind Event Listeners
+  //
+  // Bind any events that are required on startup. Common events are:
+  // 'load', 'deviceready', 'offline', and 'online'.
+  bindEvents: function () {
+    document.addEventListener("deviceready", this.onDeviceReady, false);
+  },
+  // deviceready Event Handler
+  //
+  // The scope of 'this' is the event. In order to call the 'receivedEvent'
+  // function, we must explicitly call 'app.receivedEvent(...);'
+  //    onDeviceReady: function() {
+  //        app.receivedEvent('deviceready');
+  //    },
+  //    // Update DOM on a Received Event
+  //    receivedEvent: function(id) {
+  //        var parentElement = document.getElementById(id);
+  //        var listeningElement = parentElement.querySelector('.listening');
+  //        var receivedElement = parentElement.querySelector('.received');
+  //
+  //        listeningElement.setAttribute('style', 'display:none;');
+  //        receivedElement.setAttribute('style', 'display:block;');
+  //
+  //        console.log('Received Event: ' + id);
+  //    }
+};
+document.addEventListener(
+  "deviceready",
+  function () {
+    var options = {
+      devKey: "xxxxXxxxXxxxxXXx8",
+      isDebug: true,
+      onInstallConversionDataListener: true,
+    };
 
     var userAgent = window.navigator.userAgent.toLowerCase();
 
-    if (/iphone|ipad|ipod/.test( userAgent )) {
-        options.appId = "123456789";            // your ios app id in app store        
+    if (/iphone|ipad|ipod/.test(userAgent)) {
+      options.appId = "123336789"; // your ios app id in app store
     }
-    window.plugins.appsFlyer.initSdk(options);
-    window.plugins.appsFlyer.setGCMProjectID("YOUR_GCM_PROJECT_ID");
+    window.plugins.appsFlyer.initSdk(
+      options,
+      handleSuccessInit,
+      handleFailureInit
+    );
+    window.plugins.appsFlyer.setGCMProjectNumber("YOUR_GCM_PROJECT_ID");
 
     var push = PushNotification.init({
-    android: {
-        senderID: "12345"
-    },
-    browser: {
-        pushServiceURL: 'http://push.api.phonegap.com/v1/push'
-    },
-    ios: {
+      android: {
+        senderID: "12345",
+      },
+      browser: {
+        pushServiceURL: "http://push.api.phonegap.com/v1/push",
+      },
+      ios: {
         alert: "true",
         badge: "true",
-        sound: "true"
-    },
-    windows: {}
+        sound: "true",
+      },
+      windows: {},
     });
     //Device Token for iOS
-    push.on('registration', function(data) {
-        console.log("device token: "+data.registrationId);
-        window.plugins.appsFlyer.registerUninstall(data.registrationId);
+    push.on("registration", function (data) {
+      console.log("device token: " + data.registrationId);
+      window.plugins.appsFlyer.registerUninstall(data.registrationId);
     });
-
-
-
-}, false);
+  },
+  false
+);
 app.initialize();

@@ -17,6 +17,10 @@ static NSString *const SUCCESS         = @"Success";
     
 - (void)pluginInitialize{}
 
+/**
+*   initialize the SDK.
+*   initSdkOptions: SDK configuration
+*/
 - (void)initSdk:(CDVInvokedUrlCommand*)command
 {
     NSDictionary* initSdkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
@@ -87,7 +91,7 @@ static NSString *const SUCCESS         = @"Success";
         }
     }
   }
-    
+ 
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command
   {
       [[AppsFlyerTracker sharedTracker] trackAppLaunch];
@@ -106,7 +110,9 @@ static NSString *const SUCCESS         = @"Success";
       }
   }
 
-    
+/**
+*   Sets new currency code. currencyId: ISO 4217 Currency Codes.
+*/
 - (void)setCurrencyCode:(CDVInvokedUrlCommand*)command
 {
     if ([command.arguments count] == 0) {
@@ -116,7 +122,9 @@ static NSString *const SUCCESS         = @"Success";
     NSString* currencyId = [command.arguments objectAtIndex:0];
     [AppsFlyerTracker sharedTracker].currencyCode = currencyId;
 }
-
+/**
+*   Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs.
+*/
 - (void)setAppUserId:(CDVInvokedUrlCommand *)command
 {
     if ([command.arguments count] == 0) {
@@ -127,6 +135,9 @@ static NSString *const SUCCESS         = @"Success";
     [AppsFlyerTracker sharedTracker].customerUserID  = userId;
 }
 
+/**
+*   End User Opt-Out from AppsFlyer analytics.
+*/
 - (void)setDeviceTrackingDisabled:(CDVInvokedUrlCommand *)command
 {
     if ([command.arguments count] == 0) {
@@ -142,6 +153,9 @@ static NSString *const SUCCESS         = @"Success";
     }
 }
 
+/**
+*   Shut down all SDK tracking
+*/
 - (void)stopTracking:(CDVInvokedUrlCommand *)command
 {
     if ([command.arguments count] == 0) {
@@ -157,6 +171,9 @@ static NSString *const SUCCESS         = @"Success";
     }
 }
 
+/**
+*   Get the Appsflyer ID
+*/
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand *)command
 {
     NSString* userId = [[AppsFlyerTracker sharedTracker] getAppsFlyerUID];
@@ -167,6 +184,9 @@ static NSString *const SUCCESS         = @"Success";
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+/**
+*   Get the deeplink data. use 'success' and 'failure' callback methods.
+*/
 - (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command
 {
     mAttributionDataListener = command.callbackId;
@@ -174,6 +194,9 @@ static NSString *const SUCCESS         = @"Success";
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
 }
 
+/**
+* Event tracking. not in use
+*/
 - (void)sendTrackingWithEvent:(CDVInvokedUrlCommand *)command
 {
     if ([command.arguments count] < 2) {
@@ -185,15 +208,44 @@ static NSString *const SUCCESS         = @"Success";
     [[AppsFlyerTracker sharedTracker] trackEvent:eventName withValue:eventValue];
 }
 
-
+/**
+* Track rich in-app events
+* @param parameters eventName: custom event name, is presented in your dashboard.
+*                   eventValue: event details
+*                   callbackID: 'success' and 'failure' methods
+*/
 - (void)trackEvent:(CDVInvokedUrlCommand*)command {
 
+    NSString* error = nil; 
     NSString* eventName = [command.arguments objectAtIndex:0];
     NSDictionary* eventValues = [command.arguments objectAtIndex:1];
+
+ if(eventName == nil || eventName.length == 0){
+        error = @"Event name is illegal";
+    }
+    if(eventValues == nil){
+        error = @"Event Values are illegal";
+    }
+    
+    if(error != nil){
+    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: error];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+    return;
+    }
+    
+    [[AppsFlyerTracker sharedTracker] trackEvent:eventName withValues:eventValues];
+    
+    CDVPluginResult *pluginResult = [ CDVPluginResult resultWithStatus: CDVCommandStatus_OK
+    messageAsString:eventName
+    ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
     [[AppsFlyerTracker sharedTracker] trackEvent:eventName withValues:eventValues];
 
 }
-
+/**
+*   Allows to pass APN Tokens that where collected by third party plugins to the AppsFlyer server. Can be used for Uninstall Tracking.
+*/
 - (void)registerUninstall:(CDVInvokedUrlCommand*)command {
 
     NSString* deviceToken = [command.arguments objectAtIndex:0];
@@ -216,6 +268,9 @@ static NSString *const SUCCESS         = @"Success";
     }
 }
 
+/**
+*   Get the current SDK version
+*/
 - (void)getSdkVersion:(CDVInvokedUrlCommand*)command {
     NSString* version = [[AppsFlyerTracker sharedTracker] getSDKVersion];
     CDVPluginResult *pluginResult = [CDVPluginResult
@@ -226,6 +281,9 @@ static NSString *const SUCCESS         = @"Success";
 }
 
 //USER INVITES
+/**
+*   Set AppsFlyer’s OneLink ID
+*/
     
 - (void)setAppInviteOneLinkID:(CDVInvokedUrlCommand*)command {
     if ([command.arguments count] == 0) {
@@ -234,7 +292,11 @@ static NSString *const SUCCESS         = @"Success";
     NSString* oneLinkID = [command.arguments objectAtIndex:0];
     [AppsFlyerTracker sharedTracker].appInviteOneLinkID = oneLinkID;
 }
-    
+
+/**
+*   Allowing your existing users to invite their friends and contacts as new users to your app
+*   customParams - Parameters for Invite link
+*/
 - (void)generateInviteLink:(CDVInvokedUrlCommand*)command {
     NSDictionary* inviteLinkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
     NSDictionary* customParams = (NSDictionary*)[inviteLinkOptions objectForKey: @"userParams"];
@@ -294,6 +356,11 @@ static NSString *const SUCCESS         = @"Success";
 }
     
 //CROSS PROMOTION
+/**
+*   Track cross promotion impression. Make sure to use the promoted App ID as it appears within the AppsFlyer dashboard.
+*                   promtAppID: Promoted Application ID
+*                   campaign: Promoted Campaign
+*/
 -(void)trackCrossPromotionImpression:(CDVInvokedUrlCommand*) command {
     
     if ([command.arguments count] == 0) {
@@ -309,6 +376,12 @@ static NSString *const SUCCESS         = @"Success";
     }
 }
 
+/**
+*   Use this call to track the click and launch the app store's app page (via Browser)
+*                   promtAppId: Promoted Application ID
+*                   campaign: Promoted Campaign
+*                   customParams: Additional Parameters to track
+*/
 -(void)trackAndOpenStore:(CDVInvokedUrlCommand*) command {
     
     if ([command.arguments count] == 0) {
@@ -364,7 +437,9 @@ static NSString *const SUCCESS         = @"Success";
     [self performSelectorOnMainThread:@selector(handleCallback:) withObject:errorMessage waitUntilDone:NO];
 }
 
-
+/**
+*  Get the deeplink data
+*/
 - (void) onAppOpenAttribution:(NSDictionary*) attributionData {
     
     NSDictionary* message = @{
@@ -387,7 +462,9 @@ static NSString *const SUCCESS         = @"Success";
     [self performSelectorOnMainThread:@selector(handleCallback:) withObject:errorMessage waitUntilDone:NO];
 }
 
-
+/**
+*   Helper function to handle callbacks from the sdk
+*/
 -(void) handleCallback:(NSDictionary *) message{
     NSError *error;
     
@@ -413,10 +490,18 @@ static NSString *const SUCCESS         = @"Success";
     }
 }
 
+/**
+*   Error callback - called when error occurs.
+*/
 -(void) reportOnFailure:(NSString *)errorMessage withType:(NSString *)type{
     
     if([type isEqualToString:afOnAttributionFailure]){
-        //TODO
+        if(mAttributionDataListener != nil){
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
+            [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:mAttributionDataListener];
+            mAttributionDataListener = nil;
+        }
     }
     else if([type isEqualToString:afOnInstallConversionFailure]){
         if (mConversionListenerOnResume != nil) {
@@ -424,7 +509,7 @@ static NSString *const SUCCESS         = @"Success";
         }
         
         if(mConversionListener != nil){
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:errorMessage];
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
             [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListener];
             
@@ -433,6 +518,9 @@ static NSString *const SUCCESS         = @"Success";
     }
 }
 
+/**
+*   Success callback - called after receiving data.
+*/
 -(void) reportOnSuccess:(NSString *)data withType:(NSString *)type {
     
     if([type isEqualToString:afOnAppOpenAttribution]){
@@ -461,6 +549,10 @@ static NSString *const SUCCESS         = @"Success";
         }
     }
 }
+
+/**
+*   Deep linking tracking
+*/
 - (void) handleOpenUrl:(CDVInvokedUrlCommand*)command {
     NSURL *url = [NSURL URLWithString:
         [[command.arguments objectAtIndex:0]

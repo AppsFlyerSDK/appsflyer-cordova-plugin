@@ -14,7 +14,8 @@ app.controller('AppsFlyerCtrl', function (
         enableUninstallTrackingResponse: "not initialized yet",
         initSdkResponse: "not initialized yet",
         gcmProjectNumberResponse: "not called yet",
-        trackLocation: []
+        trackLocation: [],
+        SDKVersion: "---"
     };
 
     function run() {
@@ -44,9 +45,12 @@ app.controller('AppsFlyerCtrl', function (
                 break;
             case 'enableUninstallTracking':
                 enableUninstallTracking();
-                break;    
-            default:
+                break;
+            case 'SDKVersion':
+                getSdkVersion();
+                break;
 
+            default:
                 break;
         }
     };
@@ -56,9 +60,9 @@ app.controller('AppsFlyerCtrl', function (
          window.plugins.appsFlyer.enableUninstallTracking(gcmProjectNumber,
                     function successCB(_response) {
                         console.log(_response);
-                       
+
                         alert(_response);
-                        
+
                         $timeout(function () {
                             $scope.viewModel.enableUninstallTrackingResponse = _response;
                         }, 1);
@@ -76,7 +80,7 @@ app.controller('AppsFlyerCtrl', function (
     function gcmProjectNumber() {
         var gcmProjectNumber = "565637785481";
           window.plugins.appsFlyer.setGCMProjectNumber(gcmProjectNumber);
-          
+
           // we don't use callback for this method
           $scope.viewModel.gcmProjectNumberResponse = "Success";
     }
@@ -108,7 +112,7 @@ app.controller('AppsFlyerCtrl', function (
             window.plugins.appsFlyer.initSdk(options,
                     function successCB(_response) {
                         console.log(_response);
-                       
+
                              alert(_response);
                         $timeout(function () {
                             $scope.viewModel.initSdkResponse = _response;
@@ -134,10 +138,25 @@ app.controller('AppsFlyerCtrl', function (
             "af_revenue": "2"
         };
 
-        window.plugins.appsFlyer.trackEvent(eventName, eventValues);
+        window.plugins.appsFlyer.trackEvent(eventName, eventValues, successTrackEvent, failureTrackEvent);
 
-        $scope.viewModel.trackEventResponse = 'trackEvent - Success'; //TODO  
+
     }
+    var successTrackEvent = function(success){
+      $scope.viewModel.trackEventResponse = success; //success -> 'af_add_to_cart'
+  }
+
+  var failureTrackEvent = function(failure){
+    $scope.viewModel.trackEventResponse = 'trackEvent - Failed';
+  }
+
+    function getSdkVersion() {
+      window.plugins.appsFlyer.getSdkVersion(getSdkCallbackFn);
+  }
+
+  function getSdkCallbackFn(id) {
+    $scope.viewModel.SDKVersion = id;
+}
 
 
     $scope.$on("ionicPlatformReady", function () {

@@ -1,19 +1,32 @@
 //Button Functions
-var func1=document.getElementById("trackEvent");
-var func2=document.getElementById("setCurrency");
-var func3=document.getElementById("setUserId");
-var func4=document.getElementById("getUserId");
-if(func1){
-    func1.addEventListener("click", trackEvent, false);
+var trackEventBtn=document.getElementById("trackEvent");
+var setCurrencyBtn=document.getElementById("setCurrency");
+var setUserIdBtn=document.getElementById("setUserId");
+var getUseridBtn=document.getElementById("getUserId");
+var getSdkVersionBtn=document.getElementById("getSdkV");
+
+if(trackEventBtn){
+    trackEventBtn.addEventListener("click", trackEvent, false);
 }
-if(func2){
-    func2.addEventListener("click", setCurrency, false);
+if(setCurrencyBtn){
+    setCurrencyBtn.addEventListener("click", setCurrency, false);
 }
-if(func3){
-    func3.addEventListener("click", setUserId, false);
+if(setUserIdBtn){
+    setUserIdBtn.addEventListener("click", setUserId, false);
 }
-if(func4){
-    func4.addEventListener("click", getUserId, false);
+if(getUseridBtn){
+   getUseridBtn.addEventListener("click", getUserId, false);
+}
+if(getSdkVersionBtn){
+   getSdkVersionBtn.addEventListener("click", getSdkVersion, false);
+}
+
+var successTrackEvent = function(success){
+    alert(success);
+}
+
+var failureTrackEvent = function(failure){
+    alert(failure);
 }
 
  function setCurrency(currencyId){
@@ -27,14 +40,18 @@ if(func4){
     window.plugins.appsFlyer.setAppUserId(userAppId);
 }
  function getUserId() {
-    window.plugins.appsFlyer.getAppsFlyerUID(getUserIdCallbackFn);
+    window.plugins.appsFlyer.getAppsFlyerUID(callBackFunction);
 }
- function getUserIdCallbackFn(id) {
-    alert('received id is: ' + id);
+
+ function getSdkVersion() {
+    window.plugins.appsFlyer.getSdkVersion(callBackFunction);
+}
+
+ function callBackFunction(id) {
+    alert('received: ' + id);
 }
  function trackEvent(eventName, eventValues) {
-    alert('Event Tracked');
     eventName = "af_add_to_cart";
     eventValues = {"af_content_id": "id123", "af_currency":"USD", "af_revenue": "2"};
-    window.plugins.appsFlyer.trackEvent(eventName, eventValues);
+    window.plugins.appsFlyer.trackEvent(eventName, eventValues, successTrackEvent, failureTrackEvent);
 }

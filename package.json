@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-appsflyer-sdk",
-  "version": "5.2.2",
+  "version": "5.4.0",
   "description": "Cordova AppsFlyer SDK Plugin",
   "cordova": {
     "id": "cordova-plugin-appsflyer-sdk",
@@ -39,8 +39,8 @@
     "test": "npm run jshint",
     "jshint": "node node_modules/jshint/bin/jshint www && node node_modules/jshint/bin/jshint src && node node_modules/jshint/bin/jshint tests",
     "preparedemo_a": "cd examples/demoA; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova plugin add ../.. --link --save; cordova platform rm android; cordova platform add android; cordova platform rm ios; cordova platform add ios",
-    "preparedemo_c": "cd examples/demoC; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova plugin add ../.. --link --save; cordova plugin rm cordova-plugin-console --save; cordova plugin add cordova-plugin-console --save; cordova platform rm android; cordova platform add android@8.0.0; cordova platform rm ios; cordova platform add ios",
-    "preparedemo_ionic": "cd examples/Ionic-native; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova plugin add ../..  --link --save; cordova platform rm android; cordova platform add android; cordova platform rm ios; cordova platform add ios",
+    "preparedemo_c": "cd examples/demoC; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova plugin add ../.. --link --save; cordova platform rm android; cordova platform add android@8.0.0; cordova platform rm ios; cordova platform add ios",
+    "preparedemo_ionic": "cd examples/Ionic-native; ionic cordova platform rm android; ionic cordova platform add android; ionic cordova platform rm ios; ionic cordova platform add ios",
     "setup_a": "cd examples/demoA; npm install; cd ../..; npm run preparedemo_a;",
     "setup_c": "cd examples/demoC; npm install; cd ../..; npm run preparedemo_c;",
     "setup_ionic-native": "cd examples/Ionic-native; npm install; cd ../..; npm run preparedemo_ionic;",
