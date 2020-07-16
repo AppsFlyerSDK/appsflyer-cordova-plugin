@@ -101,6 +101,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return onResume(args, callbackContext);
         } else if ("getSdkVersion".equals(action)) {
             return getSdkVersion(callbackContext);
+        }else if ("setSharingFilter".equals(action)) {
+            return setSharingFilter(args, callbackContext);
+        }else if ("setSharingFilterForAllPartners".equals(action)) {
+            return setSharingFilterForAllPartners(callbackContext);
         }
 
         return false;
@@ -589,13 +593,15 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         try {
             String oneLinkID = parameters.getString(0);
             if (oneLinkID == null || oneLinkID.length() == 0) {
-                return true; //TODO error
+                callbackContext.error(FAILURE);
+                return true;
             }
             AppsFlyerLib.getInstance().setAppInviteOneLink(oneLinkID);
             callbackContext.success(SUCCESS);
         } catch (JSONException e) {
             e.printStackTrace();
-            return true; //TODO error
+            callbackContext.error(FAILURE);
+            return true;
         }
         return true;
     }
@@ -776,6 +782,44 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         final String version = AppsFlyerLib.getInstance().getSdkVersion();
         final PluginResult result = new PluginResult(PluginResult.Status.OK, version);
         callbackContext.sendPluginResult(result);
+        return true;
+    }
+
+       /**
+     * @param parameters      Comma separated array of partners that need to be excluded
+     * @param callbackContext
+     */
+    private boolean setSharingFilter(JSONArray parameters, CallbackContext callbackContext) {
+        try {
+            String partners = parameters.getString(0);
+            if (partners.equals("null") || parameters.length() == 0) {
+                callbackContext.error(FAILURE);
+                return true;
+            }
+            partners = partners.substring(1, partners.length() - 1);
+            partners = partners.replaceAll(" ", "");
+
+            String[] networksArray = partners.split("[ ,]");
+            for (String partner : networksArray) {
+                partner = partner.substring(1, partner.length() - 1);
+            }
+            AppsFlyerLib.getInstance().setSharingFilter(networksArray);
+            callbackContext.success(SUCCESS);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            callbackContext.error(FAILURE);
+        }
+
+        return true;
+    }
+
+    /**
+     * Used by advertisers to exclude all networks/integrated partners from getting data
+     */
+    private boolean setSharingFilterForAllPartners(CallbackContext callbackContext) {
+        AppsFlyerLib.getInstance().setSharingFilterForAllPartners();
+        callbackContext.success(SUCCESS);
         return true;
     }
 }

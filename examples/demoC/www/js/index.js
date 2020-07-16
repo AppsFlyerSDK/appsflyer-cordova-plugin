@@ -40,7 +40,7 @@ var app = {
   // Bind any events that are required on startup. Common events are:
   // 'load', 'deviceready', 'offline', and 'online'.
   bindEvents: function () {
-    document.addEventListener("deviceready", this.onDeviceReady, false);
+    document.addEventListener('deviceready', this.onDeviceReady, false);
   },
   // deviceready Event Handler
   //
@@ -62,10 +62,10 @@ var app = {
   //    }
 };
 document.addEventListener(
-  "deviceready",
+  'deviceready',
   function () {
     var options = {
-      devKey: "xxxxXxxxXxxxxXXx8",
+      devKey: 'xxxxxxxx',
       isDebug: true,
       onInstallConversionDataListener: true,
     };
@@ -73,32 +73,28 @@ document.addEventListener(
     var userAgent = window.navigator.userAgent.toLowerCase();
 
     if (/iphone|ipad|ipod/.test(userAgent)) {
-      options.appId = "123336789"; // your ios app id in app store
+      options.appId = '741993991'; // your ios app id in app store
     }
-    window.plugins.appsFlyer.initSdk(
-      options,
-      handleSuccessInit,
-      handleFailureInit
-    );
-    window.plugins.appsFlyer.setGCMProjectNumber("YOUR_GCM_PROJECT_ID");
+    window.plugins.appsFlyer.initSdk(options, handleSuccessInit, handleFailureInit);
+    window.plugins.appsFlyer.setGCMProjectNumber('YOUR_GCM_PROJECT_ID');
 
     var push = PushNotification.init({
       android: {
-        senderID: "12345",
+        senderID: '12345',
       },
       browser: {
-        pushServiceURL: "http://push.api.phonegap.com/v1/push",
+        pushServiceURL: 'http://push.api.phonegap.com/v1/push',
       },
       ios: {
-        alert: "true",
-        badge: "true",
-        sound: "true",
+        alert: 'true',
+        badge: 'true',
+        sound: 'true',
       },
       windows: {},
     });
     //Device Token for iOS
-    push.on("registration", function (data) {
-      console.log("device token: " + data.registrationId);
+    push.on('registration', function (data) {
+      console.log('device token: ' + data.registrationId);
       window.plugins.appsFlyer.registerUninstall(data.registrationId);
     });
   },
