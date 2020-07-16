@@ -27,6 +27,8 @@ The list of available methods for this plugin is described below.
 | [`trackAndOpenStore`](#trackAndOpenStore) | `(String appId, String campaign, Object params)` | Launch the app store's app page (via Browser) |
 | [`handleOpenUrl`](#deep-linking-tracking) | `(String url)` |  |
 | [`getSdkVersion`](#getSdkVersion) | `((function success)` | Get the current SDK version |
+| [`setSharingFilterForAllPartners`](#setSharingFilterForAllPartners) | | Used by advertisers to exclude all networks/integrated partners from getting data |
+| [`setSharingFilter`](#setSharingFilter) | `(partners)` | Used by advertisers to exclude specified networks/integrated partners from getting data |
 
 
 ---
@@ -398,6 +400,32 @@ window.plugins.appsFlyer.getSdkVersion(getSdkVersionCallbackFn);
 | parameter   | type                        | description |
 | ----------- |-----------------------------|--------------|
 | `getSdkVersionCallbackFn` | `void`                   | Success callback |
+
+---
+##### <a id="setSharingFilterForAllPartners"> **`setSharingFilterForAllPartners(): void`**
+
+Used by advertisers to exclude all networks/integrated partners from getting data. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032126#additional-apis-exclude-partners-from-getting-data)
+
+*Example:*
+```javascript
+
+window.plugins.appsFlyer.setSharingFilterForAllPartners();
+```
+
+---
+##### <a id="setSharingFilter"> **`setSharingFilter(partners): void`**
+
+Used by advertisers to exclude specified networks/integrated partners from getting data. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032126#additional-apis-exclude-partners-from-getting-data)
+
+*Example:*
+```javascript
+let partners = ["facebook_int","googleadwords_int","snapchat_int","doubleclick_int"];
+window.plugins.appsFlyer.setSharingFilter(partners);
+```
+
+| parameter   | type                        | description |
+| ----------- |-----------------------------|--------------|
+| `partners` | `array`                   | Comma separated array of partners that need to be excluded |
 
 ---
 ### <a id="deep-linking-tracking"> Deep linking Tracking

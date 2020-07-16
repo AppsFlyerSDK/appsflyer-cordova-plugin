@@ -1,4 +1,12 @@
 # Release Notes
+### 5.4.1
+Release date **July 16 2020**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- add SharingFilter support
+
 ### 5.2.2
 Release date **April 30 2020**
 Release type: Major / Minor / **Hotfix**

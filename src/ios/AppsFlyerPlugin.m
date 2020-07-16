@@ -551,13 +551,38 @@ static NSString *const SUCCESS         = @"Success";
 }
 
 /**
-*   Deep linking tracking
+*  Deep linking tracking
 */
 - (void) handleOpenUrl:(CDVInvokedUrlCommand*)command {
     NSURL *url = [NSURL URLWithString:
         [[command.arguments objectAtIndex:0]
             stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
     [[AppsFlyerTracker sharedTracker] handleOpenUrl:url options:nil];
+}
+/**
+* Used by advertisers to exclude specified networks/integrated partners from getting data
+*/
+- (void)setSharingFilter:(CDVInvokedUrlCommand*)command {
+    NSArray* partners = [command.arguments objectAtIndex:0];
+    if ([partners count] == 0) {
+           return;
+       }
+      [[AppsFlyerTracker sharedTracker] setSharingFilter:partners];
+      CDVPluginResult *pluginResult = [CDVPluginResult
+                                        resultWithStatus: CDVCommandStatus_OK
+                                        ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+/**
+* Used by advertisers to exclude ALL networks/integrated partners from getting data
+*/
+- (void)setSharingFilterForAllPartners:(CDVInvokedUrlCommand*)command {
+    [[AppsFlyerTracker sharedTracker] setSharingFilterForAllPartners];
+    CDVPluginResult *pluginResult = [CDVPluginResult
+                                        resultWithStatus: CDVCommandStatus_OK
+                                        ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 
