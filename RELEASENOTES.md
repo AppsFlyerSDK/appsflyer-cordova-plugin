@@ -1,6 +1,17 @@
 # Release Notes
+### 5.4.3
+Release date **July 30 2020**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- Updated Android SDK to v5.4.3
+
+- Updated iOS SDK to v5.4.3
+
+
 ### 5.4.1
-Release date **July 16 2020**
+Release date **June 30 2020**
 Release type: Major / **Minor** / Hotfix
 
 **Overview and Highlights:**
