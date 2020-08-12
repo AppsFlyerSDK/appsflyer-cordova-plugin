@@ -75,27 +75,23 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setAppUserId(args, callbackContext);
         } else if ("getAppsFlyerUID".equals(action)) {
             return getAppsFlyerUID(callbackContext);
-        } else if ("setDeviceTrackingDisabled".equals(action)) {
+        } else if ("DeviceLoggingDisabled".equals(action)) {
             return setDeviceTrackingDisabled(args);
-        } else if ("stopTracking".equals(action)) {
+        } else if ("Stop".equals(action)) {
             return stopTracking(args);
         } else if ("initSdk".equals(action)) {
             return initSdk(args, callbackContext);
-        } else if ("trackEvent".equals(action)) {
+        } else if ("logEvent".equals(action)) {
             return trackEvent(args, callbackContext);
-        } else if ("setGCMProjectID".equals(action)) {
-            return setGCMProjectNumber(args);
-        } else if ("enableUninstallTracking".equals(action)) {
-            return enableUninstallTracking(args, callbackContext);
         } else if ("updateServerUninstallToken".equals(action)) {
             return updateServerUninstallToken(args, callbackContext);
         } else if ("setAppInviteOneLinkID".equals(action)) {
             return setAppInviteOneLinkID(args, callbackContext);
         } else if ("generateInviteLink".equals(action)) {
             return generateInviteLink(args, callbackContext);
-        } else if ("trackCrossPromotionImpression".equals(action)) {
+        } else if ("logCrossPromotionImpression".equals(action)) {
             return trackCrossPromotionImpression(args, callbackContext);
-        } else if ("trackAndOpenStore".equals(action)) {
+        } else if ("logCrossPromotionAndOpenStore".equals(action)) {
             return trackAndOpenStore(args, callbackContext);
         } else if ("resumeSDK".equals(action)) {
             return onResume(args, callbackContext);
@@ -491,31 +487,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     }
 
     /**
-     * Use updateServerUninstallToken
-     * @param parameters
-     * @return
-     */
-    @Deprecated
-    private boolean setGCMProjectNumber(JSONArray parameters) {
-        String gcmProjectId = null;
-        try {
-            gcmProjectId = parameters.getString(0);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        if (gcmProjectId == null || gcmProjectId.length() == 0) {
-            return true;//TODO error
-        }
-        Context c = this.cordova.getActivity().getApplicationContext();
-        //5.2.0 - use updateServerUninstallToken
-        AppsFlyerLib.getInstance().updateServerUninstallToken(c, gcmProjectId);
-
-
-        return true;
-    }
-
-    /**
      * (Android) Allows to pass GCM/FCM Tokens that where collected by third party plugins to the AppsFlyer server. Can be used for Uninstall Tracking.
      * @param parameters token
      * @param callbackContext null in this case. We dont use callbacks for this method
@@ -536,30 +507,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
         });
 
-        return true;
-    }
-
-    /**
-     * (Android) Enables app uninstall tracking
-     * @param parameters GCM/FCM ProjectNumber
-     * @param callbackContext Success callback - called after successful register uninstall.
-     *                        Error callback - called when error occurs during register uninstall.
-     * @return
-     */
-    private boolean enableUninstallTracking(JSONArray parameters, CallbackContext callbackContext) {
-
-        String gcmProjectNumber = parameters.optString(0);
-
-        if (gcmProjectNumber == null || gcmProjectNumber.length() == 0) {
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_GCM_PROJECT_NUMBER_PROVIDED));
-            return true;
-        }
-//        AppsFlyerLib.getInstance().enableUninstallTracking(gcmProjectNumber);
-        //new addition 5.2.0 - start
-        Context c = cordova.getActivity().getApplicationContext();
-        AppsFlyerLib.getInstance().updateServerUninstallToken(c, gcmProjectNumber);
-        //new addition 5.2.0 - end
-        callbackContext.success(SUCCESS);
         return true;
     }
 

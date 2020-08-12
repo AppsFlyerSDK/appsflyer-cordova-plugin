@@ -1,26 +1,26 @@
 #import <Foundation/Foundation.h>
 #import <Cordova/CDVPlugin.h>
-#import "AppsFlyerTracker.h"
+#import "AppsFlyerLib.h"
 
 
-@interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerTrackerDelegate>
+@interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate>
+// @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerTrackerDelegate>
 - (void)initSdk:(CDVInvokedUrlCommand*)command;
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command;
 - (void)setCurrencyCode:(CDVInvokedUrlCommand*)command;
 - (void)setAppUserId:(CDVInvokedUrlCommand*)command;
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand*)command;
-- (void)sendTrackingWithEvent:(CDVInvokedUrlCommand*)command;
 - (void)onConversionDataSuccess:(NSDictionary*) installData;
 - (void)onConversionDataFail:(NSError *) error;
-- (void)trackEvent:(CDVInvokedUrlCommand*)command;
+- (void)logEvent:(CDVInvokedUrlCommand*)command;
 - (void)registerUninstall:(CDVInvokedUrlCommand*)command;
 - (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
-- (void)setDeviceTrackingDisabled:(CDVInvokedUrlCommand *)command;
-- (void)stopTracking:(CDVInvokedUrlCommand *) command;
+- (void)deviceLoggingDisabled:(CDVInvokedUrlCommand *)command;
+- (void)Stop:(CDVInvokedUrlCommand *) command;
 - (void)setAppInviteOneLinkID:(CDVInvokedUrlCommand *)command;
 - (void)generateInviteLink:(CDVInvokedUrlCommand*)command;
-- (void)trackCrossPromotionImpression:(CDVInvokedUrlCommand *)command;
-- (void)trackAndOpenStore:(CDVInvokedUrlCommand *)command;
+- (void)logCrossPromotionImpression:(CDVInvokedUrlCommand *)command;
+- (void)logCrossPromotionAndOpenStore:(CDVInvokedUrlCommand *)command;
 - (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command;
 - (void)getSdkVersion:(CDVInvokedUrlCommand *)command;
 @end
@@ -31,6 +31,7 @@
 // Appsflyer JS objects
 #define afDevKey                        @"devKey"
 #define afAppId                         @"appId"
+#define afTimeToWaitForAdvertiserID     @"timeToWaitForAdvertiserID"
 #define afIsDebug						@"isDebug"
 #define afSanboxUninstall				@"useUninstallSandbox"
 

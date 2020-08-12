@@ -1,7 +1,7 @@
 
 <img src="https://www.appsflyer.com/wp-content/uploads/2016/11/logo-1.svg"  width="600">
 
-# Cordova AppsFlyer plugin for Android and iOS. 
+# Cordova AppsFlyer plugin 6.0.1-Beta for Android and iOS. 
 
 [![npm version](https://badge.fury.io/js/cordova-plugin-appsflyer-sdk.svg)](https://badge.fury.io/js/cordova-plugin-appsflyer-sdk)
 [![Build Status](https://travis-ci.org/AppsFlyerSDK/appsflyer-cordova-plugin.svg?branch=master)](https://travis-ci.org/AppsFlyerSDK/appsflyer-cordova-plugin)
@@ -18,8 +18,6 @@ Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with 
 
 ----------
 
-
-
 ## Table of content
 
 - [SDK versions](#plugin-build-for)
@@ -33,19 +31,37 @@ Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with 
 
 ### <a id="plugin-build-for"> This plugin is built for
 
-- iOS AppsFlyerSDK **v5.4.3**
+- iOS AppsFlyerSDK **v6.0.1-Beta**
 - Android AppsFlyerSDK **v5.4.3**
 
 
 ## <a id="installation">📲Installation
 
-```
-$ cordova plugin add cordova-plugin-appsflyer-sdk
+
+To install cordova v6.0.1-beta manually from this branch check out the doc [here](/docs/Installation.md).
+
+***steps:***<br>
+1. Add ```#import <AppTrackingTransparency/AppTrackingTransparency.h>``` in your ```AppDelegate.m``` file<br>
+2.Add the ATT pop-up for IDFA collection. your ```AppDelegate.m``` should look like this:
+
+
+```javascript
+-(BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)launchOptions
+{
+    self.viewController = [[MainViewController alloc] init];
+    if (@available(iOS 14, *)) {
+        [ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {
+            //If you want to do something with the pop-up
+        }];
+    }
+    return [super application:application didFinishLaunchingWithOptions:launchOptions];
+}
 ```
 
-To install cordova manually check out the doc [here](/docs/Installation.md).
+3. Add ```Privacy - Tracking Usage Description``` inside your ```.plist``` file in Xcode.<br>
+4.For more info see section ***3.4*** in the Support integration guide [Here](https://support.appsflyer.com/hc/en-us/articles/360011451918#integration)
 
-> **_NOTE:_** for Ionic installation see [this](#ionic) section
+
 
  ## <a id="guides"> 📖 Guides
 
@@ -72,7 +88,8 @@ document.addEventListener('deviceready', function() {
    window.plugins.appsFlyer.initSdk({
       devKey: 'K2***************99', // your AppsFlyer devKey
       isDebug: false,
-      appId: '41*****44' // your ios appID
+      appId: '41*****44', // your ios appID
+      timeToWaitForAdvertiserID: 10, //time for the sdk to wait before launch
     },
       (result) => {
         console.log(result);
@@ -84,7 +101,6 @@ document.addEventListener('deviceready', function() {
   
 }, false);
 ```
-
 ---
 
 
@@ -95,7 +111,7 @@ See the full [API](/docs/API.md) available for this plugin.
 
 ## <a id="demo"> 📱 Demo
   
-  Check out the demo for this project [here](docs/Guides.md#demo).
+There is 1 demo project called ```demoC```.<br>run ```npm run setup_c``` in the appsflyer-cordova-plugin folder and then open the project ios in Xcode
 
 ## <a id="ionic"> 📍 Ionic
 

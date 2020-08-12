@@ -1,5 +1,5 @@
 #import "AppsFlyerPlugin.h"
-#import "AppsFlyerTracker.h"
+#import "AppsFlyerLib.h"
 #import "AppDelegate.h"
 
 @implementation AppsFlyerPlugin
@@ -8,6 +8,7 @@
 static NSString *const NO_DEVKEY_FOUND = @"AppsFlyer 'devKey' is missing or empty";
 static NSString *const NO_APPID_FOUND  = @"'appId' is missing or empty";
 static NSString *const SUCCESS         = @"Success";
+static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT";
 
  NSString* mConversionListener;
  NSString* mAttributionDataListener;
@@ -27,6 +28,7 @@ static NSString *const SUCCESS         = @"Success";
     
     NSString* devKey = nil;
     NSString* appId = nil;
+    NSNumber* timeToWaitForAdvertiserID;
     BOOL isDebug = NO;
     BOOL useUninstallSandbox = NO;
     
@@ -38,7 +40,7 @@ static NSString *const SUCCESS         = @"Success";
         id sandboxValue = nil;
         devKey = (NSString*)[initSdkOptions objectForKey: afDevKey];
         appId = (NSString*)[initSdkOptions objectForKey: afAppId];
-        
+        timeToWaitForAdvertiserID = (NSNumber*)[initSdkOptions objectForKey: afTimeToWaitForAdvertiserID];
         value = [initSdkOptions objectForKey: afIsDebug];
         if ([value isKindOfClass:[NSNumber class]]) {
             isDebug = [(NSNumber*)value boolValue];
@@ -58,8 +60,11 @@ static NSString *const SUCCESS         = @"Success";
     if (!devKey || [devKey isEqualToString:@""]) {
         error = NO_DEVKEY_FOUND;
     }
-    else if (!appId || [appId isEqualToString:@""]) {
+    if (!appId || [appId isEqualToString:@""]) {
         error = NO_APPID_FOUND;
+    }
+    if (timeToWaitForAdvertiserID.intValue == 0) {
+        error = NO_WAITING_TIME;
     }
     
     if(error != nil){
@@ -68,19 +73,24 @@ static NSString *const SUCCESS         = @"Success";
         return;
     }
     else{
-        
-        [AppsFlyerTracker sharedTracker].appleAppID = appId;
-        [AppsFlyerTracker sharedTracker].appsFlyerDevKey = devKey;
-        [AppsFlyerTracker sharedTracker].isDebug = isDebug;
-        [AppsFlyerTracker sharedTracker].useUninstallSandbox = useUninstallSandbox;
-        [[AppsFlyerTracker sharedTracker] trackAppLaunch];
+        [AppsFlyerLib shared].appleAppID = appId;
+        [AppsFlyerLib shared].appsFlyerDevKey = devKey;
+        [AppsFlyerLib shared].isDebug = isDebug;
+        [AppsFlyerLib shared].useUninstallSandbox = useUninstallSandbox;
+
+        //Here we set the time that the sdk will wait before he starts the launch. we take the time from the 'option' object in the app's index.js
+        if (@available(iOS 14, *)) {
+            [[AppsFlyerLib shared] waitForAdvertisingIdentifierWithTimeoutInterval:timeToWaitForAdvertiserID.intValue];
+        }
+
+        [[AppsFlyerLib shared] start];
 
         
         if(isConversionData == YES){
           CDVPluginResult* pluginResult = nil;
           mConversionListener = command.callbackId;
             
-          [AppsFlyerTracker sharedTracker].delegate = self;
+          [AppsFlyerLib shared].delegate = self;
          
           pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
           [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -94,7 +104,7 @@ static NSString *const SUCCESS         = @"Success";
  
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command
   {
-      [[AppsFlyerTracker sharedTracker] trackAppLaunch];
+      [[AppsFlyerLib shared] start];
       
       
       if (isConversionData == YES) {
@@ -120,7 +130,7 @@ static NSString *const SUCCESS         = @"Success";
     }
     
     NSString* currencyId = [command.arguments objectAtIndex:0];
-    [AppsFlyerTracker sharedTracker].currencyCode = currencyId;
+    [AppsFlyerLib shared].currencyCode = currencyId;
 }
 /**
 *   Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs.
@@ -132,13 +142,13 @@ static NSString *const SUCCESS         = @"Success";
     }
     
     NSString* userId = [command.arguments objectAtIndex:0];
-    [AppsFlyerTracker sharedTracker].customerUserID  = userId;
+    [AppsFlyerLib shared].customerUserID  = userId;
 }
 
 /**
 *   End User Opt-Out from AppsFlyer analytics.
 */
-- (void)setDeviceTrackingDisabled:(CDVInvokedUrlCommand *)command
+- (void)DeviceLoggingDisabled:(CDVInvokedUrlCommand *)command
 {
     if ([command.arguments count] == 0) {
         return;
@@ -149,14 +159,14 @@ static NSString *const SUCCESS         = @"Success";
     isDisValue = [command.arguments objectAtIndex:0];
     if ([isDisValue isKindOfClass:[NSNumber class]]) {
         isDisValueBool = [(NSNumber*)isDisValue boolValue];
-        [AppsFlyerTracker sharedTracker].deviceTrackingDisabled  = isDisValueBool;
+        [AppsFlyerLib shared].deviceLoggingDisabled  = isDisValueBool;
     }
 }
 
 /**
-*   Shut down all SDK tracking
+*   Shut down all SDK for sending logs
 */
-- (void)stopTracking:(CDVInvokedUrlCommand *)command
+- (void)Stop:(CDVInvokedUrlCommand *)command
 {
     if ([command.arguments count] == 0) {
         return;
@@ -167,7 +177,7 @@ static NSString *const SUCCESS         = @"Success";
     isStopValue = [command.arguments objectAtIndex:0];
     if ([isStopValue isKindOfClass:[NSNumber class]]) {
         isStopValueBool = [(NSNumber*)isStopValue boolValue];
-        [AppsFlyerTracker sharedTracker].isStopTracking  = isStopValueBool;
+        [AppsFlyerLib shared].isStopped  = isStopValueBool;
     }
 }
 
@@ -176,7 +186,7 @@ static NSString *const SUCCESS         = @"Success";
 */
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand *)command
 {
-    NSString* userId = [[AppsFlyerTracker sharedTracker] getAppsFlyerUID];
+    NSString* userId = [[AppsFlyerLib shared] getAppsFlyerUID];
     CDVPluginResult *pluginResult = [ CDVPluginResult
                                     resultWithStatus    : CDVCommandStatus_OK
                                     messageAsString: userId
@@ -195,26 +205,12 @@ static NSString *const SUCCESS         = @"Success";
 }
 
 /**
-* Event tracking. not in use
-*/
-- (void)sendTrackingWithEvent:(CDVInvokedUrlCommand *)command
-{
-    if ([command.arguments count] < 2) {
-        return;
-    }
-    
-    NSString* eventName = [command.arguments objectAtIndex:0];
-    NSString* eventValue = [command.arguments objectAtIndex:1];
-    [[AppsFlyerTracker sharedTracker] trackEvent:eventName withValue:eventValue];
-}
-
-/**
-* Track rich in-app events
+* Log rich in-app events
 * @param parameters eventName: custom event name, is presented in your dashboard.
 *                   eventValue: event details
 *                   callbackID: 'success' and 'failure' methods
 */
-- (void)trackEvent:(CDVInvokedUrlCommand*)command {
+- (void)logEvent:(CDVInvokedUrlCommand*)command {
 
     NSString* error = nil; 
     NSString* eventName = [command.arguments objectAtIndex:0];
@@ -233,18 +229,18 @@ static NSString *const SUCCESS         = @"Success";
     return;
     }
     
-    [[AppsFlyerTracker sharedTracker] trackEvent:eventName withValues:eventValues];
+    [[AppsFlyerLib shared] logEvent:eventName withValues:eventValues];
     
     CDVPluginResult *pluginResult = [ CDVPluginResult resultWithStatus: CDVCommandStatus_OK
     messageAsString:eventName
     ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 
-    [[AppsFlyerTracker sharedTracker] trackEvent:eventName withValues:eventValues];
+    [[AppsFlyerLib shared] logEvent:eventName withValues:eventValues];
 
 }
 /**
-*   Allows to pass APN Tokens that where collected by third party plugins to the AppsFlyer server. Can be used for Uninstall Tracking.
+*   Allows to pass APN Tokens that where collected by third party plugins to the AppsFlyer server. Can be used for Log Uninstall.
 */
 - (void)registerUninstall:(CDVInvokedUrlCommand*)command {
 
@@ -262,7 +258,7 @@ static NSString *const SUCCESS         = @"Success";
     }
     
     if(deviceToken!=nil){
-        [[AppsFlyerTracker sharedTracker] registerUninstall:deviceTokenData];
+        [[AppsFlyerLib shared] registerUninstall:deviceTokenData];
     }else{
         NSLog(@"Invalid device token");
     }
@@ -272,7 +268,7 @@ static NSString *const SUCCESS         = @"Success";
 *   Get the current SDK version
 */
 - (void)getSdkVersion:(CDVInvokedUrlCommand*)command {
-    NSString* version = [[AppsFlyerTracker sharedTracker] getSDKVersion];
+    NSString* version = [[AppsFlyerLib shared] getSDKVersion];
     CDVPluginResult *pluginResult = [CDVPluginResult
                                         resultWithStatus: CDVCommandStatus_OK
                                         messageAsString: version
@@ -290,7 +286,7 @@ static NSString *const SUCCESS         = @"Success";
         return;
     }
     NSString* oneLinkID = [command.arguments objectAtIndex:0];
-    [AppsFlyerTracker sharedTracker].appInviteOneLinkID = oneLinkID;
+    [AppsFlyerLib shared].appInviteOneLinkID = oneLinkID;
 }
 
 /**
@@ -357,32 +353,32 @@ static NSString *const SUCCESS         = @"Success";
     
 //CROSS PROMOTION
 /**
-*   Track cross promotion impression. Make sure to use the promoted App ID as it appears within the AppsFlyer dashboard.
+*   Log cross promotion impression. Make sure to use the promoted App ID as it appears within the AppsFlyer dashboard.
 *                   promtAppID: Promoted Application ID
 *                   campaign: Promoted Campaign
 */
--(void)trackCrossPromotionImpression:(CDVInvokedUrlCommand*) command {
+-(void)logCrossPromotionImpression:(CDVInvokedUrlCommand*) command {
     
     if ([command.arguments count] == 0) {
         return;
     }
     
-    NSString* campaign = nil;
     NSString* promtAppID = [command.arguments objectAtIndex:0];
-    campaign = [command.arguments objectAtIndex:1];
+    NSString* campaign = campaign = [command.arguments objectAtIndex:1];
+    NSDictionary* parameters = [command.arguments objectAtIndex:2];
     
-    if (promtAppID != nil && ![promtAppID isEqualToString:@""]) {
-        [AppsFlyerCrossPromotionHelper trackCrossPromoteImpression:promtAppID campaign:campaign];
+    if (promtAppID != nil && ![promtAppID isEqualToString:@""] && parameters != nil) {
+        [AppsFlyerCrossPromotionHelper logCrossPromoteImpression:promtAppID campaign:campaign parameters:parameters];
     }
 }
 
 /**
-*   Use this call to track the click and launch the app store's app page (via Browser)
+*   Use this call to log the click and launch the app store's app page (via Browser)
 *                   promtAppId: Promoted Application ID
 *                   campaign: Promoted Campaign
-*                   customParams: Additional Parameters to track
+*                   customParams: Additional Parameters to log
 */
--(void)trackAndOpenStore:(CDVInvokedUrlCommand*) command {
+-(void)logCrossPromotionAndOpenStore:(CDVInvokedUrlCommand*) command {
     
     if ([command.arguments count] == 0) {
         return;
@@ -551,13 +547,13 @@ static NSString *const SUCCESS         = @"Success";
 }
 
 /**
-*  Deep linking tracking
+*  Log Deep linking
 */
 - (void) handleOpenUrl:(CDVInvokedUrlCommand*)command {
     NSURL *url = [NSURL URLWithString:
         [[command.arguments objectAtIndex:0]
             stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-    [[AppsFlyerTracker sharedTracker] handleOpenUrl:url options:nil];
+    [[AppsFlyerLib shared] handleOpenUrl:url options:nil];
 }
 /**
 * Used by advertisers to exclude specified networks/integrated partners from getting data
@@ -567,7 +563,7 @@ static NSString *const SUCCESS         = @"Success";
     if ([partners count] == 0) {
            return;
        }
-      [[AppsFlyerTracker sharedTracker] setSharingFilter:partners];
+      [[AppsFlyerLib shared] setSharingFilter:partners];
       CDVPluginResult *pluginResult = [CDVPluginResult
                                         resultWithStatus: CDVCommandStatus_OK
                                         ];
@@ -578,7 +574,7 @@ static NSString *const SUCCESS         = @"Success";
 * Used by advertisers to exclude ALL networks/integrated partners from getting data
 */
 - (void)setSharingFilterForAllPartners:(CDVInvokedUrlCommand*)command {
-    [[AppsFlyerTracker sharedTracker] setSharingFilterForAllPartners];
+    [[AppsFlyerLib shared] setSharingFilterForAllPartners];
     CDVPluginResult *pluginResult = [CDVPluginResult
                                         resultWithStatus: CDVCommandStatus_OK
                                         ];
@@ -602,7 +598,7 @@ static NSString *const SUCCESS         = @"Success";
 // Depricated: swizzeled method see AppsFlyerX+AppController.m
 // - (BOOL) application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray *_Nullable))restorationHandler
 // {
-//     [[AppsFlyerTracker sharedTracker] continueUserActivity:userActivity restorationHandler:restorationHandler];
+//     [[AppsFlyerLib shared] continueUserActivity:userActivity restorationHandler:restorationHandler];
 //     return YES;
 // }
 
