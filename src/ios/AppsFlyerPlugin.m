@@ -148,7 +148,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 /**
 *   End User Opt-Out from AppsFlyer analytics.
 */
-- (void)DeviceLoggingDisabled:(CDVInvokedUrlCommand *)command
+- (void)anonymizeUser:(CDVInvokedUrlCommand *)command
 {
     if ([command.arguments count] == 0) {
         return;
@@ -159,7 +159,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     isDisValue = [command.arguments objectAtIndex:0];
     if ([isDisValue isKindOfClass:[NSNumber class]]) {
         isDisValueBool = [(NSNumber*)isDisValue boolValue];
-        [AppsFlyerLib shared].deviceLoggingDisabled  = isDisValueBool;
+        [AppsFlyerLib shared].anonymizeUser  = isDisValueBool;
     }
 }
 

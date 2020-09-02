@@ -105,9 +105,9 @@ if (!window.CustomEvent) {
 	/**
 	 * End User Opt-Out from AppsFlyer analytics (Anonymize user data).
 	 */
-	AppsFlyer.prototype.DeviceLoggingDisabled = function (isDisabled) {
-		argscheck.checkArgs('*', 'AppsFlyer.DeviceLoggingDisabled', arguments);
-		exec(null, null, 'AppsFlyerPlugin', 'DeviceLoggingDisabledd', [isDisabled]);
+	AppsFlyer.prototype.anonymizeUser = function (isDisabled) {
+		argscheck.checkArgs('*', 'AppsFlyer.anonymizeUser', arguments);
+		exec(null, null, 'AppsFlyerPlugin', 'anonymizeUser', [isDisabled]);
 	};
 
 	/**

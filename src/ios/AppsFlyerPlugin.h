@@ -15,7 +15,7 @@
 - (void)logEvent:(CDVInvokedUrlCommand*)command;
 - (void)registerUninstall:(CDVInvokedUrlCommand*)command;
 - (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
-- (void)deviceLoggingDisabled:(CDVInvokedUrlCommand *)command;
+- (void)anonymizeUser:(CDVInvokedUrlCommand *)command;
 - (void)Stop:(CDVInvokedUrlCommand *) command;
 - (void)setAppInviteOneLinkID:(CDVInvokedUrlCommand *)command;
 - (void)generateInviteLink:(CDVInvokedUrlCommand*)command;

@@ -75,7 +75,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setAppUserId(args, callbackContext);
         } else if ("getAppsFlyerUID".equals(action)) {
             return getAppsFlyerUID(callbackContext);
-        } else if ("DeviceLoggingDisabled".equals(action)) {
+        } else if ("anonymizeUser".equals(action)) {
             return setDeviceTrackingDisabled(args);
         } else if ("Stop".equals(action)) {
             return stopTracking(args);

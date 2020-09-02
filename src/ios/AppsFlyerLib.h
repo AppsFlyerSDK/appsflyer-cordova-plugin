@@ -2,8 +2,8 @@
 //  AppsFlyerLib.h
 //  AppsFlyerLib
 //
-//  AppsFlyer iOS SDK 6.0.1.168 (168)
-//  Copyright (c) 2012-2019 AppsFlyer Ltd. All rights reserved.
+//  AppsFlyer iOS SDK 6.0.2 (179)
+//  Copyright (c) 2012-2020 AppsFlyer Ltd. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -127,13 +127,6 @@ NS_ASSUME_NONNULL_BEGIN
 #define AFEventParamAdRevenuePlacementId         @"af_adrev_placement_id"
 #define AFEventParamAdRevenueAdSize              @"af_adrev_ad_size"
 #define AFEventParamAdRevenueMediatedNetworkName @"af_adrev_mediated_network_name"
-
-#define kDefaultOneLink          @"go.onelink.me"
-#define kNoOneLinkFallback       @"https://app.appsflyer.com"
-#define kINviteAppleAppID        @"af_siteid"
-
-
-
 
 /// Mail hashing type
 typedef enum  {
@@ -280,7 +273,7 @@ typedef enum  {
 /**
  Opt-out logging for specific user
  */
-@property(atomic) BOOL deviceLoggingDisabled;
+@property(atomic) BOOL anonymizeUser;
 
 /**
  Opt-out for Apple Search Ads attributions
@@ -437,7 +430,7 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
  @param longitude The location longitude
  @param latitude The location latitude
  */
-- (void)logLocationEvent:(double)longitude latitude:(double)latitude;
+- (void)logLocation:(double)longitude latitude:(double)latitude NS_SWIFT_NAME(logLocation(longitude:latitude:));
 
 /**
  This method returns AppsFlyer's internal id(unique for your app)
