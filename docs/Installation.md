@@ -8,11 +8,7 @@
 
 ##  <a id="installation-using-cli"> Installation using CLI:
 
-```
-$ cordova plugin add cordova-plugin-appsflyer-sdk
-```
-
-or directly from git:
+directly from git branch:
 
 ```
 $ cordova plugin add https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk.git
@@ -84,7 +80,12 @@ Copy:
 
 -  `AppsFlyerPlugin.h`
 -  `AppsFlyerPlugin.m`
--  `AppsFlyerTracker.h`
+-  `AppsFlyerCrossPromotionHelper.h`
+-  `AppsFlyerLib.h`
+-  `AppsFlyerLinkGenerator.h`
+-  `AppsFlyerShareInviteHelper.h`
+-  `AppsFlyerX+AppController.h`
+-  `AppsFlyerX+AppController.m`
 -  `libAppsFlyerLib.a`
 
 to `platforms/ios/<ProjectName>/Plugins`

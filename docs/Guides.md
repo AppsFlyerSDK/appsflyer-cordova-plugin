@@ -5,6 +5,7 @@
 ## Table of content
 
 - [Init SDK](#init-sdk)
+- [Set plugin for IOS 14](#ios14)
 - [DeepLinking](#deeplinking)
     - [Deferred Deep Linking (Get Conversion Data)](#deferred-deep-linking)
     - [Direct Deeplinking](#handle-deeplinking)
@@ -40,6 +41,28 @@ var options = {
 
 window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
 ```
+
+##  <a id="ios14"> Set plugin for IOS 14
+
+1. Add ```#import <AppTrackingTransparency/AppTrackingTransparency.h>``` in your ```AppDelegate.m``` file<br>
+2. Add the ATT pop-up for IDFA collection. your ```AppDelegate.m``` should look like this:
+
+
+```javascript
+-(BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)launchOptions
+{
+    self.viewController = [[MainViewController alloc] init];
+    if (@available(iOS 14, *)) {
+        [ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {
+            //If you want to do something with the pop-up
+        }];
+    }
+    return [super application:application didFinishLaunchingWithOptions:launchOptions];
+}
+```
+
+3. Add ```Privacy - Tracking Usage Description``` inside your ```.plist``` file in Xcode.<br>
+4.For more info see section ***3.4*** in the Support integration guide [Here](https://support.appsflyer.com/hc/en-us/articles/360011451918#integration)
 
 
 ##  <a id="deeplinking"> Deep Linking
