@@ -18,8 +18,6 @@ Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with 
 
 ----------
 
-
-
 ## Table of content
 
 - [SDK versions](#plugin-build-for)
@@ -33,7 +31,7 @@ Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with 
 
 ### <a id="plugin-build-for"> This plugin is built for
 
-- iOS AppsFlyerSDK **v5.4.3**
+- iOS AppsFlyerSDK **v6.0.2**
 - Android AppsFlyerSDK **v5.4.3**
 
 
@@ -47,12 +45,14 @@ To install cordova manually check out the doc [here](/docs/Installation.md).
 
 > **_NOTE:_** for Ionic installation see [this](#ionic) section
 
+
  ## <a id="guides"> 📖 Guides
 
 Great installation and setup guides can be viewed [here](/docs/Guides.md).
 - [init SDK Guide](/docs/Guides.md#init-sdk)
 - [Deeplinking Guide](/docs/Guides.md#deeplinking)
 - [Uninstall Guide](/docs/Guides.md#uninstall)
+- [Set plugin for IOS 14](/docs/Guides.md#ios14)
 
 
 ## <a id="setup"> 🚀 Setup
@@ -60,7 +60,8 @@ Great installation and setup guides can be viewed [here](/docs/Guides.md).
 ####  Set your App_ID (iOS only), Dev_Key and enable AppsFlyer to detect installations, sessions (app opens) and updates.  
 > This is the minimum requirement to start tracking your app installs and is already implemented in this plugin. You **MUST** modify this call and provide:  
  **devKey** - Your application devKey provided by AppsFlyer.<br>
-**appId**  - ***For iOS only.*** Your iTunes Application ID.
+**appId**  - ***For iOS only.*** Your iTunes Application ID.<br>
+**timeToWaitForAdvertiserID**  - ***For iOS14 only.*** Time for the sdk to wait before launch.
 
 
 Add the following lines to your code to be able to initialize tracking with your own AppsFlyer dev key:
@@ -72,7 +73,8 @@ document.addEventListener('deviceready', function() {
    window.plugins.appsFlyer.initSdk({
       devKey: 'K2***************99', // your AppsFlyer devKey
       isDebug: false,
-      appId: '41*****44' // your ios appID
+      appId: '41*****44', // your ios appID
+      timeToWaitForAdvertiserID: 10, //time for the sdk to wait before launch - IOS 14 ONLY!
     },
       (result) => {
         console.log(result);
@@ -84,7 +86,6 @@ document.addEventListener('deviceready', function() {
   
 }, false);
 ```
-
 ---
 
 
@@ -94,8 +95,9 @@ See the full [API](/docs/API.md) available for this plugin.
 
 
 ## <a id="demo"> 📱 Demo
-  
-  Check out the demo for this project [here](docs/Guides.md#demo).
+Check out the demo for this project [here](docs/Guides.md#demo).
+
+There is 1 demo project called ```demoC```.<br>run ```npm run setup_c``` in the appsflyer-cordova-plugin folder and then open the project ios in Xcode to see implementation for IOS 14
 
 ## <a id="ionic"> 📍 Ionic
 

@@ -76,7 +76,7 @@
             </feature>
         </config-file>
         <header-file src="src/ios/AppsFlyerPlugin.h" />
-        <header-file src="src/ios/AppsFlyerTracker.h" />
+        <header-file src="src/ios/AppsFlyerLib.h" />
         <source-file src="src/ios/AppsFlyerPlugin.m" />
         <header-file src="src/ios/AppsFlyerLinkGenerator.h" />
         <header-file src="src/ios/AppsFlyerCrossPromotionHelper.h" />
@@ -87,5 +87,6 @@
         <framework src="AdSupport.framework" weak="true" />
         <framework src="iAd.framework" weak="true" />
         <framework src="Security.framework" weak="true" />
+        <framework src="AppTrackingTransparency.framework" weak="true" />
     </platform>
 </plugin>
