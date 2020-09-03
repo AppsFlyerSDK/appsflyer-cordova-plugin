@@ -68,7 +68,7 @@ document.addEventListener(
 			devKey: 'xxxxxxx',
 			isDebug: true,
 			onInstallConversionDataListener: true,
-			timeToWaitForAdvertiserID: 10, //---> Here you set the time for the sdk to wait before launch
+			timeToWaitForAdvertiserID: 10, //--> Here you set the time for the sdk to wait before launch
 		};
 
 		var userAgent = window.navigator.userAgent.toLowerCase();

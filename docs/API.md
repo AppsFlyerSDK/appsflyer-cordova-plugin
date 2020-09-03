@@ -138,7 +138,7 @@ isDebug:  false,
 
 onInstallConversionDataListener:  true  //optional
 
-};
+}; 
 
   
 
