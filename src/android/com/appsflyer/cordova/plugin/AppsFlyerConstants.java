@@ -1,7 +1,7 @@
 package com.appsflyer.cordova.plugin;
 
 /**
- * Created by maxim on 11/24/16.
+ * Created by maxim on 11/24/16
  */
 
 public class AppsFlyerConstants {
