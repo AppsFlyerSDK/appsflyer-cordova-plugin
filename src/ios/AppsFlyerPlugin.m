@@ -28,7 +28,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     
     NSString* devKey = nil;
     NSString* appId = nil;
-    NSNumber* timeToWaitForAdvertiserID;
+    NSNumber* waitForATTUserAuthorization;
     BOOL isDebug = NO;
     BOOL useUninstallSandbox = NO;
     
@@ -40,7 +40,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         id sandboxValue = nil;
         devKey = (NSString*)[initSdkOptions objectForKey: afDevKey];
         appId = (NSString*)[initSdkOptions objectForKey: afAppId];
-        timeToWaitForAdvertiserID = (NSNumber*)[initSdkOptions objectForKey: afTimeToWaitForAdvertiserID];
+        waitForATTUserAuthorization = (NSNumber*)[initSdkOptions objectForKey: afwaitForATTUserAuthorization];
         value = [initSdkOptions objectForKey: afIsDebug];
         if ([value isKindOfClass:[NSNumber class]]) {
             isDebug = [(NSNumber*)value boolValue];
@@ -63,7 +63,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     if (!appId || [appId isEqualToString:@""]) {
         error = NO_APPID_FOUND;
     }
-    if (timeToWaitForAdvertiserID.intValue == 0) {
+    if (waitForATTUserAuthorization.intValue == 0) {
         error = NO_WAITING_TIME;
     }
     
@@ -80,7 +80,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
         //Here we set the time that the sdk will wait before he starts the launch. we take the time from the 'option' object in the app's index.js
         if (@available(iOS 14, *)) {
-            [[AppsFlyerLib shared] waitForAdvertisingIdentifierWithTimeoutInterval:timeToWaitForAdvertiserID.intValue];
+            [[AppsFlyerLib shared] waitForATTUserAuthorizationWithTimeoutInterval:waitForATTUserAuthorization.intValue];
         }
 
         [[AppsFlyerLib shared] start];

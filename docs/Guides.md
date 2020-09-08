@@ -37,6 +37,7 @@ var options = {
     devKey: 'd3********wL',
     appId: '1******9',
     isDebug: false,
+    waitForATTUserAuthorization: 10
 };
 
 window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
@@ -61,8 +62,8 @@ window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
 }
 ```
 
-3. Add ```Privacy - Tracking Usage Description``` inside your ```.plist``` file in Xcode.<br>
-4.For more info see section ***3.4*** in the Support integration guide [Here](https://support.appsflyer.com/hc/en-us/articles/360011451918#integration)
+3.Add ```Privacy - Tracking Usage Description``` inside your ```.plist``` file in Xcode.<br>
+4.For more info visit our Support integration guide [Here](https://support.appsflyer.com/hc/en-us/articles/360011451918#integration)
 
 
 ##  <a id="deeplinking"> Deep Linking

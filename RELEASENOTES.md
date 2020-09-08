@@ -1,5 +1,24 @@
 # Release Notes
-### 5.4.3
+### 6.0.30
+Release date **September 6 2020**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- Updated iOS SDK to v6.0.3
+- API name change: waitForAdvertisingIdentifier --> waitForATTUserAuthorization
+- SDK collects IDFA by default for iOS 14 (as for earlier iOS versions)
+
+### 6.0.20
+Release date **August 27 2020**
+Release type: **Major** / Minor / Hotfix
+
+**Overview and Highlights:**
+
+- Updated iOS SDK to v6.0.2
+- AppTrackingTransparency (ATT) dialog is required to collect IDFA for iOS 14
+
+### 5.4.30
 Release date **July 30 2020**
 Release type: Major / **Minor** / Hotfix
 

@@ -31,7 +31,7 @@
 // Appsflyer JS objects
 #define afDevKey                        @"devKey"
 #define afAppId                         @"appId"
-#define afTimeToWaitForAdvertiserID     @"timeToWaitForAdvertiserID"
+#define afwaitForATTUserAuthorization     @"waitForATTUserAuthorization"
 #define afIsDebug						@"isDebug"
 #define afSanboxUninstall				@"useUninstallSandbox"
 

@@ -8,7 +8,7 @@
 
 ----------
 **❗️Important** <br>
-Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with **cordova-android@7.0.0**
+Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with **cordova-android@7.0.0** and up
 <br>For lower versions of cordova-android please use plugin version 4.3.3 available @ https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/tree/4.3.3
 
 ----------
@@ -21,6 +21,7 @@ Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with 
 ## Table of content
 
 - [SDK versions](#plugin-build-for)
+- [V6 Breaking Changes](#breakingChanges)
 - [Installation](#installation)
 - [Guides](#guides)
 - [Setup](#setup)
@@ -31,8 +32,20 @@ Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with 
 
 ### <a id="plugin-build-for"> This plugin is built for
 
-- iOS AppsFlyerSDK **v6.0.2**
+- iOS AppsFlyerSDK **v6.0.3**
 - Android AppsFlyerSDK **v5.4.3**
+
+### <a id="breakingChanges"> ❗v6 Breaking Changes
+
+We have renamed the following APIs:
+
+| Old API | New API |
+|---------|---------|
+|trackEvent      |  logEvent|
+|stopTracking      |  stop|
+|trackCrossPromotionImpression |  logCrossPromotionImpression|
+|trackAndOpenStore      |  logCrossPromotionAndOpenStore|
+|setDeviceTrackingDisabled      |  anonymizeUser|
 
 
 ## <a id="installation">📲Installation
@@ -61,7 +74,7 @@ Great installation and setup guides can be viewed [here](/docs/Guides.md).
 > This is the minimum requirement to start tracking your app installs and is already implemented in this plugin. You **MUST** modify this call and provide:  
  **devKey** - Your application devKey provided by AppsFlyer.<br>
 **appId**  - ***For iOS only.*** Your iTunes Application ID.<br>
-**timeToWaitForAdvertiserID**  - ***For iOS14 only.*** Time for the sdk to wait before launch.
+**waitForATTUserAuthorization**  - ***For iOS14 only.*** Time for the sdk to wait before launch.
 
 
 Add the following lines to your code to be able to initialize tracking with your own AppsFlyer dev key:
@@ -74,7 +87,7 @@ document.addEventListener('deviceready', function() {
       devKey: 'K2***************99', // your AppsFlyer devKey
       isDebug: false,
       appId: '41*****44', // your ios appID
-      timeToWaitForAdvertiserID: 10, //time for the sdk to wait before launch - IOS 14 ONLY!
+      waitForATTUserAuthorization: 10, //time for the sdk to wait before launch - IOS 14 ONLY!
     },
       (result) => {
         console.log(result);
@@ -95,10 +108,9 @@ See the full [API](/docs/API.md) available for this plugin.
 
 
 ## <a id="demo"> 📱 Demo
-Check out the demo for this project [here](docs/Guides.md#demo).
-
-There is 1 demo project called ```demoC```.<br>run ```npm run setup_c``` in the appsflyer-cordova-plugin folder and then open the project ios in Xcode to see implementation for IOS 14
-
+Check out the demo for this project [here](docs/Guides.md#demo).<br>
+There is 1 demo project called ```demoC```, run ```npm run setup_c``` in the appsflyer-cordova-plugin folder and then open the ios project in Xcode to see implementation for IOS 14.<br>
+Check out our Sample-App  **Let's cook!** [here](https://github.com/AppsFlyerSDK/appsflyer-cordova-app) if you want to implement our SDK inside React-Cordova app
 ## <a id="ionic"> 📍 Ionic
 
 In case you are using Ionic framework, you have 2 options:
