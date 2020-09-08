@@ -3,7 +3,8 @@
 *.cache
 Thumbs.db
 *.DS_Store
-
+*.idea
+*.vscode
 *.bak
 *.cache
 *.log
