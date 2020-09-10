@@ -140,10 +140,14 @@ Appsflyer,
 and in your main ts file:
 ```
 import { Appsflyer } from '@ionic-native/appsflyer/ngx';
+import {Platform} from '@ionic/angular';
 
-constructor(private appsflyer: Appsflyer) { }
+constructor(private appsflyer: Appsflyer, public platform: Platform) { 
 ...
-this.appsflyer.initSdk(options);
+this.platform.ready().then(() => {
+            this.appsflyer.initSdk(options);
+        });
+}
 ```
 ####  Ionic 2/3
 If you're using Ionic 2/3, you'd need to install a previous version of the Ionic Native dependency (notice the **@4** at the end of the npm install command):
