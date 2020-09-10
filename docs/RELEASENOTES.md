@@ -1,5 +1,56 @@
 # Release Notes
+### 6.0.30
+Release date **September 6 2020**
+Release type: Major / **Minor** / Hotfix
 
+**Overview and Highlights:**
+
+- Updated iOS SDK to v6.0.3
+- API name change: waitForAdvertisingIdentifier --> waitForATTUserAuthorization
+- SDK collects IDFA by default for iOS 14 (as for earlier iOS versions)
+
+### 6.0.20
+Release date **August 27 2020**
+Release type: **Major** / Minor / Hotfix
+
+**Overview and Highlights:**
+
+- Updated iOS SDK to v6.0.2
+- AppTrackingTransparency (ATT) dialog is required to collect IDFA for iOS 14
+
+### 5.4.30
+Release date **July 30 2020**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- Updated Android SDK to v5.4.3
+
+- Updated iOS SDK to v5.4.3
+
+
+### 5.4.1
+Release date **June 30 2020**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- add SharingFilter support
+
+### 5.2.2
+Release date **April 30 2020**
+Release type: Major / Minor / **Hotfix**
+
+**Overview and Highlights:**
+
+- remove undefined alerts
+
+### 5.2.1
+Release date **April 14 2020**
+
+**Overview and Highlights:**
+
+- add useUninstallSandbox option for iOS uninstall
 
 ### 5.2.0
 Release date **March 10 2020**
