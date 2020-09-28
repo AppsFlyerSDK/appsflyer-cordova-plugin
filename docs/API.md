@@ -20,7 +20,7 @@ The list of available methods for this plugin is described below.
 | [`setGCMProjectNumber`](#initSdk) | `(String gcmProjectNumber)` | |
 | [`getAppsFlyerUID`](#getAppsFlyerUID) | `(function success)` | Get AppsFlyer’s proprietary Device ID |
 | [`anonymizeUser`](#deviceTrackingDisabled) | `(Boolean isDisabled)` | Anonymize user data |
-| [`stop`](#stopTracking)| `(Boolean isStopTracking)` | Shut down all SDK tracking |
+| [`Stop`](#stopTracking)| `(Boolean isStopTracking)` | Shut down all SDK tracking |
 | [`updateServerUninstallToken`](#updateServerUninstallToken) | `(String token)` | (Android) Pass GCM/FCM Tokens |
 | [`registerUninstall`](#registerUninstall) | `(String token)` | (iOS) Pass APNs Tokens |
 | [`setAppInviteOneLinkID`](#setAppInviteOneLinkID) | `(Object args)` | Set AppsFlyer’s OneLink ID |
@@ -164,16 +164,16 @@ window.plugins.appsFlyer.setAppUserId(userId);
 
 ---
 
-##### <a id="stopTracking"> **`stop(isStopTracking): void`**
+##### <a id="stopTracking"> **`Stop(isStopTracking): void`**
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `stop` | `boolean` |In some extreme cases you might want to shut down all SDK tracking due to legal and privacy compliance. This can be achieved with the isStopTracking API. Once this API is invoked, our SDK will no longer communicate with our servers and stop functioning. |
+| `Stop` | `boolean` |In some extreme cases you might want to shut down all SDK tracking due to legal and privacy compliance. This can be achieved with the isStopTracking API. Once this API is invoked, our SDK will no longer communicate with our servers and stop functioning. |
 
 *Example:*
 
 ```javascript
-window.plugins.appsFlyer.stop(true);
+window.plugins.appsFlyer.Stop(true);
 ```
 
 In any event, the SDK can be reactivated by calling the same API, but to pass false.
