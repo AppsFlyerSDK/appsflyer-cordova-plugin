@@ -6,6 +6,7 @@ Release type: Major / Minor / **Hotfix**
 **Overview and Highlights:**
 
 - Install Referrer 2.1
+- In App Purchase Validation
 
 ### 6.0.30
 Release date **September 6 2020**

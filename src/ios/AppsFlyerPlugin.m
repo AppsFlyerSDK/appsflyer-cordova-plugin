@@ -580,6 +580,57 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+/**
+* Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
+* Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
+*
+* @param purchase info, success and failure callbacks
+*/
+- (void)validateAndLogInAppPurchase: (CDVInvokedUrlCommand*)command {
+    NSString* productIdentifier = nil;
+    NSString* tranactionId = nil;
+    NSString* price = nil;
+    NSString* currency = nil;
+    NSDictionary* additionalParameters = nil;
+
+    NSDictionary* purchaseInfo = [command.arguments objectAtIndex:0];
+
+
+     if(![purchaseInfo isKindOfClass: [NSNull class]]){
+            productIdentifier = (NSString*)[purchaseInfo objectForKey: afProductIdentifier];
+            tranactionId = (NSString*)[purchaseInfo objectForKey: afTransactionId];
+            price = (NSString*)[purchaseInfo objectForKey: afPrice];
+            currency = (NSString*)[purchaseInfo objectForKey: afCurrency];
+            additionalParameters = (NSDictionary*)[purchaseInfo objectForKey: afAdditionalParameters];
+
+            [[AppsFlyerLib shared] validateAndLogInAppPurchase:productIdentifier price:price currency:currency transactionId:tranactionId additionalParameters:additionalParameters success:^(NSDictionary * _Nonnull response) {
+                CDVPluginResult *pluginResult = [CDVPluginResult
+                                                 resultWithStatus: CDVCommandStatus_OK messageAsString: VALIDATE_SUCCESS
+                                                 ];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+            } failure:^(NSError * _Nullable error, id  _Nullable reponse) {
+                CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: error.localizedDescription];
+                [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+                return;
+            }];
+
+    }else{
+        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: NO_PARAMETERS_ERROR];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        return;
+    }
+}
+
+- (void)setUseReceiptValidationSandbox:(CDVInvokedUrlCommand*)command {
+    BOOL isSandbox = [command.arguments objectAtIndex:0];
+    [AppsFlyerLib shared].useReceiptValidationSandbox = isSandbox;
+
+    CDVPluginResult *pluginResult = [CDVPluginResult
+                                     resultWithStatus: CDVCommandStatus_OK messageAsString: isSandbox? @"Sandbox set to true" : @"Sandbox set to false"
+                                     ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
 
 @end
 
