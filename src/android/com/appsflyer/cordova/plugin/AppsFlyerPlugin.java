@@ -97,6 +97,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return onResume(args, callbackContext);
         } else if ("getSdkVersion".equals(action)) {
             return getSdkVersion(callbackContext);
+        } else if ("getReferrer".equals(action)) {
+            return getReferrer(callbackContext);
         }else if ("setSharingFilter".equals(action)) {
             return setSharingFilter(args, callbackContext);
         }else if ("setSharingFilterForAllPartners".equals(action)) {
@@ -728,6 +730,18 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     private boolean getSdkVersion(CallbackContext callbackContext) {
         final String version = AppsFlyerLib.getInstance().getSdkVersion();
         final PluginResult result = new PluginResult(PluginResult.Status.OK, version);
+        callbackContext.sendPluginResult(result);
+        return true;
+    }
+
+    /**
+     * Get the referrer
+     * @param callbackContext successCB: Success callback that returns the referrer url.
+     * @return
+     */
+    private boolean getReferrer(CallbackContext callbackContext) {
+        final String referrer = AppsFlyerLib.getInstance().getReferrer(this.cordova.getActivity().getApplicationContext());
+        final PluginResult result = new PluginResult(PluginResult.Status.OK, referrer === null ? "" : referrer);
         callbackContext.sendPluginResult(result);
         return true;
     }
