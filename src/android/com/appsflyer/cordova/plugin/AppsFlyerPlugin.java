@@ -739,12 +739,12 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @param callbackContext successCB: Success callback that returns the referrer url.
      * @return
      */
-    private boolean getReferrer(CallbackContext callbackContext) {
-        final String referrer = AppsFlyerLib.getInstance().getReferrer(this.cordova.getActivity().getApplicationContext());
-        final PluginResult result = new PluginResult(PluginResult.Status.OK, referrer === null ? "" : referrer);
-        callbackContext.sendPluginResult(result);
-        return true;
-    }
+     private boolean getReferrer(CallbackContext callbackContext) {
+         final String referrer = AppsFlyerProperties.getInstance().getReferrer(this.cordova.getActivity().getApplicationContext());
+         final PluginResult result = new PluginResult(PluginResult.Status.OK, referrer == null ? "" : referrer);
+         callbackContext.sendPluginResult(result);
+         return true;
+     }
 
        /**
      * @param parameters      Comma separated array of partners that need to be excluded
