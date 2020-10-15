@@ -53,3 +53,12 @@
 #define afOnAppOpenAttribution          @"onAppOpenAttribution"
 #define afOnInstallConversionFailure    @"onInstallConversionFailure"
 #define afOnInstallConversionDataLoaded @"onInstallConversionDataLoaded"
+
+//RECEIPT VALIDATION
+#define afProductIdentifier                       @"productIdentifier"
+#define afTransactionId                     @"transactionId"
+#define afPrice                    @"price"
+#define afCurrency                    @"currency"
+#define afAdditionalParameters                  @"additionalParameters"
+static NSString *const NO_PARAMETERS_ERROR                  = @"No purchase parameters found";
+static NSString *const VALIDATE_SUCCESS                  = @"In-App Purchase Validation success";

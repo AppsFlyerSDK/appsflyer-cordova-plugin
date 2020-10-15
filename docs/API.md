@@ -31,6 +31,8 @@ The list of available methods for this plugin is described below.
 | [`getSdkVersion`](#getSdkVersion) | `((function success)` | Get the current SDK version |
 | [`setSharingFilterForAllPartners`](#setSharingFilterForAllPartners) | | Used by advertisers to exclude all networks/integrated partners from getting data |
 | [`setSharingFilter`](#setSharingFilter) | `(partners)` | Used by advertisers to exclude specified networks/integrated partners from getting data |
+| [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase) | `(Object purchaseInfo, function success, function error)` | API for server verification of in-app purchases |
+| [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox) | `(boolean isSandbox, function success, function error)` | In app purchase receipt validation Apple environment |
   
 ---
 
@@ -404,6 +406,63 @@ window.plugins.appsFlyer.setSharingFilter(partners);
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
 | `partners` | `array` | Comma separated array of partners that need to be excluded |
+
+---
+
+##### <a id="validateAndLogInAppPurchase"> **`validateAndLogInAppPurchase(purchaseInfo, successC, failureC): void`**
+
+Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases)
+
+*Example:*
+
+```javascript
+ purchaseInfo = {
+        productIdentifier: 'identifier', //iOS
+        transactionId: '12xxx56', //iOS
+        publicKey: "key",
+        currency: 'biz',
+        signature: "sig",
+        purchaseData: "data",
+        price: '123',
+        additionalParameters: {'foo': 'bar'},
+    };
+    window.plugins.appsFlyer.setUseReceiptValidationSandbox(true); // iOS -> for testing in sandbox environment
+    window.plugins.appsFlyer.validateAndLogInAppPurchase(purchaseInfo, successC, failureC);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `purchaseInfo` | `Object` | In-App Purchase parameters |
+| `successC` | `function` | success callback |
+| `failureC` | `function` | failure callback |
+
+*Purchase parameters:*
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `publicKey` | `string` | License Key obtained from the Google Play Console |
+| `signature` | `string` | data.INAPP_DATA_SIGNATURE |
+| `purchaseData` | `string` | data.INAPP_PURCHASE_DATA |
+| `price` | `string` | The product price |
+| `additionalParameters` | `Object` | The additional param, which you want to receive it in the raw reports. |
+| `productIdentifier` | `string` | The product identifier. *FOR iOS* |
+| `transactionId` | `string` | The purchase transaction Id. *FOR iOS* |
+| `currency` | `string` | The product currency |
+---
+
+##### <a id="setUseReceiptValidationSandbox"> **`setUseReceiptValidationSandbox(isSandbox, successC, failureC): void`**
+
+In app purchase receipt validation Apple environment(production or sandbox)<br>Callback functions are optional.
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.setUseReceiptValidationSandbox(true);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `isSandbox` | `boolean` | true if In app purchase is done with sandbox |
 
 ---
 
