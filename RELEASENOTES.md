@@ -1,12 +1,14 @@
 # Release Notes
-### 6.0.31
-Release date **October 12 2020**
+### 6.0.50
+Release date **October 18 2020**
 Release type: Major / Minor / **Hotfix**
 
 **Overview and Highlights:**
 
 - Install Referrer 2.1
 - In App Purchase Validation
+- Android SDk to 5.4.4
+- iOS SDK to 6.0.5
 
 ### 6.0.30
 Release date **September 6 2020**
