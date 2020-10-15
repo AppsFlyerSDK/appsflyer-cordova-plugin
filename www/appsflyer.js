@@ -204,9 +204,6 @@ if (!window.CustomEvent) {
 		exec(successCB, null, 'AppsFlyerPlugin', 'getSdkVersion', []);
 	};
 
-	AppsFlyer.prototype.getReferrer = function (successCB) {
-		exec(successCB, null, 'AppsFlyerPlugin', 'getReferrer', []);
-	};
 	/**
 	 * Used by advertisers to exclude specified networks/integrated partners from getting data
 	 * networks Comma separated array of partners that need to be excluded
