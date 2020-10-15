@@ -220,5 +220,26 @@ if (!window.CustomEvent) {
 		exec(null, null, 'AppsFlyerPlugin', 'setSharingFilterForAllPartners', []);
 	};
 
+	/**
+	 * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
+	 * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
+	 * @param purchaseInfo json includes: String publicKey, String signature, String purchaseData, String price, String currency, JSONObject additionalParameters.
+	 * @param successC Success callback
+	 * @param errorC Error callback
+	 */
+	AppsFlyer.prototype.validateAndLogInAppPurchase = function(purchaseInfo, successC, errorC){
+		exec(successC, errorC, 'AppsFlyerPlugin', 'validateAndLogInAppPurchase', [purchaseInfo]);
+	};
+
+	/**
+	 * When testing purchase validation in the Sandbox environment, please make sure to set true.
+	 * @param isSandbox boolean value
+	 * @param successC Success callback
+	 * @param errorC Error callback
+	 */
+	AppsFlyer.prototype.setUseReceiptValidationSandbox = function(isSandbox, successC, errorC){
+		exec(successC, errorC, 'AppsFlyerPlugin', 'setUseReceiptValidationSandbox', [isSandbox]);
+	};
+
 	module.exports = new AppsFlyer();
 })(window);

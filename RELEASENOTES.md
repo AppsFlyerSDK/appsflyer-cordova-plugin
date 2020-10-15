@@ -1,4 +1,13 @@
 # Release Notes
+### 6.0.31
+Release date **October 12 2020**
+Release type: Major / Minor / **Hotfix**
+
+**Overview and Highlights:**
+
+- Install Referrer 2.1
+- In App Purchase Validation
+
 ### 6.0.30
 Release date **September 6 2020**
 Release type: Major / **Minor** / Hotfix
