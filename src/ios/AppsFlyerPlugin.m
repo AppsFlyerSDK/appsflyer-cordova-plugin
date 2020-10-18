@@ -15,7 +15,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
  NSString* mConversionListenerOnResume;
  NSString* mInviteListener;
  BOOL isConversionData = NO;
-    
+
 - (void)pluginInitialize{}
 
 /**
@@ -25,16 +25,16 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 - (void)initSdk:(CDVInvokedUrlCommand*)command
 {
     NSDictionary* initSdkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
-    
+
     NSString* devKey = nil;
     NSString* appId = nil;
     NSNumber* waitForATTUserAuthorization;
     BOOL isDebug = NO;
     BOOL useUninstallSandbox = NO;
-    
-    
+
+
     if (![initSdkOptions isKindOfClass:[NSNull class]]) {
-        
+
         id value = nil;
         id isConversionDataValue = nil;
         id sandboxValue = nil;
@@ -54,19 +54,16 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             useUninstallSandbox = [(NSNumber*)sandboxValue boolValue];
         }
     }
-    
+
     NSString* error = nil;
-    
+
     if (!devKey || [devKey isEqualToString:@""]) {
         error = NO_DEVKEY_FOUND;
     }
     if (!appId || [appId isEqualToString:@""]) {
         error = NO_APPID_FOUND;
     }
-    if (waitForATTUserAuthorization.intValue == 0) {
-        error = NO_WAITING_TIME;
-    }
-    
+
     if(error != nil){
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: error];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -80,18 +77,20 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
         //Here we set the time that the sdk will wait before he starts the launch. we take the time from the 'option' object in the app's index.js
         if (@available(iOS 14, *)) {
-            [[AppsFlyerLib shared] waitForATTUserAuthorizationWithTimeoutInterval:waitForATTUserAuthorization.intValue];
+            if (waitForATTUserAuthorization != 0 && waitForATTUserAuthorization != nil){
+                [[AppsFlyerLib shared] waitForATTUserAuthorizationWithTimeoutInterval:waitForATTUserAuthorization.intValue];
+                   }
         }
 
         [[AppsFlyerLib shared] start];
 
-        
+
         if(isConversionData == YES){
           CDVPluginResult* pluginResult = nil;
           mConversionListener = command.callbackId;
-            
+
           [AppsFlyerLib shared].delegate = self;
-         
+
           pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
           [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
         }
@@ -101,16 +100,16 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
     }
   }
- 
+
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command
   {
       [[AppsFlyerLib shared] start];
-      
-      
+
+
       if (isConversionData == YES) {
           CDVPluginResult* pluginResult = nil;
           mConversionListenerOnResume = command.callbackId;
-          
+
           pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
           [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
       }
@@ -128,7 +127,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     if ([command.arguments count] == 0) {
         return;
     }
-    
+
     NSString* currencyId = [command.arguments objectAtIndex:0];
     [AppsFlyerLib shared].currencyCode = currencyId;
 }
@@ -140,7 +139,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     if ([command.arguments count] == 0) {
         return;
     }
-    
+
     NSString* userId = [command.arguments objectAtIndex:0];
     [AppsFlyerLib shared].customerUserID  = userId;
 }
@@ -153,7 +152,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     if ([command.arguments count] == 0) {
         return;
     }
-    
+
     BOOL isDisValueBool = NO;
     id isDisValue = nil;
     isDisValue = [command.arguments objectAtIndex:0];
@@ -212,7 +211,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 */
 - (void)logEvent:(CDVInvokedUrlCommand*)command {
 
-    NSString* error = nil; 
+    NSString* error = nil;
     NSString* eventName = [command.arguments objectAtIndex:0];
     NSDictionary* eventValues = [command.arguments objectAtIndex:1];
 
@@ -222,15 +221,15 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     if(eventValues == nil){
         error = @"Event Values are illegal";
     }
-    
+
     if(error != nil){
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: error];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
     return;
     }
-    
+
     [[AppsFlyerLib shared] logEvent:eventName withValues:eventValues];
-    
+
     CDVPluginResult *pluginResult = [ CDVPluginResult resultWithStatus: CDVCommandStatus_OK
     messageAsString:eventName
     ];
@@ -256,7 +255,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         whole_byte = strtol(byte_chars, NULL, 16);
         [deviceTokenData appendBytes:&whole_byte length:1];
     }
-    
+
     if(deviceToken!=nil){
         [[AppsFlyerLib shared] registerUninstall:deviceTokenData];
     }else{
@@ -280,7 +279,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 /**
 *   Set AppsFlyer’s OneLink ID
 */
-    
+
 - (void)setAppInviteOneLinkID:(CDVInvokedUrlCommand*)command {
     if ([command.arguments count] == 0) {
         return;
@@ -296,14 +295,14 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 - (void)generateInviteLink:(CDVInvokedUrlCommand*)command {
     NSDictionary* inviteLinkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
     NSDictionary* customParams = (NSDictionary*)[inviteLinkOptions objectForKey: @"userParams"];
-    
+
     NSString *channel = nil;
     NSString *campaign = nil;
     NSString *referrerName = nil;
     NSString *referrerImageUrl = nil;
     NSString *customerID = nil;
     NSString *baseDeepLink = nil;
-    
+
     if (![inviteLinkOptions isKindOfClass:[NSNull class]]) {
         channel = (NSString*)[inviteLinkOptions objectForKey: afUiChannel];
         campaign = (NSString*)[inviteLinkOptions objectForKey: afUiCampaign];
@@ -311,7 +310,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         referrerImageUrl = (NSString*)[inviteLinkOptions objectForKey: afUiImageUrl];
         customerID = (NSString*)[inviteLinkOptions objectForKey: afUiCustomerID];
         baseDeepLink = (NSString*)[inviteLinkOptions objectForKey: afUiBaseDeepLink];
-        
+
         [AppsFlyerShareInviteHelper generateInviteUrlWithLinkGenerator:^AppsFlyerLinkGenerator * _Nonnull(AppsFlyerLinkGenerator * _Nonnull generator) {
             if (channel != nil && ![channel isEqualToString:@""]) {
                 [generator setChannel:channel];
@@ -331,11 +330,11 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             if (baseDeepLink != nil && ![baseDeepLink isEqualToString:@""]) {
                 [generator setDeeplinkPath:baseDeepLink];
             }
-            
+
             if (![customParams isKindOfClass:[NSNull class]]) {
                     [generator addParameters:customParams];
             }
-            
+
             return generator;
         } completionHandler: ^(NSURL * _Nullable url) {
             mInviteListener = url.absoluteString;
@@ -344,13 +343,13 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                                  resultWithStatus    : CDVCommandStatus_OK
                                                  messageAsString: mInviteListener
                                                  ];
-                
+
                 [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
             }
          }];
     }
 }
-    
+
 //CROSS PROMOTION
 /**
 *   Log cross promotion impression. Make sure to use the promoted App ID as it appears within the AppsFlyer dashboard.
@@ -358,15 +357,15 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 *                   campaign: Promoted Campaign
 */
 -(void)logCrossPromotionImpression:(CDVInvokedUrlCommand*) command {
-    
+
     if ([command.arguments count] == 0) {
         return;
     }
-    
+
     NSString* promtAppID = [command.arguments objectAtIndex:0];
     NSString* campaign = campaign = [command.arguments objectAtIndex:1];
     NSDictionary* parameters = [command.arguments objectAtIndex:2];
-    
+
     if (promtAppID != nil && ![promtAppID isEqualToString:@""] && parameters != nil) {
         [AppsFlyerCrossPromotionHelper logCrossPromoteImpression:promtAppID campaign:campaign parameters:parameters];
     }
@@ -379,7 +378,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 *                   customParams: Additional Parameters to log
 */
 -(void)logCrossPromotionAndOpenStore:(CDVInvokedUrlCommand*) command {
-    
+
     if ([command.arguments count] == 0) {
         return;
     }
@@ -387,7 +386,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSString* promtAppID = [command.arguments objectAtIndex:0];
     NSString* campaign = [command.arguments objectAtIndex:1];
     NSDictionary* customParams = [command argumentAtIndex:2 withDefault:[NSNull null]];
-    
+
     if (promtAppID != nil && ![promtAppID isEqualToString:@""]) {
         [AppsFlyerShareInviteHelper generateInviteUrlWithLinkGenerator:^AppsFlyerLinkGenerator * _Nonnull(AppsFlyerLinkGenerator * _Nonnull generator) {
             if (campaign != nil && ![campaign isEqualToString:@""]) {
@@ -396,7 +395,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             if (![customParams isKindOfClass:[NSNull class]]) {
                 [generator addParameters:customParams];
             }
-            
+
             return generator;
         } completionHandler: ^(NSURL * _Nullable url) {
             NSString *appLink = url.absoluteString;
@@ -411,25 +410,25 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
 //5.2.0 - 'onConversionDataReceived' changed to 'onConversionDataSuccess'
 -(void)onConversionDataSuccess:(NSDictionary*) installData {
-    
+
     NSDictionary* message = @{
                               @"status": afSuccess,
                               @"type": afOnInstallConversionDataLoaded,
                               @"data": [installData copy]
                               };
-    
+
     [self performSelectorOnMainThread:@selector(handleCallback:) withObject:message waitUntilDone:NO];
 }
 
 //5.2.0 - 'onConversionDataRequestFailure' changed to 'onConversionDataFail'
 -(void)onConversionDataFail:(NSError *) _errorMessage {
-    
+
     NSDictionary* errorMessage = @{
                                    @"status": afFailure,
                                    @"type": afOnInstallConversionFailure,
                                    @"data": _errorMessage.localizedDescription
                                    };
-    
+
     [self performSelectorOnMainThread:@selector(handleCallback:) withObject:errorMessage waitUntilDone:NO];
 }
 
@@ -437,24 +436,24 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 *  Get the deeplink data
 */
 - (void) onAppOpenAttribution:(NSDictionary*) attributionData {
-    
+
     NSDictionary* message = @{
                               @"status": afSuccess,
                               @"type": afOnAppOpenAttribution,
                               @"data": attributionData
                               };
-    
+
     [self performSelectorOnMainThread:@selector(handleCallback:) withObject:message waitUntilDone:NO];
 }
 
 - (void) onAppOpenAttributionFailure:(NSError *)_errorMessage {
-    
+
     NSDictionary* errorMessage = @{
                                    @"status": afFailure,
                                    @"type": afOnAttributionFailure,
                                    @"data": _errorMessage.localizedDescription
                                    };
-    
+
     [self performSelectorOnMainThread:@selector(handleCallback:) withObject:errorMessage waitUntilDone:NO];
 }
 
@@ -463,23 +462,23 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 */
 -(void) handleCallback:(NSDictionary *) message{
     NSError *error;
-    
+
     NSData *jsonMessage = [NSJSONSerialization dataWithJSONObject:message
                                                           options:0
                                                             error:&error];
     if (jsonMessage) {
         NSString *jsonMessageStr = [[NSString alloc] initWithBytes:[jsonMessage bytes] length:[jsonMessage length] encoding:NSUTF8StringEncoding];
-        
+
         NSString* status = (NSString*)[message objectForKey: @"status"];
         NSString* type = (NSString*)[message objectForKey: @"type"];
-        
+
         if([status isEqualToString:afSuccess]){
             [self reportOnSuccess:jsonMessageStr withType:type];
         }
         else{
             [self reportOnFailure:jsonMessageStr withType:type];
         }
-        
+
         NSLog(@"jsonMessageStr = %@",jsonMessageStr);
     } else {
         NSLog(@"%@",error);
@@ -490,7 +489,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 *   Error callback - called when error occurs.
 */
 -(void) reportOnFailure:(NSString *)errorMessage withType:(NSString *)type{
-    
+
     if([type isEqualToString:afOnAttributionFailure]){
         if(mAttributionDataListener != nil){
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
@@ -503,12 +502,12 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         if (mConversionListenerOnResume != nil) {
             mConversionListenerOnResume = nil;
         }
-        
+
         if(mConversionListener != nil){
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
             [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListener];
-            
+
             mConversionListener = nil;
         }
     }
@@ -518,7 +517,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 *   Success callback - called after receiving data.
 */
 -(void) reportOnSuccess:(NSString *)data withType:(NSString *)type {
-    
+
     if([type isEqualToString:afOnAppOpenAttribution]){
         if(mAttributionDataListener != nil){
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
@@ -532,15 +531,15 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
             [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListenerOnResume];
-            
+
             mConversionListenerOnResume = nil;
         }
-        
+
         if(mConversionListener != nil){
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
             [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListener];
-            
+
             mConversionListener = nil;
         }
     }
@@ -578,6 +577,57 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     CDVPluginResult *pluginResult = [CDVPluginResult
                                         resultWithStatus: CDVCommandStatus_OK
                                         ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+/**
+* Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
+* Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
+*
+* @param purchase info, success and failure callbacks
+*/
+- (void)validateAndLogInAppPurchase: (CDVInvokedUrlCommand*)command {
+    NSString* productIdentifier = nil;
+    NSString* tranactionId = nil;
+    NSString* price = nil;
+    NSString* currency = nil;
+    NSDictionary* additionalParameters = nil;
+
+    NSDictionary* purchaseInfo = [command.arguments objectAtIndex:0];
+
+
+     if(![purchaseInfo isKindOfClass: [NSNull class]]){
+            productIdentifier = (NSString*)[purchaseInfo objectForKey: afProductIdentifier];
+            tranactionId = (NSString*)[purchaseInfo objectForKey: afTransactionId];
+            price = (NSString*)[purchaseInfo objectForKey: afPrice];
+            currency = (NSString*)[purchaseInfo objectForKey: afCurrency];
+            additionalParameters = (NSDictionary*)[purchaseInfo objectForKey: afAdditionalParameters];
+
+            [[AppsFlyerLib shared] validateAndLogInAppPurchase:productIdentifier price:price currency:currency transactionId:tranactionId additionalParameters:additionalParameters success:^(NSDictionary * _Nonnull response) {
+                CDVPluginResult *pluginResult = [CDVPluginResult
+                                                 resultWithStatus: CDVCommandStatus_OK messageAsString: VALIDATE_SUCCESS
+                                                 ];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+            } failure:^(NSError * _Nullable error, id  _Nullable reponse) {
+                CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: error.localizedDescription];
+                [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+                return;
+            }];
+
+    }else{
+        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: NO_PARAMETERS_ERROR];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        return;
+    }
+}
+
+- (void)setUseReceiptValidationSandbox:(CDVInvokedUrlCommand*)command {
+    BOOL isSandbox = [command.arguments objectAtIndex:0];
+    [AppsFlyerLib shared].useReceiptValidationSandbox = isSandbox;
+
+    CDVPluginResult *pluginResult = [CDVPluginResult
+                                     resultWithStatus: CDVCommandStatus_OK messageAsString: isSandbox? @"Sandbox set to true" : @"Sandbox set to false"
+                                     ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 

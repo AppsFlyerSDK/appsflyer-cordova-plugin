@@ -21,7 +21,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="cordova-plugin-appsflyer-sdk"
-        version="6.0.30">
+        version="6.0.50">
     <name>AppsFlyer</name>
     <description>Cordova Plugin AppsFlyer</description>
     <license>Apache 2.0</license>
@@ -40,7 +40,7 @@
     </js-module>
 
 
-    
+
 
     <!-- android -->
     <platform name="android">
@@ -63,13 +63,13 @@
 
         <source-file src="src/android/com/appsflyer/cordova/plugin/AppsFlyerPlugin.java" target-dir="src/com/appsflyer/cordova/plugin" />
         <source-file src="src/android/com/appsflyer/cordova/plugin/AppsFlyerConstants.java" target-dir="src/com/appsflyer/cordova/plugin" />
-        
+
         <framework src="src/android/cordovaAF.gradle" custom="true" type="gradleReference" />
     </platform>
 
 
     <!-- ios -->
-    <platform name="ios">        
+    <platform name="ios">
         <config-file target="config.xml" parent="/*">
             <feature name="AppsFlyerPlugin">
                 <param name="ios-package" value="AppsFlyerPlugin" />

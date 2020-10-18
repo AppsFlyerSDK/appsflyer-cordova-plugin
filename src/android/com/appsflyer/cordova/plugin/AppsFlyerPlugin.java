@@ -57,7 +57,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     }
 
     /**
-     * 
      * @param action The action name to call into.
      * @param args Arguments to pass into the native environment.
      * @param callbackContext Success and Error function callback (optionally with an error/success parameter)
@@ -97,10 +96,12 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return onResume(args, callbackContext);
         } else if ("getSdkVersion".equals(action)) {
             return getSdkVersion(callbackContext);
-        }else if ("setSharingFilter".equals(action)) {
+        } else if ("setSharingFilter".equals(action)) {
             return setSharingFilter(args, callbackContext);
-        }else if ("setSharingFilterForAllPartners".equals(action)) {
+        } else if ("setSharingFilterForAllPartners".equals(action)) {
             return setSharingFilterForAllPartners(callbackContext);
+        } else if ("validateAndLogInAppPurchase".equals(action)) {
+            return validateAndLogInAppPurchase(args, callbackContext);
         }
 
         return false;
@@ -116,10 +117,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     }
 
     /**
-     *  Get the deeplink data
-     * @param callbackContext
-     *      Success callback - called after receiving data on App Open Attribution.
-     *      Error callback - called when error occurs.
+     * Get the deeplink data
+     * @param callbackContext Success callback - called after receiving data on App Open Attribution.
+     *                        Error callback - called when error occurs.
      * @return
      */
     private boolean registerOnAppOpenAttribution(final CallbackContext callbackContext) {
@@ -131,14 +131,13 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
-    /** initialize the SDK.
+    /**
+     * initialize the SDK.
      * @param args SDK configuration
      * @param callbackContext Success callback - called after successful SDK initialization.
      *                        errorCB: Error callback - called when error occurs during initialization.
      */
     private boolean initSdk(final JSONArray args, final CallbackContext callbackContext) {
-
-
         String devKey = null;
         boolean isConversionData;
         boolean isDebug = false;
@@ -328,10 +327,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
         };
     }
+
     /**
      * Track rich in-app events
-     * @param parameters eventName: custom event name, is presented in your dashboard.
-     *                   eventValue: event details
+     * @param parameters      eventName: custom event name, is presented in your dashboard.
+     *                        eventValue: event details
      * @param callbackContext Success callback - called after successful event tracking.
      *                        Error callback - called when error occurs.
      * @return
@@ -387,7 +387,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     /**
      * Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs.
-     * @param parameters customerUserId
+     * @param parameters      customerUserId
      * @param callbackContext Success and Error callbacks.
      * @return
      */
@@ -488,7 +488,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     /**
      * (Android) Allows to pass GCM/FCM Tokens that where collected by third party plugins to the AppsFlyer server. Can be used for Uninstall Tracking.
-     * @param parameters token
+     * @param parameters      token
      * @param callbackContext null in this case. We dont use callbacks for this method
      * @return
      */
@@ -530,9 +530,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     }
 
     // USER INVITE
+
     /**
      * Set AppsFlyer’s OneLink ID
-     * @param parameters oneLinkID.
+     * @param parameters      oneLinkID.
      * @param callbackContext null in this case. We dont use callbacks for this method
      * @return
      */
@@ -555,7 +556,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     /**
      * Allowing your existing users to invite their friends and contacts as new users to your app
-     * @param args Parameters for Invite link
+     * @param args            Parameters for Invite link
      * @param callbackContext Success callback (generated link) and Error callback.
      * @return
      */
@@ -640,8 +641,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     /**
      * Track cross promotion impression. Make sure to use the promoted App ID as it appears within the AppsFlyer dashboard.
-     * @param parameters appId: Promoted Application ID
-     *                   campaign: Promoted Campaign
+     * @param parameters      appId: Promoted Application ID
+     *                        campaign: Promoted Campaign
      * @param callbackContext
      * @return
      */
@@ -672,9 +673,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     /**
      * Use this call to track the click and launch the app store's app page (via Browser)
-     * @param parameters promotedAppId: Promoted Application ID
-     *                   campaign: Promoted Campaign
-     *                   userParams: Additional Parameters to track
+     * @param parameters      promotedAppId: Promoted Application ID
+     *                        campaign: Promoted Campaign
+     *                        userParams: Additional Parameters to track
      * @param callbackContext
      * @return
      */
@@ -711,7 +712,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     /**
      * Helper function to send a callback with no results.
-     * @param callbackContext 
+     * @param callbackContext
      */
     private void sendPluginNoResult(CallbackContext callbackContext) {
         PluginResult pluginResult = new PluginResult(
@@ -732,8 +733,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
-       /**
-     * @param parameters      Comma separated array of partners that need to be excluded
+    /**
+     * @param parameters Comma separated array of partners that need to be excluded
      * @param callbackContext
      */
     private boolean setSharingFilter(JSONArray parameters, CallbackContext callbackContext) {
@@ -768,5 +769,74 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         AppsFlyerLib.getInstance().setSharingFilterForAllPartners();
         callbackContext.success(SUCCESS);
         return true;
+    }
+
+    /**
+     * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
+     * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
+     * @param purchase info, success and failure callbacks
+     */
+    public boolean validateAndLogInAppPurchase(JSONArray args, CallbackContext callbackContext) {
+        String publicKey = "";
+        String signature = "";
+        String purchaseData = "";
+        String price = "";
+        String currency = "";
+        Map<String, String> additionalParameters = null;
+        JSONObject additionalParametersJson;
+
+        try {
+            final JSONObject purchaseInfo = args.getJSONObject(0);
+
+            publicKey = purchaseInfo.optString(PUBLIC_KEY, "");
+            signature = purchaseInfo.optString(SIGNATURE, "");
+            purchaseData = purchaseInfo.optString(PURCHASE_DATA, "");
+            price = purchaseInfo.optString(PRICE, "");
+            currency = purchaseInfo.optString(CURRENCY, "");
+            if (purchaseInfo.has(ADDITIONAL_PARAMETERS)) {
+                additionalParametersJson = purchaseInfo.optJSONObject(ADDITIONAL_PARAMETERS);
+                additionalParameters = toMap(additionalParametersJson);
+            }
+
+            if (publicKey == "" || signature == "" || purchaseData == "" || price == "" || currency == "") {
+                callbackContext.error(NO_PARAMETERS_ERROR);
+                return true;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+            callbackContext.error(FAILURE);
+            return true;
+        }
+        initInAppPurchaseValidatorListener(callbackContext);
+        AppsFlyerLib.getInstance().validateAndTrackInAppPurchase(this.cordova.getContext(), publicKey, signature, purchaseData, price, currency, additionalParameters);
+        return true;
+    }
+
+
+    public void initInAppPurchaseValidatorListener(final CallbackContext callbackContext) {
+        AppsFlyerLib.getInstance().registerValidatorListener(this.cordova.getContext(), new AppsFlyerInAppPurchaseValidatorListener() {
+            @Override
+            public void onValidateInApp() {
+                callbackContext.success(VALIDATE_SUCCESS);
+
+            }
+
+            @Override
+            public void onValidateInAppFailure(String error) {
+                callbackContext.error(VALIDATE_FAILED + error);
+
+            }
+        });
+    }
+
+    private Map<String, String> toMap(JSONObject jsonobj) throws JSONException {
+        Map<String, String> map = new HashMap<String, String>();
+        Iterator<String> keys = jsonobj.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            String value = (String) jsonobj.get(key);
+            map.put(key, value);
+        }
+        return map;
     }
 }
