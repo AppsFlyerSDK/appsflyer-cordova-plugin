@@ -1,4 +1,14 @@
 # Release Notes
+### 6.0.51
+Release date **October 21 2020**
+Release type: Major / Minor / **Hotfix**
+
+**Overview and Highlights:**
+
+- disableCollectASA api
+- disableAdvertisingIdentifier api
+
+
 ### 6.0.50
 Release date **October 18 2020**
 Release type: Major / Minor / **Hotfix**
