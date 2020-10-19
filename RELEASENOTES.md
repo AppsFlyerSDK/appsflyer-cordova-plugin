@@ -7,6 +7,7 @@ Release type: Major / Minor / **Hotfix**
 
 - disableCollectASA api
 - disableAdvertisingIdentifier api
+- getReferrer api
 
 
 ### 6.0.50

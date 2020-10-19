@@ -100,6 +100,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setSharingFilter(args, callbackContext);
         } else if ("setSharingFilterForAllPartners".equals(action)) {
             return setSharingFilterForAllPartners(callbackContext);
+        } else if ("getReferrer".equals(action)) {
+            return getReferrer(callbackContext);
         } else if ("validateAndLogInAppPurchase".equals(action)) {
             return validateAndLogInAppPurchase(args, callbackContext);
         }
@@ -838,5 +840,17 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             map.put(key, value);
         }
         return map;
+    }
+
+    /**
+     * Get the referrer
+     * @param callbackContext successCB: Success callback that returns the referrer url.
+     * @return
+     */
+    private boolean getReferrer(CallbackContext callbackContext) {
+        final String referrer = AppsFlyerProperties.getInstance().getReferrer(this.cordova.getActivity().getApplicationContext());
+        final PluginResult result = new PluginResult(PluginResult.Status.OK, referrer == null ? "" : referrer);
+        callbackContext.sendPluginResult(result);
+        return true;
     }
 }
