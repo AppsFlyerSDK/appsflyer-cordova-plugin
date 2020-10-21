@@ -23,6 +23,7 @@ import com.appsflyer.share.CrossPromotionHelper;
 import com.appsflyer.share.LinkGenerator;
 import com.appsflyer.share.ShareInviteHelper;
 import com.appsflyer.AppsFlyerTrackingRequestListener;
+import com.appsflyer.AppsFlyerInAppPurchaseValidatorListener;
 
 import android.app.Activity;
 import android.content.Context;
