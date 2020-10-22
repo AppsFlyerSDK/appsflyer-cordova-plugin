@@ -241,32 +241,5 @@ if (!window.CustomEvent) {
 		exec(successC, errorC, 'AppsFlyerPlugin', 'setUseReceiptValidationSandbox', [isSandbox]);
 	};
 
-	/**
-	 * AppsFlyer SDK dynamically loads the Apple iAd.framework. This framework is required to record and measure the performance of Apple Search Ads in your app.
-	 * If you don't want AppsFlyer to dynamically load this framework, set this property to true.
-	 * @param collectASA
-	 * @param successC
-	 */
-	AppsFlyer.prototype.disableCollectASA = function(collectASA, successC){
-		exec(successC, null, 'AppsFlyerPlugin', 'disableCollectASA', [collectASA]);
-	};
-	/**
-	 * AppsFlyer SDK dynamically loads the Apple adSupport.framework. This framework is required to collect IDFA for attribution purposes.
-	 * If you don't want AppsFlyer to dynamically load this framework, set this property to true.
-	 * @param disableAdvertisingIdentifier - true OR false
-	 * @param successC - callback function
-	 */
-	AppsFlyer.prototype.setDisableAdvertisingIdentifier = function(disableAdvertisingIdentifier, successC){
-		exec(successC, null, 'AppsFlyerPlugin', 'setDisableAdvertisingIdentifier', [disableAdvertisingIdentifier]);
-	};
-
-	/**
-	 * Get the install referrer version.
-	 * @param successCB
-	 */
-	AppsFlyer.prototype.getReferrer = function (successCB) {
-		exec(successCB, null, 'AppsFlyerPlugin', 'getReferrer', []);
-	};
-
 	module.exports = new AppsFlyer();
 })(window);

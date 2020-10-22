@@ -631,30 +631,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void) disableCollectASA:(CDVInvokedUrlCommand*)command {
-    NSNumber *collectASA = [command.arguments objectAtIndex:0];
-    bool booleanValue = [collectASA boolValue];
-
-    [AppsFlyerLib shared].disableCollectASA = booleanValue;
-
-    CDVPluginResult *pluginResult = [CDVPluginResult
-                                     resultWithStatus: CDVCommandStatus_OK messageAsString: booleanValue ? @"iAd.framework disabled" : @"iAd.framework enabled"
-                                     ];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) setDisableAdvertisingIdentifier:(CDVInvokedUrlCommand*)command {
-    NSNumber *disableAdvertisingIdentifier = [command.arguments objectAtIndex:0];
-    bool booleanValue = [disableAdvertisingIdentifier boolValue];
-
-    [[AppsFlyerLib shared] setDisableAdvertisingIdentifier:booleanValue];
-
-    CDVPluginResult *pluginResult = [CDVPluginResult
-                                     resultWithStatus: CDVCommandStatus_OK messageAsString: booleanValue ? @"adSupport.framework disabled" : @"adSupport.framework enabled"
-                                     ];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
 @end
 
 
