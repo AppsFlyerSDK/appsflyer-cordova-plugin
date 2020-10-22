@@ -42,7 +42,7 @@ We have renamed the following APIs:
 | Old API | New API |
 |---------|---------|
 |trackEvent      |  logEvent|
-|stopTracking      |  stop|
+|stopTracking      |  Stop|
 |trackCrossPromotionImpression |  logCrossPromotionImpression|
 |trackAndOpenStore      |  logCrossPromotionAndOpenStore|
 |setDeviceTrackingDisabled      |  anonymizeUser|
