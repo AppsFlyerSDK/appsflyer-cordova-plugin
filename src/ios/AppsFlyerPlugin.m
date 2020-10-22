@@ -631,7 +631,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-
 @end
 
 
