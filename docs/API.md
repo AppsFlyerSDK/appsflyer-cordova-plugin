@@ -33,6 +33,9 @@ The list of available methods for this plugin is described below.
 | [`setSharingFilter`](#setSharingFilter) | `(partners)` | Used by advertisers to exclude specified networks/integrated partners from getting data |
 | [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase) | `(Object purchaseInfo, function success, function error)` | API for server verification of in-app purchases |
 | [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox) | `(boolean isSandbox, function success, function error)` | In app purchase receipt validation Apple environment |
+| [`disableCollectASA`](#disableCollectASA) | `(boolean collectASA, function success)` | set the SDK to load OR not to load iAd.framework dynamically|
+| [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)` | set the SDK to load OR not to load adSupport.framework dynamically |
+
   
 ---
 
@@ -464,6 +467,37 @@ window.plugins.appsFlyer.setUseReceiptValidationSandbox(true);
 | ----------- |-----------------------------|--------------|
 | `isSandbox` | `boolean` | true if In app purchase is done with sandbox |
 
+---
+
+##### <a id="disableCollectASA"> **`disableCollectASA(collectASA, successC): void`**
+
+AppsFlyer SDK dynamically loads the Apple iAd.framework. This framework is required to record and measure the performance of Apple Search Ads in your app.<br>
+If you don't want AppsFlyer to dynamically load this framework, set this property to true.<br>
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.disableCollectASA(true, successC);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `collectASA` | `boolean` | If you don't want AppsFlyer to dynamically load iAd.framework, set this property to true |
+| `successC` | `function` | success callback |
+---
+##### <a id="setDisableAdvertisingIdentifier"> **`setDisableAdvertisingIdentifier(disableAdvertisingIdentifier, successC): void`**
+
+AppsFlyer SDK dynamically loads the Apple adSupport.framework. This framework is required to collect IDFA for attribution purposes.<br>
+If you don't want AppsFlyer to dynamically load this framework, set this property to true.<br>
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.setDisableAdvertisingIdentifier(true, successC);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `disableAdvertisingIdentifier` | `boolean` | If you don't want AppsFlyer to dynamically load adSupport.framework, set this property to true |
+| `successC` | `function` | success callback |
 ---
 
 ### <a id="deep-linking-tracking"> Deep linking Tracking
