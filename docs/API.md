@@ -35,7 +35,6 @@ The list of available methods for this plugin is described below.
 | [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox) | `(boolean isSandbox, function success, function error)` | In app purchase receipt validation Apple environment |
 | [`disableCollectASA`](#disableCollectASA) | `(boolean collectASA, function success)` | set the SDK to load OR not to load iAd.framework dynamically|
 | [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)` | set the SDK to load OR not to load adSupport.framework dynamically |
-| [`getReferrer`](#getReferrer) | `function success` | Get install referrer |
   
 ---
 
@@ -497,20 +496,6 @@ window.plugins.appsFlyer.setDisableAdvertisingIdentifier(true, successC);
 | ----------- |-----------------------------|--------------|
 | `disableAdvertisingIdentifier` | `boolean` | If you don't want AppsFlyer to dynamically load adSupport.framework, set this property to true |
 | `successC` | `function` | success callback |
----
-##### <a id="getReferrer"> **`getReferrer(successC): void`**
-
-Get the install referrer url.<br>
-
-*Example:*
-
-```javascript
-window.plugins.appsFlyer.getReferrer(successC);
-```
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `successC` | `function` | success callback that returns the install referrer |
 ---
 
 ### <a id="deep-linking-tracking"> Deep linking Tracking

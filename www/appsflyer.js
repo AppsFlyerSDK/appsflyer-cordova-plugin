@@ -260,13 +260,5 @@ if (!window.CustomEvent) {
 		exec(successC, null, 'AppsFlyerPlugin', 'setDisableAdvertisingIdentifier', [disableAdvertisingIdentifier]);
 	};
 
-	/**
-	 * Get the install referrer version.
-	 * @param successCB
-	 */
-	AppsFlyer.prototype.getReferrer = function (successCB) {
-		exec(successCB, null, 'AppsFlyerPlugin', 'getReferrer', []);
-	};
-
 	module.exports = new AppsFlyer();
 })(window);
