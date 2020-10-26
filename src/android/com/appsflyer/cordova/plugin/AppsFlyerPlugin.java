@@ -101,8 +101,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setSharingFilter(args, callbackContext);
         } else if ("setSharingFilterForAllPartners".equals(action)) {
             return setSharingFilterForAllPartners(callbackContext);
-        } else if ("getReferrer".equals(action)) {
-            return getReferrer(callbackContext);
         } else if ("validateAndLogInAppPurchase".equals(action)) {
             return validateAndLogInAppPurchase(args, callbackContext);
         }
