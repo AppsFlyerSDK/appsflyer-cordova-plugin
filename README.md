@@ -114,6 +114,8 @@ Check out the demo for this project [here](docs/Guides.md#demo).<br>
 There is 1 demo project called ```demoC```, run ```npm run setup_c``` in the appsflyer-cordova-plugin folder and then open the ios project in Xcode to see implementation for IOS 14.<br>
 Check out our Sample-App  **Let's cook!** [here](https://github.com/AppsFlyerSDK/appsflyer-cordova-app) if you want to implement our SDK inside React-Cordova app
 ## <a id="ionic"> 📍 Ionic
+***NOTICE!*** In AppsFlyer Cordova plugin version 6.x.x we replaced the word ``track`` with ``log`` from all our api but Ionic-Navite Appsflyer plugin still using ``track``<br>
+So the latest version that can work with Ionic-Native for now is **5.4.30**<br>
 
 In case you are using Ionic framework, you have 2 options:
 ### 1 - Using Ionic native plugin
