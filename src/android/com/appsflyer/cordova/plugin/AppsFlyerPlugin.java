@@ -861,17 +861,15 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @return
      */
     private boolean setOneLinkCustomDomains(JSONArray parameters, CallbackContext callbackContext) {
-        ArrayList<String> domainsList = new ArrayList<>();
-        String[] domainsArr;
+        String[] domainsArr = new String[parameters.length()];
         if (parameters.length() == 0) {
             callbackContext.error(NO_DOMAINS);
             return true;
         }
         try {
             for (int i = 0; i < parameters.length(); i++) {
-                domainsList.add(parameters.getString(i));
+                domainsArr[i] = parameters.getString(i);
             }
-            domainsArr = (String[]) domainsList.toArray();
             AppsFlyerLib.getInstance().setOneLinkCustomDomain(domainsArr);
             callbackContext.success(SUCCESS);
         } catch (Exception e) {
