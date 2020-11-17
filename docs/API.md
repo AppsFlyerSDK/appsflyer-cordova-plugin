@@ -35,6 +35,7 @@ The list of available methods for this plugin is described below.
 | [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox) | `(boolean isSandbox, function success, function error)` | In app purchase receipt validation Apple environment |
 | [`disableCollectASA`](#disableCollectASA) | `(boolean collectASA, function success)` | **iOS**  - set the SDK to load OR not to load iAd.framework dynamically|
 | [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)` | **iOS** - set the SDK to load OR not to load adSupport.framework dynamically |
+| [`setOneLinkCustomDomains`](#setOneLinkCustomDomains) | `(domains, function success, function error)` | Set Onelink custom/branded domains |
 
   
 ---
@@ -498,6 +499,25 @@ window.plugins.appsFlyer.setDisableAdvertisingIdentifier(true, successC);
 | ----------- |-----------------------------|--------------|
 | `disableAdvertisingIdentifier` | `boolean` | If you don't want AppsFlyer to dynamically load adSupport.framework, set this property to true |
 | `successC` | `function` | success callback |
+---
+
+##### <a id="setOneLinkCustomDomains"> **`setOneLinkCustomDomains(domains, successC, errorC): void`**
+Set Onelink custom/branded domains<br>
+Use this API during the SDK Initialization to indicate branded domains. For more information [Learn here](https://support.appsflyer.com/hc/en-us/articles/360002329137-Implementing-Branded-Links)
+
+*Example:*
+
+```javascript
+let domains = ["promotion.greatapp.com", "click.greatapp.com", "deals.greatapp.com"];
+window.plugins.appsFlyer.setOneLinkCustomDomains(domains, successC, errorC);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `domains` | `String array` | String array of branded domains |
+| `successC` | `function` | will trigger if the domains were sent successfully |
+| `errorC` | `function` | will trigger if an error occurred |
+
 ---
 
 ### <a id="deep-linking-tracking"> Deep linking Tracking
