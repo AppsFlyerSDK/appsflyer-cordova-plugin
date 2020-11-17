@@ -32,8 +32,9 @@ public class AppsFlyerConstants {
     final static String AF_ON_APP_OPEN_ATTRIBUTION ="onAppOpenAttribution";
     final static String AF_ON_INSTALL_CONVERSION_FAILURE ="onInstallConversionFailure";
     final static String AF_ON_INSTALL_CONVERSION_DATA_LOADED ="onInstallConversionDataLoaded";
+    final static String NO_DOMAINS = "no domains in the domains array";
 
-    
+
     final static String INVITE_FAIL = "Could not create invite link";
     final static String INVITE_CHANNEL = "channel";
     final static String INVITE_CAMPAIGN = "campaign";

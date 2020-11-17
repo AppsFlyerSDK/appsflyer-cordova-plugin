@@ -23,6 +23,7 @@
 - (void)logCrossPromotionAndOpenStore:(CDVInvokedUrlCommand *)command;
 - (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command;
 - (void)getSdkVersion:(CDVInvokedUrlCommand *)command;
+- (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand *)command;
 @end
 
 

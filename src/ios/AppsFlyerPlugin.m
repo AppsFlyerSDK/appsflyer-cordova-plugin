@@ -581,6 +581,24 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 }
 
 /**
+* Set Onelink custom/branded domains
+*/
+- (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand*)command {
+    NSArray* domains = command.arguments;
+    if (domains.count == 0) {
+        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: afNoDomains];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        return;
+    }
+    [[AppsFlyerLib shared] setOneLinkCustomDomains:domains];
+    CDVPluginResult *pluginResult = [CDVPluginResult
+                                      resultWithStatus: CDVCommandStatus_OK messageAsString:afSuccess
+                                      ];
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+}
+
+/**
 * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
 * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
 *
