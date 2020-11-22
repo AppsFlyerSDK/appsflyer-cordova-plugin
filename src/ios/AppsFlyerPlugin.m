@@ -580,6 +580,38 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                         ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
+/**
+ * AppsFlyer SDK dynamically loads the Apple iAd.framework. This framework is required to record and measure the performance of Apple Search Ads in your app.
+ * If you don't want AppsFlyer to dynamically load this framework, set this property to true.
+ */
+- (void)disableCollectASA:(CDVInvokedUrlCommand*)command {
+    BOOL isDisableBool = NO;
+    id isDisablevalue = [command.arguments objectAtIndex:0];
+    if ([isDisablevalue isKindOfClass:[NSNumber class]]) {
+        isDisableBool = [(NSNumber*)isDisablevalue boolValue];
+        [[AppsFlyerLib shared] setDisableCollectASA:isDisableBool];
+    }
+    CDVPluginResult *pluginResult = [CDVPluginResult
+                                     resultWithStatus: CDVCommandStatus_OK
+                                     ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+/**
+ * AppsFlyer SDK dynamically loads the Apple adSupport.framework. This framework is required to collect IDFA for attribution purposes.
+ * If you don't want AppsFlyer to dynamically load this framework, set this property to true.
+ */
+- (void)setDisableAdvertisingIdentifier:(CDVInvokedUrlCommand*)command {
+    BOOL isDisableBool = NO;
+    id isDisablevalue = [command.arguments objectAtIndex:0];
+    if ([isDisablevalue isKindOfClass:[NSNumber class]]) {
+        isDisableBool = [(NSNumber*)isDisablevalue boolValue];
+        [[AppsFlyerLib shared] setDisableAdvertisingIdentifier:isDisableBool];
+    }
+    CDVPluginResult *pluginResult = [CDVPluginResult
+                                     resultWithStatus: CDVCommandStatus_OK
+                                     ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
 
 /**
 * Set Onelink custom/branded domains
