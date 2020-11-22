@@ -75,13 +75,14 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         [AppsFlyerLib shared].isDebug = isDebug;
         [AppsFlyerLib shared].useUninstallSandbox = useUninstallSandbox;
 
+#ifndef AFSDK_NO_IDFA
         //Here we set the time that the sdk will wait before he starts the launch. we take the time from the 'option' object in the app's index.js
         if (@available(iOS 14, *)) {
             if (waitForATTUserAuthorization != 0 && waitForATTUserAuthorization != nil){
                 [[AppsFlyerLib shared] waitForATTUserAuthorizationWithTimeoutInterval:waitForATTUserAuthorization.intValue];
                    }
         }
-
+#endif
         [[AppsFlyerLib shared] start];
 
 
