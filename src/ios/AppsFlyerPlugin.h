@@ -63,3 +63,6 @@
 #define afAdditionalParameters                  @"additionalParameters"
 static NSString *const NO_PARAMETERS_ERROR                  = @"No purchase parameters found";
 static NSString *const VALIDATE_SUCCESS                  = @"In-App Purchase Validation success";
+
+//Set custom domains
+#define afNoDomains @"no domains in the domains array"

@@ -1,4 +1,12 @@
 # Release Notes
+### 6.0.54
+Release date **November 22, 2020**
+Release type: Major / Minor / **Hotfix**
+
+**Overview and Highlights:**
+
+- add afNoDomains constant for setOneLinkCustomDomains
+
 ### 6.0.53
 Release date **November 17, 2020**
 Release type: Major / Minor / **Hotfix**
