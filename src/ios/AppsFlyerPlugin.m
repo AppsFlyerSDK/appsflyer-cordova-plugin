@@ -75,13 +75,14 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         [AppsFlyerLib shared].isDebug = isDebug;
         [AppsFlyerLib shared].useUninstallSandbox = useUninstallSandbox;
 
+#ifndef AFSDK_NO_IDFA
         //Here we set the time that the sdk will wait before he starts the launch. we take the time from the 'option' object in the app's index.js
         if (@available(iOS 14, *)) {
             if (waitForATTUserAuthorization != 0 && waitForATTUserAuthorization != nil){
                 [[AppsFlyerLib shared] waitForATTUserAuthorizationWithTimeoutInterval:waitForATTUserAuthorization.intValue];
                    }
         }
-
+#endif
         [[AppsFlyerLib shared] start];
 
 
@@ -579,7 +580,41 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                         ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
+/**
+ * AppsFlyer SDK dynamically loads the Apple iAd.framework. This framework is required to record and measure the performance of Apple Search Ads in your app.
+ * If you don't want AppsFlyer to dynamically load this framework, set this property to true.
+ */
+- (void)disableCollectASA:(CDVInvokedUrlCommand*)command {
+    BOOL isDisableBool = NO;
+    id isDisablevalue = [command.arguments objectAtIndex:0];
+    if ([isDisablevalue isKindOfClass:[NSNumber class]]) {
+        isDisableBool = [(NSNumber*)isDisablevalue boolValue];
+        [[AppsFlyerLib shared] setDisableCollectASA:isDisableBool];
+    }
+    CDVPluginResult *pluginResult = [CDVPluginResult
+                                     resultWithStatus: CDVCommandStatus_OK
+                                     ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
 
+#ifndef AFSDK_NO_IDFA
+/**
+ * AppsFlyer SDK dynamically loads the Apple adSupport.framework. This framework is required to collect IDFA for attribution purposes.
+ * If you don't want AppsFlyer to dynamically load this framework, set this property to true.
+ */
+- (void)setDisableAdvertisingIdentifier:(CDVInvokedUrlCommand*)command {
+    BOOL isDisableBool = NO;
+    id isDisablevalue = [command.arguments objectAtIndex:0];
+    if ([isDisablevalue isKindOfClass:[NSNumber class]]) {
+        isDisableBool = [(NSNumber*)isDisablevalue boolValue];
+        [[AppsFlyerLib shared] setDisableAdvertisingIdentifier:isDisableBool];
+    }
+    CDVPluginResult *pluginResult = [CDVPluginResult
+                                     resultWithStatus: CDVCommandStatus_OK
+                                     ];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+#endif
 /**
 * Set Onelink custom/branded domains
 */

@@ -1,4 +1,14 @@
 # Release Notes
+### 6.1.10
+Release date **November 26, 2020**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- iOS SDK 6.1.1
+- Android SDK 6.1.0
+- add Strict mode
+
 ### 6.0.54
 Release date **November 22, 2020**
 Release type: Major / Minor / **Hotfix**

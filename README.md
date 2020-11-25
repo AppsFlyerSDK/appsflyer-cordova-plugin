@@ -10,9 +10,10 @@
 
 ----------
 **❗️Important** <br>
-Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with **cordova-android@7.0.0** and up
-<br>For lower versions of cordova-android please use plugin version 4.3.3 available @ https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/tree/4.3.3
-
+- Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with **cordova-android@7.0.0** and up <br>
+For lower versions of cordova-android please use plugin version 4.3.3 available @ https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/tree/4.3.3 <br>
+- From version **6.1.10** the plugin uses cocoapods(NOT StaticLib) in order to support iOS app-kids Strict mode. <br>
+You can read more [here](https://support.appsflyer.com/hc/en-us/articles/207032066#integration-strict-mode-sdk)
 ----------
 🛠 In order for us to provide optimal support, we would kindly ask you to submit any issues to support@appsflyer.com
 
@@ -25,6 +26,7 @@ Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with 
 - [SDK versions](#plugin-build-for)
 - [V6 Breaking Changes](#breakingChanges)
 - [Installation](#installation)
+- [Add or Remove Strict mode for App-kids](#appKids)
 - [Guides](#guides)
 - [Setup](#setup)
 - [API](#api) 
@@ -60,6 +62,31 @@ To install cordova manually check out the doc [here](/docs/Installation.md).
 
 > **_NOTE:_** for Ionic installation see [this](#ionic) section
 
+## <a id="appKids">👨‍👩‍👧‍👦 Add or Remove Strict mode for App-kids
+Starting from version **6.1.10** iOS SDK comes in two variants: **Strict** mode and **Regular** mode. Please read more [here](https://support.appsflyer.com/hc/en-us/articles/207032066#integration-strict-mode-sdk)
+***Change to Strict mode***<br>
+After you [installed](#installation) the AppsFlyer plugin, go to the `ios` folder inside `platform` folder:
+```
+cd platform/ios
+```
+open the `Podfile` and replace `pod 'AppsFlyerFramework', '6.1.1'` with `pod 'AppsFlyerFramework/Strict', '6.1.1'`
+
+Run `pod install` inside the `ios` folder
+
+inside xcode, go to your target and define Preprocessor Macro `AFSDK_NO_IDFA=1`
+![Add Preprocessor macro](https://github.com/amit-kremer93/resources/blob/main/preprocessorMacro.png)
+
+
+***Change to Regular mode***<br>
+Go to the `ios` folder inside `platform` folder:
+```
+cd platform/ios
+```
+open the `Podfile` and replace `pod 'AppsFlyerFramework/Strict', '6.1.1'` with `pod 'AppsFlyerFramework', '6.1.1'`
+
+Run `pod install` inside the `ios` folder
+
+inside xcode, go to your target and remove the Preprocessor Macro `AFSDK_NO_IDFA=1`
 
  ## <a id="guides"> 📖 Guides
 

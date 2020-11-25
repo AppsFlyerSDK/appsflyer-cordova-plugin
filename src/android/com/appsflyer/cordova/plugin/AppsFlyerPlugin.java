@@ -20,10 +20,10 @@ import com.appsflyer.AppsFlyerConversionListener;
 import com.appsflyer.AppsFlyerLib;
 import com.appsflyer.AppsFlyerProperties;
 import com.appsflyer.CreateOneLinkHttpTask;
+import com.appsflyer.attribution.AppsFlyerRequestListener;
 import com.appsflyer.share.CrossPromotionHelper;
 import com.appsflyer.share.LinkGenerator;
 import com.appsflyer.share.ShareInviteHelper;
-import com.appsflyer.AppsFlyerTrackingRequestListener;
 import com.appsflyer.AppsFlyerInAppPurchaseValidatorListener;
 
 import android.app.Activity;
@@ -55,7 +55,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     @Override
     public void onNewIntent(Intent intent) {
         cordova.getActivity().setIntent(intent);
-        AppsFlyerLib.getInstance().sendDeepLinkData(cordova.getActivity());
+//        AppsFlyerLib.getInstance().sendDeepLinkData(cordova.getActivity());
     }
 
     /**
@@ -77,13 +77,13 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         } else if ("getAppsFlyerUID".equals(action)) {
             return getAppsFlyerUID(callbackContext);
         } else if ("anonymizeUser".equals(action)) {
-            return setDeviceTrackingDisabled(args);
+            return anonymizeUser(args);
         } else if ("Stop".equals(action)) {
-            return stopTracking(args);
+            return stop(args);
         } else if ("initSdk".equals(action)) {
             return initSdk(args, callbackContext);
         } else if ("logEvent".equals(action)) {
-            return trackEvent(args, callbackContext);
+            return logEvent(args, callbackContext);
         } else if ("updateServerUninstallToken".equals(action)) {
             return updateServerUninstallToken(args, callbackContext);
         } else if ("setAppInviteOneLinkID".equals(action)) {
@@ -91,9 +91,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         } else if ("generateInviteLink".equals(action)) {
             return generateInviteLink(args, callbackContext);
         } else if ("logCrossPromotionImpression".equals(action)) {
-            return trackCrossPromotionImpression(args, callbackContext);
+            return logCrossPromotionImpression(args, callbackContext);
         } else if ("logCrossPromotionAndOpenStore".equals(action)) {
-            return trackAndOpenStore(args, callbackContext);
+            return logAndOpenStore(args, callbackContext);
         } else if ("resumeSDK".equals(action)) {
             return onResume(args, callbackContext);
         } else if ("getSdkVersion".equals(action)) {
@@ -116,8 +116,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      */
     private void trackAppLaunch() {
         c = this.cordova.getActivity();
-        AppsFlyerLib.getInstance().sendDeepLinkData(c);
-        AppsFlyerLib.getInstance().trackEvent(c, null, null);
+//        AppsFlyerLib.getInstance().sendDeepLinkData(c);
+        AppsFlyerLib.getInstance().logEvent(c, null, null);
     }
 
     /**
@@ -148,6 +148,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         boolean isConversionData;
         boolean isDebug = false;
         AppsFlyerConversionListener gcdListener = null;
+
 
         AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
         AppsFlyerLib instance = AppsFlyerLib.getInstance();
@@ -199,23 +200,23 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
 
             if (mConversionListener == null) {
-                instance.startTracking(c.getApplication(), devKey, new AppsFlyerTrackingRequestListener() {
+                instance.start(c.getApplication(), devKey, new AppsFlyerRequestListener() {
                     @Override
-                    public void onTrackingRequestSuccess() {
+                    public void onSuccess() {
                         callbackContext.success(SUCCESS);
                     }
 
                     @Override
-                    public void onTrackingRequestFailure(String s) {
+                    public void onError(int i, String s) {
                         callbackContext.error(FAILURE);
                     }
                 });
             } else {
-                instance.startTracking(c.getApplication());
+                instance.start(c.getApplicationContext());
             }
 
 
-            instance.startTracking(c.getApplication());
+            instance.start(c.getApplicationContext());
 
             if (gcdListener != null) {
                 sendPluginNoResult(callbackContext);
@@ -344,7 +345,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      *                        Error callback - called when error occurs.
      * @return
      */
-    private boolean trackEvent(JSONArray parameters, final CallbackContext callbackContext) {
+    private boolean logEvent(JSONArray parameters, final CallbackContext callbackContext) {
         String eventName;
         Map<String, Object> eventValues = null;
         try {
@@ -365,7 +366,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         }
 
         Context c = this.cordova.getActivity().getApplicationContext();
-        AppsFlyerLib.getInstance().trackEvent(c, eventName, eventValues);
+        AppsFlyerLib.getInstance().logEvent(c, eventName, eventValues);
         callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, eventName));
 
         return true;
@@ -446,11 +447,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @param parameters boolean isDisabled
      * @return
      */
-    private boolean setDeviceTrackingDisabled(JSONArray parameters) {
+    private boolean anonymizeUser(JSONArray parameters) {
 
         try {
             boolean isDisabled = parameters.getBoolean(0);
-            AppsFlyerLib.getInstance().setDeviceTrackingDisabled(isDisabled);
+            AppsFlyerLib.getInstance().anonymizeUser(isDisabled);
         } catch (JSONException e) {
             e.printStackTrace();
             return true; //TODO error
@@ -464,11 +465,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @param parameters boolean isStopTracking
      * @return
      */
-    private boolean stopTracking(JSONArray parameters) {
+    private boolean stop(JSONArray parameters) {
 
         try {
-            boolean isStopTracking = parameters.getBoolean(0);
-            AppsFlyerLib.getInstance().stopTracking(isStopTracking, cordova.getActivity().getApplicationContext());
+            boolean isStop = parameters.getBoolean(0);
+            AppsFlyerLib.getInstance().stop(isStop, cordova.getActivity().getApplicationContext());
         } catch (JSONException e) {
             e.printStackTrace();
             return true; //TODO error
@@ -664,7 +665,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @param callbackContext
      * @return
      */
-    public boolean trackCrossPromotionImpression(JSONArray parameters, CallbackContext callbackContext) {
+    public boolean logCrossPromotionImpression(JSONArray parameters, CallbackContext callbackContext) {
         String promotedAppId = null;
         String campaign = null;
 
@@ -676,7 +677,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
             if (promotedAppId != null && promotedAppId != "") {
                 Context context = this.cordova.getActivity().getApplicationContext();
-                CrossPromotionHelper.trackCrossPromoteImpression(context, promotedAppId, campaign);
+                CrossPromotionHelper.logCrossPromoteImpression(context, promotedAppId, campaign);
             } else {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromoted App ID Not set"));
                 return true;
@@ -698,7 +699,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @param callbackContext
      * @return
      */
-    public boolean trackAndOpenStore(JSONArray parameters, CallbackContext callbackContext) {
+    public boolean logAndOpenStore(JSONArray parameters, CallbackContext callbackContext) {
         String promotedAppId = null;
         String campaign = null;
         Map<String, String> userParams = null;
@@ -718,7 +719,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                     }
                     userParams = newUserParams;
                 }
-                CrossPromotionHelper.trackAndOpenStore(context, promotedAppId, campaign, userParams);
+                CrossPromotionHelper.logAndOpenStore(context, promotedAppId, campaign, userParams);
             } else {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromoted App ID Not set"));
                 return true;
@@ -830,7 +831,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return true;
         }
         initInAppPurchaseValidatorListener(callbackContext);
-        AppsFlyerLib.getInstance().validateAndTrackInAppPurchase(this.cordova.getContext(), publicKey, signature, purchaseData, price, currency, additionalParameters);
+        AppsFlyerLib.getInstance().validateAndLogInAppPurchase(this.cordova.getContext(), publicKey, signature, purchaseData, price, currency, additionalParameters);
         return true;
     }
 
@@ -861,21 +862,27 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @return
      */
     private boolean setOneLinkCustomDomains(JSONArray parameters, CallbackContext callbackContext) {
-        String[] domainsArr = new String[parameters.length()];
-        if (parameters.length() == 0) {
-            callbackContext.error(NO_DOMAINS);
-            return true;
-        }
         try {
-            for (int i = 0; i < parameters.length(); i++) {
-                domainsArr[i] = parameters.getString(i);
+            String domains = parameters.getString(0);
+            if (domains.equals("null") || parameters.length() == 0) {
+                callbackContext.error(FAILURE);
+                return true;
+            }
+            domains = domains.substring(1, domains.length() - 1);
+            domains = domains.replaceAll(" ", "");
+
+            String[] domainsArr = domains.split("[ ,]");
+            for (String domain : domainsArr) {
+                domain = domain.substring(1, domain.length() - 1);
+                Log.i("domain", domain);
             }
             AppsFlyerLib.getInstance().setOneLinkCustomDomain(domainsArr);
             callbackContext.success(SUCCESS);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
+        } catch (JSONException e) {
+            e.printStackTrace();
+            callbackContext.error(FAILURE);
+        }
         return true;
     }
 
