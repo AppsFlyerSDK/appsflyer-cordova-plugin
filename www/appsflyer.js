@@ -270,7 +270,7 @@ if (!window.CustomEvent) {
      * @param errorC error callback
      */
     AppsFlyer.prototype.setOneLinkCustomDomains = function (domains, successC, errorC) {
-        exec(successC, errorC, 'AppsFlyerPlugin', 'setOneLinkCustomDomains', [...domains]);
+        exec(successC, errorC, 'AppsFlyerPlugin', 'setOneLinkCustomDomains', [domains]);
     };
 
     module.exports = new AppsFlyer();

@@ -22,6 +22,8 @@
 - (void)logCrossPromotionImpression:(CDVInvokedUrlCommand *)command;
 - (void)logCrossPromotionAndOpenStore:(CDVInvokedUrlCommand *)command;
 - (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command;
+- (void)setDisableAdvertisingIdentifier:(CDVInvokedUrlCommand *)command;
+- (void)disableCollectASA:(CDVInvokedUrlCommand *)command;
 - (void)getSdkVersion:(CDVInvokedUrlCommand *)command;
 - (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand *)command;
 @end
