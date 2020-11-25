@@ -596,6 +596,8 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                      ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
+
+#ifndef AFSDK_NO_IDFA
 /**
  * AppsFlyer SDK dynamically loads the Apple adSupport.framework. This framework is required to collect IDFA for attribution purposes.
  * If you don't want AppsFlyer to dynamically load this framework, set this property to true.
@@ -612,7 +614,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                      ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
-
+#endif
 /**
 * Set Onelink custom/branded domains
 */
