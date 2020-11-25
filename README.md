@@ -12,7 +12,7 @@
 **❗️Important** <br>
 Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with **cordova-android@7.0.0** and up
 <br>For lower versions of cordova-android please use plugin version 4.3.3 available @ https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/tree/4.3.3 <br>
-❗***NOTICE!***
+❗**NOTICE** <br>
 From version **6.1.10** the plugin use cocoapods(NOT StaticLib) in order to support iOS app-kids Strict mode. <br>
 You can read more [here](https://support.appsflyer.com/hc/en-us/articles/207032066#integration-strict-mode-sdk)
 ----------
