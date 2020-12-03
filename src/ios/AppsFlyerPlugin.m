@@ -236,8 +236,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 
-    [[AppsFlyerLib shared] logEvent:eventName withValues:eventValues];
-
 }
 /**
 *   Allows to pass APN Tokens that where collected by third party plugins to the AppsFlyer server. Can be used for Log Uninstall.
