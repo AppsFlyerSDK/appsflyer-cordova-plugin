@@ -141,7 +141,7 @@ Check out the demo for this project [here](docs/Guides.md#demo).<br>
 There is 1 demo project called ```demoC```, run ```npm run setup_c``` in the appsflyer-cordova-plugin folder and then open the ios project in Xcode to see implementation for IOS 14.<br>
 Check out our Sample-App  **Let's cook!** [here](https://github.com/AppsFlyerSDK/appsflyer-cordova-app) if you want to implement our SDK inside React-Cordova app
 ## <a id="ionic"> 📍 Ionic
-***NOTICE!*** In AppsFlyer Cordova plugin version 6.x.x we replaced the word ``track`` with ``log`` from all our api but Ionic-Navite Appsflyer plugin still using ``track``<br>
+***NOTICE!*** In AppsFlyer Cordova plugin version 6.x.x we replaced the word ``track`` with ``log`` from all our api but Ionic-Navite Appsflyer plugin still uses ``track``<br>
 So the latest version that can work with Ionic-Native for now is **5.4.30**<br>
 
 In case you are using Ionic framework, you have 2 options:
@@ -200,6 +200,27 @@ And finally in your main ts file:
 import { Appsflyer } from '@ionic-native/appsflyer';
 ```
 ###  2. Using the `window` object directly
- You can use the plugin the same way like in Cordova with only one exception:
-instead of `window.plugins...` use `window['plugins']...`
+Install the cordova plugin:
+```
+$ ionic cordova plugin add cordova-plugin-appsflyer-sdk
+```
+In your main ts file, declare a window variable:
+```javascript
+declare var window;
+```
+Now you can use the AppsFlyer plugin directly from cordova:
+```javascript
+import {Component} from '@angular/core';
+import {Platform} from '@ionic/angular';
+
+declare var window;
+...
+export class HomePage {
+    constructor(public platform: Platform) {
+        this.platform.ready().then(() => {
+            window.plugins.appsFlyer.initSdk(options, success, error);
+        });
+    }
+}
+```
 Check out the full [API](/docs/API.md) for more information
