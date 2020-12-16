@@ -1,7 +1,6 @@
 var exec = require('cordova/exec'),
     argscheck = require('cordova/argscheck'),
     AppsFlyerError = require('./AppsFlyerError');
-
 var callbackMap = {};
 
 if (!window.CustomEvent) {
@@ -273,5 +272,35 @@ if (!window.CustomEvent) {
         exec(successC, errorC, 'AppsFlyerPlugin', 'setOneLinkCustomDomains', [domains]);
     };
 
+    /**
+     * use this api If you need deep linking data from Facebook, deferred deep linking, Dynamic Product Ads, or reasons that
+     * unrelated to attribution such as authentication, ad monetization, social sharing, user invites, etc.
+     * More information here: https://support.appsflyer.com/hc/en-us/articles/207033826-Facebook-Ads-setup-guide#integration
+     * @param args: boolean value
+     * @return
+     */
+    AppsFlyer.prototype.enableFacebookDeferredApplinks = function (isEnabled) {
+        exec(null, null, 'AppsFlyerPlugin', 'enableFacebookDeferredApplinks', [isEnabled]);
+    };
+
+    /**
+     * Facebook Advanced Matching
+     * @param args: phone number
+     * @param callbackContext
+     * @return
+     */
+    AppsFlyer.prototype.setPhoneNumber = function (phoneNumber, successC) {
+        exec(successC, null, 'AppsFlyerPlugin', 'setPhoneNumber', [phoneNumber]);
+    };
+
+    /**
+     * Facebook Advanced Matching
+     * @param args: Strings array of emails
+     * @param callbackContext: success functions
+     * @return
+     */
+    AppsFlyer.prototype.setUserEmails = function (userEmails, successC) {
+        exec(successC, null, 'AppsFlyerPlugin', 'setUserEmails', [userEmails]);
+    };
     module.exports = new AppsFlyer();
 })(window);

@@ -1,6 +1,11 @@
 #import "AppsFlyerPlugin.h"
 #import "AppsFlyerLib.h"
 #import "AppDelegate.h"
+#if defined __has_include
+#  if __has_include (<FBSDKAppLinkUtility.h>)
+#       import <FBSDKAppLinkUtility.h>
+#  endif
+#endif
 
 @implementation AppsFlyerPlugin
 
@@ -624,6 +629,59 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         return;
     }
     [[AppsFlyerLib shared] setOneLinkCustomDomains:domains];
+    CDVPluginResult *pluginResult = [CDVPluginResult
+                                      resultWithStatus: CDVCommandStatus_OK messageAsString:afSuccess
+                                      ];
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+}
+/**
+ * use this api If you need deep linking data from Facebook, deferred deep linking, Dynamic Product Ads etc.
+ * More information here: https://support.appsflyer.com/hc/en-us/articles/207033826-Facebook-Ads-setup-guide#integration
+ */
+- (void)enableFacebookDeferredApplinks:(CDVInvokedUrlCommand*)command {
+    BOOL isEnabled = NO;
+    id isEnabledvalue = [command.arguments objectAtIndex:0];
+    if ([isEnabledvalue isKindOfClass:[NSNumber class]]) {
+        isEnabled = [(NSNumber*)isEnabledvalue boolValue];
+        if(isEnabled){
+#if __has_include (<FBSDKAppLinkUtility.h>)
+            [[AppsFlyerLib shared] enableFacebookDeferredApplinksWithClass: FBSDKAppLinkUtility.class];
+            NSLog(@"Enabled FacebookDeferredApplinks");
+#else
+            NSLog(@"Please install FBSDK First!");
+#endif
+        }else{
+            [[AppsFlyerLib shared] enableFacebookDeferredApplinksWithClass: nil];
+            NSLog(@"Disabled FacebookDeferredApplinks");
+        }
+    }
+}
+
+
+/**
+ Facebook Advanced Matching - set phone number
+ */
+- (void)setPhoneNumber:(CDVInvokedUrlCommand*)command {
+    NSString* phoneNumber = [command.arguments objectAtIndex:0];
+    [[AppsFlyerLib shared] setPhoneNumber:phoneNumber];
+    NSLog(@"phone number: %@", phoneNumber);
+    CDVPluginResult *pluginResult = [CDVPluginResult
+                                      resultWithStatus: CDVCommandStatus_OK messageAsString:afSuccess
+                                      ];
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+}
+/**
+ Facebook Advanced Matching - set user email
+ */
+- (void)setUserEmails:(CDVInvokedUrlCommand*)command {
+    NSArray* emails = command.arguments;
+    if (emails.count == 0) {
+        return;
+    }
+    [[AppsFlyerLib shared] setUserEmails:emails withCryptType: EmailCryptTypeSHA256];
+    NSLog(@"emails: %@", emails);
     CDVPluginResult *pluginResult = [CDVPluginResult
                                       resultWithStatus: CDVCommandStatus_OK messageAsString:afSuccess
                                       ];
