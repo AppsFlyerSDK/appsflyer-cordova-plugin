@@ -3,7 +3,7 @@
 #import "AppDelegate.h"
 #if defined __has_include
 #  if __has_include (<FBSDKAppLinkUtility.h>)
-#       import <FBSDKAppLinkUtility.h>"
+#       import <FBSDKAppLinkUtility.h>
 #  endif
 #endif
 
