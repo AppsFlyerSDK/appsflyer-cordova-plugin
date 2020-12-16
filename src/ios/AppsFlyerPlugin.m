@@ -636,8 +636,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
 }
 /**
- * use this api If you need deep linking data from Facebook, deferred deep linking, Dynamic Product Ads, or reasons that
- * unrelated to attribution such as authentication, ad monetization, social sharing, user invites, etc.
+ * use this api If you need deep linking data from Facebook, deferred deep linking, Dynamic Product Ads etc.
  * More information here: https://support.appsflyer.com/hc/en-us/articles/207033826-Facebook-Ads-setup-guide#integration
  */
 - (void)enableFacebookDeferredApplinks:(CDVInvokedUrlCommand*)command {
@@ -652,6 +651,9 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 #else
             NSLog(@"Please install FBSDK First!");
 #endif
+        }else{
+            [[AppsFlyerLib shared] enableFacebookDeferredApplinksWithClass: nil];
+            NSLog(@"Disabled FacebookDeferredApplinks");
         }
     }
 }
