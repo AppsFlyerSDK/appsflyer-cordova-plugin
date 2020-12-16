@@ -1,4 +1,14 @@
 # Release Notes
+### 6.1.20
+Release date **December 16, 2020**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- enableFacebookDeferredApplinks
+- setUserEmails
+- setPhoneNumber
+
 ### 6.1.11
 Release date **December 3, 2020**
 Release type: Major / Minor / **Hotfix**

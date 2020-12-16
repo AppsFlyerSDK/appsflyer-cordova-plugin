@@ -106,10 +106,17 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return validateAndLogInAppPurchase(args, callbackContext);
         } else if ("setOneLinkCustomDomains".equals(action)) {
             return setOneLinkCustomDomains(args, callbackContext);
+        } else if ("enableFacebookDeferredApplinks".equals(action)) {
+            return enableFacebookDeferredApplinks(args);
+        } else if ("setPhoneNumber".equals(action)) {
+            return setPhoneNumber(args, callbackContext);
+        } else if ("setUserEmails".equals(action)) {
+            return setUserEmails(args, callbackContext);
         }
 
         return false;
     }
+
 
     /**
      * Tells the sdk to start tracking app launch
@@ -863,20 +870,13 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      */
     private boolean setOneLinkCustomDomains(JSONArray parameters, CallbackContext callbackContext) {
         try {
-            String domains = parameters.getString(0);
-            if (domains.equals("null") || parameters.length() == 0) {
+            String str = parameters.getString(0);
+            String[] domains = stringToArray(str);
+            if (domains.length == 0 || parameters.length() == 0) {
                 callbackContext.error(FAILURE);
                 return true;
             }
-            domains = domains.substring(1, domains.length() - 1);
-            domains = domains.replaceAll(" ", "");
-
-            String[] domainsArr = domains.split("[ ,]");
-            for (String domain : domainsArr) {
-                domain = domain.substring(1, domain.length() - 1);
-                Log.i("domain", domain);
-            }
-            AppsFlyerLib.getInstance().setOneLinkCustomDomain(domainsArr);
+            AppsFlyerLib.getInstance().setOneLinkCustomDomain(domains);
             callbackContext.success(SUCCESS);
 
         } catch (JSONException e) {
@@ -884,6 +884,82 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             callbackContext.error(FAILURE);
         }
         return true;
+    }
+
+    /**
+     * use this api If you need deep linking data from Facebook, deferred deep linking, Dynamic Product Ads, or reasons that
+     * unrelated to attribution such as authentication, ad monetization, social sharing, user invites, etc.
+     * More information here: https://support.appsflyer.com/hc/en-us/articles/207033826-Facebook-Ads-setup-guide#integration
+     * @param args: boolean value
+     * @return
+     */
+    private boolean enableFacebookDeferredApplinks(JSONArray args) {
+        try {
+            boolean isEnabled = args.getBoolean(0);
+            AppsFlyerLib.getInstance().enableFacebookDeferredApplinks(isEnabled);
+            Log.d("AppsFlyer", "set enableFacebookDeferredApplinks to " + isEnabled);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return true;
+        }
+        return true;
+    }
+
+    /**
+     * Facebook Advanced Matching
+     * @param args: Strings array of emails
+     * @param callbackContext: success functions
+     * @return
+     */
+    private boolean setUserEmails(JSONArray args, CallbackContext callbackContext) {
+        try {
+            String str = args.getString(0);
+            String[] emails = stringToArray(str);
+            AppsFlyerLib.getInstance().setUserEmails(emails);
+            callbackContext.success(SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    /**
+     * Facebook Advanced Matching
+     * @param args: phone number
+     * @param callbackContext
+     * @return
+     */
+    private boolean setPhoneNumber(JSONArray args, CallbackContext callbackContext) {
+        try {
+            String phoneNumber = args.getString(0);
+            AppsFlyerLib.getInstance().setPhoneNumber(phoneNumber);
+            Log.d("AppsFlyer", phoneNumber);
+            callbackContext.success(SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    /**
+     * takes string representation of a string array and converts it to an array. use this method because old version of cordova cannot pass an array to native.
+     * newer versions can, but can break flow to older users
+     *
+     * @param str
+     * @return String array
+     */
+    private String[] stringToArray(String str) {
+        String[] realArr = null;
+        str = str.substring(1, str.length() - 1);
+        str = str.replaceAll(" ", "");
+
+        realArr = str.split("[ ,]");
+        for (String el : realArr) {
+            el = el.substring(1, el.length() - 1);
+            Log.i("element", el);
+        }
+        return realArr;
     }
 
     private Map<String, String> toMap(JSONObject jsonobj) throws JSONException {

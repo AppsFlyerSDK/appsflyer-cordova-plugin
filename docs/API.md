@@ -36,6 +36,9 @@ The list of available methods for this plugin is described below.
 | [`disableCollectASA`](#disableCollectASA) | `(boolean collectASA, function success)` | **iOS**  - set the SDK to load OR not to load iAd.framework dynamically|
 | [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)` | **iOS** - set the SDK to load OR not to load adSupport.framework dynamically |
 | [`setOneLinkCustomDomains`](#setOneLinkCustomDomains) | `(domains, function success, function error)` | Set Onelink custom/branded domains |
+| [`enableFacebookDeferredApplinks`](#enableFacebookDeferredApplinks) | `(boolean isEnabled)` | support deferred deep linking from Facebook Ads |
+| [`setUserEmails`](#setUserEmails) | `(emails, function success)` | Set user emails for FB Advanced Matching |
+| [`setPhoneNumber`](#setPhoneNumber) | `(String phoneNumber, function successr)` | Set phone number for FB Advanced Matching |
 
   
 ---
@@ -517,6 +520,54 @@ window.plugins.appsFlyer.setOneLinkCustomDomains(domains, successC, errorC);
 | `domains` | `String array` | String array of branded domains |
 | `successC` | `function` | will trigger if the domains were sent successfully |
 | `errorC` | `function` | will trigger if an error occurred |
+
+---
+##### <a id="enableFacebookDeferredApplinks"> **`enableFacebookDeferredApplinks(boolean isEnabled): void`**
+support deferred deep linking from Facebook Ads<br>
+
+**NOTE:** use this api before ```init```.<br>For more information [Learn here](https://support.appsflyer.com/hc/en-us/articles/207033826-Facebook-Ads-setup-guide#integration)
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.enableFacebookDeferredApplinks(true);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `isEnabled` | `boolean` | enable support deferred deep linking from Facebook Ads |
+
+---
+##### <a id="setUserEmails"> **`setUserEmails(emails, successC: void`**
+Set user emails for FB Advanced Matching<br>
+
+*Example:*
+
+```javascript
+let emails = ["foo@gmail.com", "bar@foo.com"];
+window.plugins.appsFlyer.setUserEmails(emails, successC);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `emails` | `String array` | String array of emails |
+| `successC` | `function` | will trigger if the emails were sent successfully |
+
+---
+##### <a id="setPhoneNumber"> **`setPhoneNumber(phoneNumber, successC: void`**
+Set phone number for FB Advanced Matching<br>
+
+*Example:*
+
+```javascript
+let phoneNumber = "0548561587";
+window.plugins.appsFlyer.setPhoneNumber(phoneNumber, successC);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `phoneNumber` | `String` | String phone number |
+| `successC` | `function` | will trigger if the number was sent successfully |
 
 ---
 
