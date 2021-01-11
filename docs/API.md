@@ -100,8 +100,8 @@ to track ROI (Return on Investment) and LTV (Lifetime Value).
 | ----------- |-----------------------------|--------------|
 | `eventName` | `String` | custom event name, is presented in your dashboard. See the Event list [HERE](https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/blob/master/src/ios/AppsFlyerTracker.h) |
 | `eventValue` | `Object` | event details |
-| `onSuccess` | `(message: string)=>void` | event details |
-| `onError` | `(message: string)=>void` | event details |
+| `onSuccess` | `function` | triggered when the event was sent successfully. returns the event's name. can be Null |
+| `onError` | `function` | triggered when an error occurred. returns an error message. can be Null |
 
 *Example:*
 
@@ -122,6 +122,8 @@ var  eventValues = {
 };
 
 window.plugins.appsFlyer.logEvent(eventName, eventValues, successTrackEvent, failureTrackEvent);
+//OR
+window.plugins.appsFlyer.logEvent(eventName, eventValues, null, null);
 ```
 ---
 

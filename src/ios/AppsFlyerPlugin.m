@@ -234,12 +234,18 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     return;
     }
 
-    [[AppsFlyerLib shared] logEvent:eventName withValues:eventValues];
-
-    CDVPluginResult *pluginResult = [ CDVPluginResult resultWithStatus: CDVCommandStatus_OK
-    messageAsString:eventName
-    ];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    [[AppsFlyerLib shared] logEventWithEventName:eventName eventValues:eventValues completionHandler:^(NSDictionary<NSString *,id> * _Nullable dictionary, NSError * _Nullable error) {
+        if(error != nil){
+            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: [error localizedDescription]];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+            return;
+        }else{
+            CDVPluginResult *pluginResult = [ CDVPluginResult resultWithStatus: CDVCommandStatus_OK
+            messageAsString:eventName
+            ];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        }
+    }];
 
 }
 /**

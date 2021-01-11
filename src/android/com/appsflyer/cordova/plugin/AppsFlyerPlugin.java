@@ -376,8 +376,17 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         }
 
         Context c = this.cordova.getActivity().getApplicationContext();
-        AppsFlyerLib.getInstance().logEvent(c, eventName, eventValues);
-        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, eventName));
+        AppsFlyerLib.getInstance().logEvent(c, eventName, eventValues, callbackContext == null? null: new AppsFlyerRequestListener() {
+            @Override
+            public void onSuccess() {
+                callbackContext.success(eventName);
+            }
+
+            @Override
+            public void onError(int i, String s) {
+                callbackContext.error(s);
+            }
+        });
 
         return true;
     }
