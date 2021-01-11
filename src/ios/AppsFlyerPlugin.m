@@ -754,6 +754,16 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
 }
 
+- (void)addPushNotificationDeepLinkPath:(CDVInvokedUrlCommand*)command {
+    NSArray* path = command.arguments;
+    if (path.count == 0) {
+        return;
+    }
+    [[AppsFlyerLib shared] addPushNotificationDeepLinkPath:path];
+    NSLog(@"[DEBUG] AppsFlyer: %@", path);
+
+}
+
 @end
 
 

@@ -40,6 +40,7 @@ The list of available methods for this plugin is described below.
 | [`setUserEmails`](#setUserEmails) | `(emails, function success)` | Set user emails for FB Advanced Matching |
 | [`setPhoneNumber`](#setPhoneNumber) | `(String phoneNumber, function success)` | Set phone number for FB Advanced Matching |
 | [`setHost`](#setHost) | `(String hostPrefix, String hostName)` | Set custom host prefix and host name |
+| [`addPushNotificationDeepLinkPath`](#addPushNotificationDeepLinkPath) | `(path)` | configure push notification deep link resolution |
 
   
 ---
@@ -588,6 +589,22 @@ window.plugins.appsFlyer.setHost(prefix, name);
 | ----------- |-----------------------------|--------------|
 | `hostPrefix` | `String` | host prefix |
 | `hostName` | `String` | host name |
+
+---
+##### <a id="addPushNotificationDeepLinkPath"> **`addPushNotificationDeepLinkPath(path): void`**
+The addPushNotificationDeepLinkPath method provides app owners with a flexible interface for configuring how deep links are extracted from push notification payloads. for more information: [here](https://support.appsflyer.com/hc/en-us/articles/207032126-Android-SDK-integration-for-developers#core-apis-65-configure-push-notification-deep-link-resolution)
+❗Important❗ addPushNotificationDeepLinkPath must be called before calling initSDK
+
+*Example:*
+
+```javascript
+let path = ["go", "to", "this", "path"]
+window.plugins.appsFlyer.addPushNotificationDeepLinkPath(path);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `path` | `String[]` | strings array of the path |
 
 ---
 

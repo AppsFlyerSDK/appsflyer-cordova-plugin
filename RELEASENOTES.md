@@ -8,6 +8,7 @@ Release type: Major / **Minor** / Hotfix
 - iOS SDK 6.1.3
 - Android SDK 6.1.3
 - setHost api
+- addPushNotificationDeepLinkPath api
 - get in-App events callbacks from sdk
 
 ### 6.1.20

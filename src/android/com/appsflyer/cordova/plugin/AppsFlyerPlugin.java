@@ -115,6 +115,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setUserEmails(args, callbackContext);
         } else if ("setHost".equals(action)) {
             return setHost(args);
+        } else if ("addPushNotificationDeepLinkPath".equals(action)) {
+            return addPushNotificationDeepLinkPath(args);
         }
 
         return false;
@@ -376,7 +378,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         }
 
         Context c = this.cordova.getActivity().getApplicationContext();
-        AppsFlyerLib.getInstance().logEvent(c, eventName, eventValues, callbackContext == null? null: new AppsFlyerRequestListener() {
+        AppsFlyerLib.getInstance().logEvent(c, eventName, eventValues, callbackContext == null ? null : new AppsFlyerRequestListener() {
             @Override
             public void onSuccess() {
                 callbackContext.success(eventName);
@@ -975,6 +977,18 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    private boolean addPushNotificationDeepLinkPath(JSONArray args) {
+        try {
+            String pathStr = args.getString(0);
+            String[] path = stringToArray(pathStr);
+            AppsFlyerLib.getInstance().addPushNotificationDeepLinkPath(path);
+            Log.d("AppsFlyer", path.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
     /**
      * takes string representation of a string array and converts it to an array. use this method because old version of cordova cannot pass an array to native.
      * newer versions can, but can break flow to older users
@@ -986,7 +1000,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         String[] realArr = null;
         str = str.substring(1, str.length() - 1);
         str = str.replaceAll(" ", "");
-
         realArr = str.split("[ ,]");
         for (String el : realArr) {
             el = el.substring(1, el.length() - 1);

@@ -311,5 +311,14 @@ if (!window.CustomEvent) {
     AppsFlyer.prototype.setHost = function (hostPrefix, hostName) {
         exec(null, null, 'AppsFlyerPlugin', 'setHost', [hostPrefix, hostName]);
     };
+
+    /**
+     * The addPushNotificationDeepLinkPath method provides app owners with a flexible interface for configuring how deep links are extracted from push notification payloads.
+     * for more information: https://support.appsflyer.com/hc/en-us/articles/207032126-Android-SDK-integration-for-developers#core-apis-65-configure-push-notification-deep-link-resolution
+     * @param path: an array of string that represents the path
+     */
+    AppsFlyer.prototype.addPushNotificationDeepLinkPath = function (path) {
+        exec(null, null, 'AppsFlyerPlugin', 'addPushNotificationDeepLinkPath', [path]);
+    };
     module.exports = new AppsFlyer();
 })(window);
