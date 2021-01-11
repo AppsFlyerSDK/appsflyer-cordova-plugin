@@ -3,6 +3,7 @@ package com.appsflyer.cordova.plugin;
 import android.net.Uri;
 
 import java.util.ArrayList;
+import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -112,6 +113,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setPhoneNumber(args, callbackContext);
         } else if ("setUserEmails".equals(action)) {
             return setUserEmails(args, callbackContext);
+        } else if ("setHost".equals(action)) {
+            return setHost(args);
         }
 
         return false;
@@ -890,6 +893,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * use this api If you need deep linking data from Facebook, deferred deep linking, Dynamic Product Ads, or reasons that
      * unrelated to attribution such as authentication, ad monetization, social sharing, user invites, etc.
      * More information here: https://support.appsflyer.com/hc/en-us/articles/207033826-Facebook-Ads-setup-guide#integration
+     *
      * @param args: boolean value
      * @return
      */
@@ -907,7 +911,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     /**
      * Facebook Advanced Matching
-     * @param args: Strings array of emails
+     *
+     * @param args:            Strings array of emails
      * @param callbackContext: success functions
      * @return
      */
@@ -926,7 +931,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     /**
      * Facebook Advanced Matching
-     * @param args: phone number
+     *
+     * @param args:           phone number
      * @param callbackContext
      * @return
      */
@@ -936,6 +942,24 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             AppsFlyerLib.getInstance().setPhoneNumber(phoneNumber);
             Log.d("AppsFlyer", phoneNumber);
             callbackContext.success(SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    /**
+     * set custom host prefix and host name
+     *
+     * @param args: host prefix and host name
+     * @return
+     */
+    private boolean setHost(JSONArray args) {
+        try {
+            String prefix = args.getString(0);
+            String name = args.getString(1);
+            AppsFlyerLib.getInstance().setHost(prefix, name);
+            Log.d("AppsFlyer", prefix + "." + name);
         } catch (Exception e) {
             e.printStackTrace();
         }

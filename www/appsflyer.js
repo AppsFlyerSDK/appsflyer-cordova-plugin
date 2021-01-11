@@ -302,5 +302,14 @@ if (!window.CustomEvent) {
     AppsFlyer.prototype.setUserEmails = function (userEmails, successC) {
         exec(successC, null, 'AppsFlyerPlugin', 'setUserEmails', [userEmails]);
     };
+
+    /**
+     * Set a custom host
+     * @param hostPrefix
+     * @param hostName
+     */
+    AppsFlyer.prototype.setHost = function (hostPrefix, hostName) {
+        exec(null, null, 'AppsFlyerPlugin', 'setHost', [hostPrefix, hostName]);
+    };
     module.exports = new AppsFlyer();
 })(window);

@@ -38,7 +38,8 @@ The list of available methods for this plugin is described below.
 | [`setOneLinkCustomDomains`](#setOneLinkCustomDomains) | `(domains, function success, function error)` | Set Onelink custom/branded domains |
 | [`enableFacebookDeferredApplinks`](#enableFacebookDeferredApplinks) | `(boolean isEnabled)` | support deferred deep linking from Facebook Ads |
 | [`setUserEmails`](#setUserEmails) | `(emails, function success)` | Set user emails for FB Advanced Matching |
-| [`setPhoneNumber`](#setPhoneNumber) | `(String phoneNumber, function successr)` | Set phone number for FB Advanced Matching |
+| [`setPhoneNumber`](#setPhoneNumber) | `(String phoneNumber, function success)` | Set phone number for FB Advanced Matching |
+| [`setHost`](#setHost) | `(String hostPrefix, String hostName)` | Set custom host prefix and host name |
 
   
 ---
@@ -568,6 +569,23 @@ window.plugins.appsFlyer.setPhoneNumber(phoneNumber, successC);
 | ----------- |-----------------------------|--------------|
 | `phoneNumber` | `String` | String phone number |
 | `successC` | `function` | will trigger if the number was sent successfully |
+
+---
+##### <a id="setHost"> **`setHost(String hostPrefix, String hostName): void`**
+Set custom host prefix and host name<br>
+
+*Example:*
+
+```javascript
+let prefix = "another"
+let name = "host"
+window.plugins.appsFlyer.setHost(prefix, name);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `hostPrefix` | `String` | host prefix |
+| `hostName` | `String` | host name |
 
 ---
 

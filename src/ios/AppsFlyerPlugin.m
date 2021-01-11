@@ -740,6 +740,14 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+- (void)setHost:(CDVInvokedUrlCommand*)command {
+    NSString* prefix = [command.arguments objectAtIndex:0];
+    NSString* name = [command.arguments objectAtIndex:1];
+    [[AppsFlyerLib shared] setHost:name withHostPrefix:prefix];
+    NSLog(@"[DEBUG] AppsFlyer: %@.%@",prefix, name);
+
+}
+
 @end
 
 
