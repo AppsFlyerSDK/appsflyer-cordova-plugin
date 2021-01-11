@@ -145,7 +145,32 @@ Check out our Sample-App  **Let's cook!** [here](https://github.com/AppsFlyerSDK
 So the latest version that can work with Ionic-Native for now is **5.4.30**<br>
 
 In case you are using Ionic framework, you have 2 options:
-### 1 - Using Ionic native plugin
+###  1. Using the `window` object directly
+Install the cordova plugin:
+```
+$ ionic cordova plugin add cordova-plugin-appsflyer-sdk
+```
+In your main ts file, declare a window variable:
+```javascript
+declare var window;
+```
+Now you can use the AppsFlyer plugin directly from cordova:
+```javascript
+import {Component} from '@angular/core';
+import {Platform} from '@ionic/angular';
+
+declare var window;
+...
+export class HomePage {
+    constructor(public platform: Platform) {
+        this.platform.ready().then(() => {
+            window.plugins.appsFlyer.initSdk(options, success, error);
+        });
+    }
+}
+```
+
+### 2 - Using Ionic native plugin
 ####  Ionic 4
 run this commands:
 **With Cordova**:
@@ -198,29 +223,5 @@ Appsflyer,
 And finally in your main ts file:
 ```
 import { Appsflyer } from '@ionic-native/appsflyer';
-```
-###  2. Using the `window` object directly
-Install the cordova plugin:
-```
-$ ionic cordova plugin add cordova-plugin-appsflyer-sdk
-```
-In your main ts file, declare a window variable:
-```javascript
-declare var window;
-```
-Now you can use the AppsFlyer plugin directly from cordova:
-```javascript
-import {Component} from '@angular/core';
-import {Platform} from '@ionic/angular';
-
-declare var window;
-...
-export class HomePage {
-    constructor(public platform: Platform) {
-        this.platform.ready().then(() => {
-            window.plugins.appsFlyer.initSdk(options, success, error);
-        });
-    }
-}
 ```
 Check out the full [API](/docs/API.md) for more information
