@@ -38,7 +38,9 @@ The list of available methods for this plugin is described below.
 | [`setOneLinkCustomDomains`](#setOneLinkCustomDomains) | `(domains, function success, function error)` | Set Onelink custom/branded domains |
 | [`enableFacebookDeferredApplinks`](#enableFacebookDeferredApplinks) | `(boolean isEnabled)` | support deferred deep linking from Facebook Ads |
 | [`setUserEmails`](#setUserEmails) | `(emails, function success)` | Set user emails for FB Advanced Matching |
-| [`setPhoneNumber`](#setPhoneNumber) | `(String phoneNumber, function successr)` | Set phone number for FB Advanced Matching |
+| [`setPhoneNumber`](#setPhoneNumber) | `(String phoneNumber, function success)` | Set phone number for FB Advanced Matching |
+| [`setHost`](#setHost) | `(String hostPrefix, String hostName)` | Set custom host prefix and host name |
+| [`addPushNotificationDeepLinkPath`](#addPushNotificationDeepLinkPath) | `(path)` | configure push notification deep link resolution |
 
   
 ---
@@ -99,8 +101,8 @@ to track ROI (Return on Investment) and LTV (Lifetime Value).
 | ----------- |-----------------------------|--------------|
 | `eventName` | `String` | custom event name, is presented in your dashboard. See the Event list [HERE](https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/blob/master/src/ios/AppsFlyerTracker.h) |
 | `eventValue` | `Object` | event details |
-| `onSuccess` | `(message: string)=>void` | event details |
-| `onError` | `(message: string)=>void` | event details |
+| `onSuccess` | `function` | triggered when the event was sent successfully. returns the event's name. can be Null |
+| `onError` | `function` | triggered when an error occurred. returns an error message. can be Null |
 
 *Example:*
 
@@ -121,6 +123,8 @@ var  eventValues = {
 };
 
 window.plugins.appsFlyer.logEvent(eventName, eventValues, successTrackEvent, failureTrackEvent);
+//OR
+window.plugins.appsFlyer.logEvent(eventName, eventValues, null, null);
 ```
 ---
 
@@ -568,6 +572,39 @@ window.plugins.appsFlyer.setPhoneNumber(phoneNumber, successC);
 | ----------- |-----------------------------|--------------|
 | `phoneNumber` | `String` | String phone number |
 | `successC` | `function` | will trigger if the number was sent successfully |
+
+---
+##### <a id="setHost"> **`setHost(String hostPrefix, String hostName): void`**
+Set custom host prefix and host name<br>
+
+*Example:*
+
+```javascript
+let prefix = "another"
+let name = "host"
+window.plugins.appsFlyer.setHost(prefix, name);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `hostPrefix` | `String` | host prefix |
+| `hostName` | `String` | host name |
+
+---
+##### <a id="addPushNotificationDeepLinkPath"> **`addPushNotificationDeepLinkPath(path): void`**
+The addPushNotificationDeepLinkPath method provides app owners with a flexible interface for configuring how deep links are extracted from push notification payloads. for more information: [here](https://support.appsflyer.com/hc/en-us/articles/207032126-Android-SDK-integration-for-developers#core-apis-65-configure-push-notification-deep-link-resolution)
+❗Important❗ addPushNotificationDeepLinkPath must be called before calling initSDK
+
+*Example:*
+
+```javascript
+let path = ["go", "to", "this", "path"]
+window.plugins.appsFlyer.addPushNotificationDeepLinkPath(path);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `path` | `String[]` | strings array of the path |
 
 ---
 

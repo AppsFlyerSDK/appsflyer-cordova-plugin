@@ -234,12 +234,18 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     return;
     }
 
-    [[AppsFlyerLib shared] logEvent:eventName withValues:eventValues];
-
-    CDVPluginResult *pluginResult = [ CDVPluginResult resultWithStatus: CDVCommandStatus_OK
-    messageAsString:eventName
-    ];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    [[AppsFlyerLib shared] logEventWithEventName:eventName eventValues:eventValues completionHandler:^(NSDictionary<NSString *,id> * _Nullable dictionary, NSError * _Nullable error) {
+        if(error != nil){
+            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: [error localizedDescription]];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+            return;
+        }else{
+            CDVPluginResult *pluginResult = [ CDVPluginResult resultWithStatus: CDVCommandStatus_OK
+            messageAsString:eventName
+            ];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        }
+    }];
 
 }
 /**
@@ -738,6 +744,24 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                      resultWithStatus: CDVCommandStatus_OK messageAsString: isSandbox? @"Sandbox set to true" : @"Sandbox set to false"
                                      ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void)setHost:(CDVInvokedUrlCommand*)command {
+    NSString* prefix = [command.arguments objectAtIndex:0];
+    NSString* name = [command.arguments objectAtIndex:1];
+    [[AppsFlyerLib shared] setHost:name withHostPrefix:prefix];
+    NSLog(@"[DEBUG] AppsFlyer: %@.%@",prefix, name);
+
+}
+
+- (void)addPushNotificationDeepLinkPath:(CDVInvokedUrlCommand*)command {
+    NSArray* path = command.arguments;
+    if (path.count == 0) {
+        return;
+    }
+    [[AppsFlyerLib shared] addPushNotificationDeepLinkPath:path];
+    NSLog(@"[DEBUG] AppsFlyer: %@", path);
+
 }
 
 @end
