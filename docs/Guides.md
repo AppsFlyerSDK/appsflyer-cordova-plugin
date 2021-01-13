@@ -126,7 +126,9 @@ window.plugins.appsFlyer.initSdk(options , onSuccess , onError);
 
 ###  <a id="handle-deeplinking"> 2. Direct Deeplinking
     
-When a deeplink is clicked on the device the AppsFlyer SDK will return the link in the [onAppOpenAttribution](https://support.appsflyer.com/hc/en-us/articles/208874366-OneLink-Deep-Linking-Guide#deep-linking-data-the-onappopenattribution-method-) method.
+In order to implement deeplink with AppsFlyer, you must call `registerOnAppOpenAttribution` **before** `initSdk`<br>
+For more information on deeplinks, please read [here](https://dev.appsflyer.com/docs/getting-started)
+
 
 
 
@@ -158,6 +160,7 @@ function onAppOpenAttributionError(err){
     
     
 #### URI Scheme
+Please follow the instructions [here](https://dev.appsflyer.com/docs/initial-setup-for-deep-linking-and-deferred-deep-linking#deciding-on-a-uri-scheme) <br>
 In your app’s manifest add the following intent-filter to your relevant activity:
 ```xml 
 <intent-filter>
@@ -170,13 +173,26 @@ In your app’s manifest add the following intent-filter to your relevant activi
 
 
 #### App Links
-For more on App Links check out the guide [here](https://support.appsflyer.com/hc/en-us/articles/115005314223-Deep-Linking-Users-with-Android-App-Links#what-are-android-app-links).
+Please follow the instructions [here](https://dev.appsflyer.com/docs/initial-setup-for-deep-linking-and-deferred-deep-linking#generating-a-sha256-fingerprint) <br>
+In your app’s manifest add the following intent-filter to your relevant activity:
+```xml
+<intent-filter android:autoVerify="true">
+    <action android:name="android.intent.action.VIEW" />
+
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <data
+        android:host="onelink-basic-app.onelink.me"
+        android:pathPrefix="/H5hv"
+        android:scheme="https" />
+</intent-filter>
+```
 
 ###  <a id="ios-deeplink"> iOS Deeplink Setup
 
 #### URI Scheme
 
-For more on URI-schemes check out hte guid [here](https://support.appsflyer.com/hc/en-us/articles/208874366-OneLink-deep-linking-guide#setups-uri-scheme-for-ios-8-and-below)
+For more on URI-schemes check out the guide [here](https://dev.appsflyer.com/docs/initial-setup-2#deciding-on-a-uri-scheme)
 
 Add the following lines to your code to be able to track deeplinks with AppsFlyer attribution data:
 
@@ -191,8 +207,31 @@ var handleOpenURL = function(url) {
 window.plugins.appsFlyer.handleOpenUrl(url);
 }
 ```
-
 Now you will get deep link information in the onAppOpenAttribution callback
+
+**If you are using Ionic+Capacitor or Ionic+Cordova:**<br>
+1. in your `AppDelegate.m` add `#import "AppsFlyerLib.h"`
+
+2. Add this code before the `@end` tag:<br>
+```
+// Deep linking
+// Open URI-scheme for iOS 9 and above
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url options:(NSDictionary *) options {
+    [[AppsFlyerLib shared] handleOpenUrl:url options:options];
+    return YES;
+}
+// Open URI-scheme for iOS 8 and below
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString*)sourceApplication annotation:(id)annotation {
+    [[AppsFlyerLib shared] handleOpenURL:url sourceApplication:sourceApplication withAnnotation:annotation];
+    return YES;
+}
+// Open Universal Links
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler {
+    [[AppsFlyerLib shared] continueUserActivity:userActivity restorationHandler:restorationHandler];
+    return YES;
+}
+```
+
 
 ### Universal Links
     
