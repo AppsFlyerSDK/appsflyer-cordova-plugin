@@ -2,6 +2,8 @@ package com.appsflyer.cordova.plugin;
 
 import android.net.Uri;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.HashMap;
@@ -39,10 +41,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     private CallbackContext mConversionListener = null;
     private CallbackContext mAttributionDataListener = null;
-    private Map<String, String> mAttributionData = null;
+    //    private Map<String, String> mAttributionData = null;
     private CallbackContext mInviteListener = null;
     private Uri intentURI = null;
-    private Uri newIntentURI = null;
+    //    private Uri newIntentURI = null;
     private Activity c;
 
     @Override
@@ -193,10 +195,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
             if (isConversionData == true) {
 
-//				if(mAttributionDataListener == null) {
-//					mAttributionDataListener = callbackContext;
-//				}
-
                 if (mConversionListener == null) {
                     mConversionListener = callbackContext;
                 }
@@ -253,6 +251,19 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
             @Override
             public void onConversionDataSuccess(Map<String, Object> conversionData) {
+                intentURI = c.getIntent().getData();
+                if (intentURI != null) {
+                    cordova.getThreadPool().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                AppsFlyerLib.getInstance().performOnAppAttribution(c.getApplicationContext(), new URI(intentURI.toString()));
+                            } catch (URISyntaxException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                }
                 handleSuccess(AF_ON_INSTALL_CONVERSION_DATA_LOADED, conversionData, null);
             }
 
@@ -263,10 +274,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
             @Override
             public void onAppOpenAttribution(Map<String, String> attributionData) {
-                mAttributionData = attributionData;
-                intentURI = c.getIntent().getData();
-
-                handleSuccess(AF_ON_APP_OPEN_ATTRIBUTION, null, mAttributionData);
+//                mAttributionData = attributionData;
+//                intentURI = c.getIntent().getData();
+//                handleSuccess(AF_ON_APP_OPEN_ATTRIBUTION, null, mAttributionData);
+                handleSuccess(AF_ON_APP_OPEN_ATTRIBUTION, null, attributionData);
 
             }
 
@@ -327,11 +338,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
                 if (
                         (params.optString("type") == AF_ON_ATTRIBUTION_FAILURE
-                                || params.optString("type") == AF_ON_APP_OPEN_ATTRIBUTION)
-                                && mAttributionDataListener != null) {
+                                || params.optString("type") == AF_ON_APP_OPEN_ATTRIBUTION) && mAttributionDataListener != null) {
                     PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
                     result.setKeepCallback(false);
-
                     mAttributionDataListener.sendPluginResult(result);
                     mAttributionDataListener = null;
                 } else if (
@@ -340,7 +349,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                                 && mConversionListener != null) {
                     PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
                     result.setKeepCallback(false);
-
                     mConversionListener.sendPluginResult(result);
                     mConversionListener = null;
                 }
@@ -431,8 +439,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_CUSTOMER_ID));
                 return true;
             }
-//            AppsFlyerLib.getInstance().setAppUserId(customeUserId);
-            //5.2.0 - setAppUserId replaced with setCustomerUserId
             AppsFlyerLib.getInstance().setCustomerUserId(customeUserId);
 
             PluginResult r = new PluginResult(PluginResult.Status.OK);
@@ -548,21 +554,22 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     }
 
     private boolean onResume(JSONArray parameters, CallbackContext callbackContext) {
-        Intent intent = cordova.getActivity().getIntent();
-        newIntentURI = intent.getData();
-
-        if (newIntentURI != intentURI) {
-            if (mAttributionData != null) {
-                PluginResult r = new PluginResult(PluginResult.Status.OK, new JSONObject(mAttributionData).toString());
-                callbackContext.sendPluginResult(r);
-                mAttributionData = null;
-            } else {
-                mAttributionDataListener = callbackContext;
-                sendPluginNoResult(callbackContext);
-            }
-
-            intentURI = newIntentURI;
-        }
+        // <-- This is wrong implementation of OnAppOpenAttribution. will be removed in the next major release -->
+//        Intent intent = cordova.getActivity().getIntent();
+//        newIntentURI = intent.getData();
+//
+//        if (newIntentURI != intentURI) {
+//            if (mAttributionData != null) {
+//                PluginResult r = new PluginResult(PluginResult.Status.OK, new JSONObject(mAttributionData).toString());
+//                callbackContext.sendPluginResult(r);
+//                mAttributionData = null;
+//            } else {
+//                mAttributionDataListener = callbackContext;
+//                sendPluginNoResult(callbackContext);
+//            }
+//
+//            intentURI = newIntentURI;
+//        }
         return true;
     }
 

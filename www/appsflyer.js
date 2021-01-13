@@ -39,7 +39,7 @@ if (!window.CustomEvent) {
             } else {
                 exec(successCB, errorCB, 'AppsFlyerPlugin', 'initSdk', [args]);
 
-                document.addEventListener('resume', this.onResume.bind(this), false);
+                // document.addEventListener('resume', this.onResume.bind(this), false);
 
                 callbackMap.convSuc = successCB;
                 callbackMap.convErr = errorCB;
@@ -60,15 +60,16 @@ if (!window.CustomEvent) {
         exec(onAppOpenAttributionSuccess, onAppOpenAttributionError, 'AppsFlyerPlugin', 'registerOnAppOpenAttribution', []);
     };
 
-    AppsFlyer.prototype.onResume = function () {
-        if (callbackMap.convSuc) {
-            exec(callbackMap.convSuc, callbackMap.convErr, 'AppsFlyerPlugin', 'resumeSDK', []);
-        }
-
-        if (callbackMap.attrSuc) {
-            exec(callbackMap.attrSuc, callbackMap.attrErr, 'AppsFlyerPlugin', 'registerOnAppOpenAttribution', []);
-        }
-    };
+    // <-- This is wrong implementation of OnAppOpenAttribution. will be removed in the next major release -->
+    // AppsFlyer.prototype.onResume = function () {
+    //     if (callbackMap.convSuc) {
+    //         exec(callbackMap.convSuc, callbackMap.convErr, 'AppsFlyerPlugin', 'resumeSDK', []);
+    //     }
+    //
+    //     if (callbackMap.attrSuc) {
+    //         exec(callbackMap.attrSuc, callbackMap.attrErr, 'AppsFlyerPlugin', 'registerOnAppOpenAttribution', []);
+    //     }
+    // };
 
     /**
      * currencyId: ISO 4217 Currency Codes
