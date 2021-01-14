@@ -97,8 +97,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return logCrossPromotionImpression(args, callbackContext);
         } else if ("logCrossPromotionAndOpenStore".equals(action)) {
             return logAndOpenStore(args, callbackContext);
-        } else if ("resumeSDK".equals(action)) {
-            return onResume(args, callbackContext);
         } else if ("getSdkVersion".equals(action)) {
             return getSdkVersion(callbackContext);
         } else if ("setSharingFilter".equals(action)) {
@@ -550,26 +548,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
         });
 
-        return true;
-    }
-
-    private boolean onResume(JSONArray parameters, CallbackContext callbackContext) {
-        // <-- This is wrong implementation of OnAppOpenAttribution. will be removed in the next major release -->
-//        Intent intent = cordova.getActivity().getIntent();
-//        newIntentURI = intent.getData();
-//
-//        if (newIntentURI != intentURI) {
-//            if (mAttributionData != null) {
-//                PluginResult r = new PluginResult(PluginResult.Status.OK, new JSONObject(mAttributionData).toString());
-//                callbackContext.sendPluginResult(r);
-//                mAttributionData = null;
-//            } else {
-//                mAttributionDataListener = callbackContext;
-//                sendPluginNoResult(callbackContext);
-//            }
-//
-//            intentURI = newIntentURI;
-//        }
         return true;
     }
 
