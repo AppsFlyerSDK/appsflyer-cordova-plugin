@@ -17,8 +17,8 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
  NSString* mConversionListener;
  NSString* mAttributionDataListener;
- NSString* mConversionListenerOnResume;
  NSString* mInviteListener;
+ CDVPluginResult* mOAOAResult=nil;
  BOOL isConversionData = NO;
 
 - (void)pluginInitialize{}
@@ -107,24 +107,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     }
   }
 
-- (void)resumeSDK:(CDVInvokedUrlCommand *)command
-  {
-      [[AppsFlyerLib shared] start];
-
-
-      if (isConversionData == YES) {
-          CDVPluginResult* pluginResult = nil;
-          mConversionListenerOnResume = command.callbackId;
-
-          pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-          [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-      }
-      else {
-          CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:SUCCESS];
-          [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-      }
-  }
-
 /**
 *   Sets new currency code. currencyId: ISO 4217 Currency Codes.
 */
@@ -207,6 +189,10 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     mAttributionDataListener = command.callbackId;
     CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    if(mOAOAResult != nil){
+        [self.commandDelegate sendPluginResult:mOAOAResult callbackId:mAttributionDataListener];
+        mAttributionDataListener = nil;
+    }
 }
 
 /**
@@ -509,9 +495,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
     }
     else if([type isEqualToString:afOnInstallConversionFailure]){
-        if (mConversionListenerOnResume != nil) {
-            mConversionListenerOnResume = nil;
-        }
 
         if(mConversionListener != nil){
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
@@ -529,22 +512,14 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 -(void) reportOnSuccess:(NSString *)data withType:(NSString *)type {
 
     if([type isEqualToString:afOnAppOpenAttribution]){
+        mOAOAResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
+        [mOAOAResult setKeepCallback:[NSNumber numberWithBool:NO]];
         if(mAttributionDataListener != nil){
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
-            [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:mAttributionDataListener];
+            [self.commandDelegate sendPluginResult:mOAOAResult callbackId:mAttributionDataListener];
             mAttributionDataListener = nil;
         }
     }
     else if([type isEqualToString:afOnInstallConversionDataLoaded]){
-        if (mConversionListenerOnResume != nil) {
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
-            [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListenerOnResume];
-
-            mConversionListenerOnResume = nil;
-        }
-
         if(mConversionListener != nil){
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
             [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
