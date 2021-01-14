@@ -210,7 +210,7 @@ window.plugins.appsFlyer.handleOpenUrl(url);
 Now you will get deep link information in the onAppOpenAttribution callback
 
 **If you are using Ionic+Capacitor or Ionic+Cordova:**<br>
-1. in your `AppDelegate.m` add `#import "AppsFlyerLib.h"`
+1. in your `AppDelegate.m` add `#import "AppsFlyerLib.h"` and `#import "AppsFlyerPlugin.h"`
 
 2. Add this code before the `@end` tag:<br>
 ```
@@ -230,6 +230,13 @@ Now you will get deep link information in the onAppOpenAttribution callback
     [[AppsFlyerLib shared] continueUserActivity:userActivity restorationHandler:restorationHandler];
     return YES;
 }
+```
+If you are using version **6.2.0** and up you need to add this to `didFinishLaunchingWithOptions`:
+```
+    if (_AppsFlyerdelegate == nil) {
+        _AppsFlyerdelegate = [[AppsFlyerPlugin alloc] init];
+    }
+    [[AppsFlyerLib shared] setDelegate:_AppsFlyerdelegate];
 ```
 
 
@@ -254,14 +261,6 @@ Essentially, the Universal Links method links between an iOS mobile app and an a
     </dict>
 </plist>
 ```
-
-##### **Note**: Our plugin uses method swizzeling for
-
-` - (BOOL)application:(UIApplication *)application 
-continueUserActivity:(NSUserActivity *)userActivity
-restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler; ` 
-
-Now you will get deep link information in the onAppOpenAttribution callback
 
 ##  <a id="uninstall"> Uninstall Measurement
 
