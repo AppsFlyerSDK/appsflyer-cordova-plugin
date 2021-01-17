@@ -209,7 +209,7 @@ window.plugins.appsFlyer.handleOpenUrl(url);
 ```
 Now you will get deep link information in the onAppOpenAttribution callback
 
-####If you are using Ionic+Capacitor or Ionic+Cordova:<br>
+#### If you are using Ionic+Capacitor or Ionic+Cordova:<br>
 For plugin version **6.2.0** and up you need to add this to `didFinishLaunchingWithOptions`:
 ```
     if (_AppsFlyerdelegate == nil) {
