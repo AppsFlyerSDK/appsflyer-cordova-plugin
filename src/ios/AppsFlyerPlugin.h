@@ -3,7 +3,7 @@
 #import "AppsFlyerLib.h"
 
 
-@interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate>
+@interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate, AppsFlyerDeepLinkDelegate>
 // @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerTrackerDelegate>
 - (void)initSdk:(CDVInvokedUrlCommand*)command;
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command;
@@ -12,6 +12,8 @@
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand*)command;
 - (void)onConversionDataSuccess:(NSDictionary*) installData;
 - (void)onConversionDataFail:(NSError *) error;
+- (void)onAppOpenAttribution:(NSDictionary*) attributionData;
+- (void)onAppOpenAttributionFailure:(NSError *)_errorMessage;
 - (void)logEvent:(CDVInvokedUrlCommand*)command;
 - (void)registerUninstall:(CDVInvokedUrlCommand*)command;
 - (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
@@ -28,7 +30,7 @@
 - (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand *)command;
 @end
 
-
+static AppsFlyerPlugin *_AppsFlyerdelegate;
 
 
 // Appsflyer JS objects
