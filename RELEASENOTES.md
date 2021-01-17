@@ -1,4 +1,12 @@
 # Release Notes
+### 6.2.0
+Release date **January 17, 2021**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- fix onAppOnAttribution behavior on Android and iOS. PLEASE read [Here](https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin/blob/dev/RD-54921/fix-OAOA-behavior/docs/Guides.md#-ios-deeplink-setup)
+
 ### 6.1.30
 Release date **January 11, 2021**
 Release type: Major / **Minor** / Hotfix
