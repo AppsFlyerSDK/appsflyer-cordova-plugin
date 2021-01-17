@@ -209,10 +209,19 @@ window.plugins.appsFlyer.handleOpenUrl(url);
 ```
 Now you will get deep link information in the onAppOpenAttribution callback
 
-**If you are using Ionic+Capacitor or Ionic+Cordova:**<br>
-1. in your `AppDelegate.m` add `#import "AppsFlyerLib.h"` and `#import "AppsFlyerPlugin.h"`
+####If you are using Ionic+Capacitor or Ionic+Cordova:<br>
+For plugin version **6.2.0** and up you need to add this to `didFinishLaunchingWithOptions`:
+```
+    if (_AppsFlyerdelegate == nil) {
+        _AppsFlyerdelegate = [[AppsFlyerPlugin alloc] init];
+    }
+    [[AppsFlyerLib shared] setDelegate:_AppsFlyerdelegate];
+```
+And `#import "AppsFlyerPlugin.h"` to `AppDelegate.m` 
 
-2. Add this code before the `@end` tag:<br>
+For plugin version **6.1.30** and less, add `#import "AppsFlyerLib.h"` to `AppDelegate.m`
+
+In both cases, you need to add this code before the `@end` tag:<br>
 ```
 // Deep linking
 // Open URI-scheme for iOS 9 and above
@@ -230,13 +239,6 @@ Now you will get deep link information in the onAppOpenAttribution callback
     [[AppsFlyerLib shared] continueUserActivity:userActivity restorationHandler:restorationHandler];
     return YES;
 }
-```
-If you are using version **6.2.0** and up you need to add this to `didFinishLaunchingWithOptions`:
-```
-    if (_AppsFlyerdelegate == nil) {
-        _AppsFlyerdelegate = [[AppsFlyerPlugin alloc] init];
-    }
-    [[AppsFlyerLib shared] setDelegate:_AppsFlyerdelegate];
 ```
 
 
