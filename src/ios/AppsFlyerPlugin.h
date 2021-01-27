@@ -14,6 +14,7 @@
 - (void)onConversionDataFail:(NSError *) error;
 - (void)onAppOpenAttribution:(NSDictionary*) attributionData;
 - (void)onAppOpenAttributionFailure:(NSError *)_errorMessage;
+- (void)didResolveDeepLink:(AppsFlyerDeepLinkResult* _Nonnull) result;
 - (void)logEvent:(CDVInvokedUrlCommand*)command;
 - (void)registerUninstall:(CDVInvokedUrlCommand*)command;
 - (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
@@ -58,6 +59,8 @@ static AppsFlyerPlugin *_AppsFlyerdelegate;
 #define afOnAppOpenAttribution          @"onAppOpenAttribution"
 #define afOnInstallConversionFailure    @"onInstallConversionFailure"
 #define afOnInstallConversionDataLoaded @"onInstallConversionDataLoaded"
+#define afDeepLink                      @"onDeepLinking"
+#define afOnDeepLinking                 @"onDeepLinkListener"
 
 //RECEIPT VALIDATION
 #define afProductIdentifier                       @"productIdentifier"
