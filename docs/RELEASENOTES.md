@@ -1,6 +1,6 @@
 # Release Notes
 ### 6.2.10
-Release date **January 17, 2021**
+Release date **January 27, 2021**
 Release type: Major / **Minor** / Hotfix
 
 **Overview and Highlights:**

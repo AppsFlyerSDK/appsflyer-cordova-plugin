@@ -9,6 +9,7 @@
 - [DeepLinking](#deeplinking)
     - [Deferred Deep Linking (Get Conversion Data)](#deferred-deep-linking)
     - [Direct Deeplinking](#handle-deeplinking)
+    - [Unified Deeplinking](#Unified-deep-linking)
     - [Android Deeplink Setup](#android-deeplink)
     - [iOS Deeplink Setup](#ios-deeplink)
 - [Uninstall](#uninstall)
