@@ -59,6 +59,15 @@ if (!window.CustomEvent) {
     };
 
     /**
+     * Register Unified deep link listener
+     * @param onDeepLinkListener: ddl callback triggered when deep linked has been clicked and onDeepLinkListener = true;
+     */
+    AppsFlyer.prototype.registerDeepLink = function (onDeepLinkListener) {
+        callbackMap.ddlSuc = onDeepLinkListener;
+        exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'registerDeepLink', []);
+    };
+
+    /**
      * currencyId: ISO 4217 Currency Codes
      */
     AppsFlyer.prototype.setCurrencyCode = function (currencyId) {

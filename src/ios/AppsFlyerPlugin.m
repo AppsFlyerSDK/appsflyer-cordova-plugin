@@ -17,9 +17,12 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
  NSString* mConversionListener;
  NSString* mAttributionDataListener;
+ NSString* mDeepLinkListener;
  NSString* mInviteListener;
  CDVPluginResult* mOAOAResult=nil;
+ CDVPluginResult* mDDLResult=nil;
  BOOL isConversionData = NO;
+ BOOL isDeepLinking = NO;
 
 - (void)pluginInitialize{}
 
@@ -43,6 +46,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         id value = nil;
         id isConversionDataValue = nil;
         id sandboxValue = nil;
+        id isDeepLinkingValue = nil;
         devKey = (NSString*)[initSdkOptions objectForKey: afDevKey];
         appId = (NSString*)[initSdkOptions objectForKey: afAppId];
         waitForATTUserAuthorization = (NSNumber*)[initSdkOptions objectForKey: afwaitForATTUserAuthorization];
@@ -57,6 +61,10 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         sandboxValue = [initSdkOptions objectForKey: afSanboxUninstall];
         if ([sandboxValue isKindOfClass:[NSNumber class]]) {
             useUninstallSandbox = [(NSNumber*)sandboxValue boolValue];
+        }
+        isDeepLinkingValue = [initSdkOptions objectForKey: afOnDeepLinking];
+        if ([isDeepLinkingValue isKindOfClass:[NSNumber class]]) {
+            isDeepLinking = [(NSNumber*)isDeepLinkingValue boolValue];
         }
     }
 
@@ -90,7 +98,9 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 #endif
         [[AppsFlyerLib shared] start];
 
-
+        if(isDeepLinking == YES){
+            [AppsFlyerLib shared].deepLinkDelegate = self;
+         }
         if(isConversionData == YES){
           CDVPluginResult* pluginResult = nil;
           mConversionListener = command.callbackId;
@@ -191,7 +201,17 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     if(mOAOAResult != nil){
         [self.commandDelegate sendPluginResult:mOAOAResult callbackId:mAttributionDataListener];
-        mAttributionDataListener = nil;
+    }
+}
+
+/**
+ Register unified deep link callback
+ */
+- (void)registerDeepLink:(CDVInvokedUrlCommand *)command
+{
+    mDeepLinkListener = command.callbackId;
+    if(mDDLResult != nil){
+        [self.commandDelegate sendPluginResult:mDDLResult callbackId:mDeepLinkListener];
     }
 }
 
@@ -454,6 +474,41 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 }
 
 /**
+ Unified deep link handler
+ */
+- (void)didResolveDeepLink:(AppsFlyerDeepLinkResult* _Nonnull) result {
+    @try {
+        NSDictionary* message = [[NSMutableDictionary alloc] initWithCapacity:4];
+        [message setValue:afOnDeepLinking forKey:@"type"];
+        NSString *deepLinkStatus = nil;
+        switch(result.status) {
+            case AFSDKDeepLinkResultStatusFound:
+                deepLinkStatus = @"FOUND";
+                break;
+            case AFSDKDeepLinkResultStatusNotFound:
+                deepLinkStatus = @"NOT_FOUND";
+                break;
+            case AFSDKDeepLinkResultStatusFailure:
+                deepLinkStatus = @"Error";
+                break;
+            default:
+                [NSException raise:NSGenericException format:@"Unexpected FormatType."];
+        }
+        [message setValue:deepLinkStatus forKey:@"deepLinkStatus"];
+        if(result.error == nil){
+            [message setValue:afSuccess forKey:@"status"];
+            [message setValue:result.deepLink.clickEvent forKey:@"data"];
+        }else{
+            [message setValue:afFailure forKey:@"status"];
+            [message setValue:result.error.localizedDescription forKey:@"data"];
+        }
+        [self performSelectorOnMainThread:@selector(handleCallback:) withObject:message waitUntilDone:NO];
+    } @catch (NSException *exception) {
+        NSLog(@"AppsFlyer DEBUG: %@", exception);
+    }
+}
+
+/**
 *   Helper function to handle callbacks from the sdk
 */
 -(void) handleCallback:(NSDictionary *) message{
@@ -468,7 +523,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         NSString* status = (NSString*)[message objectForKey: @"status"];
         NSString* type = (NSString*)[message objectForKey: @"type"];
 
-        if([status isEqualToString:afSuccess]){
+        if([status isEqualToString:afSuccess] || [type isEqualToString:afOnDeepLinking]){
             [self reportOnSuccess:jsonMessageStr withType:type];
         }
         else{
@@ -513,10 +568,9 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
     if([type isEqualToString:afOnAppOpenAttribution]){
         mOAOAResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
-        [mOAOAResult setKeepCallback:[NSNumber numberWithBool:NO]];
+        [mOAOAResult setKeepCallback:[NSNumber numberWithBool:YES]];
         if(mAttributionDataListener != nil){
             [self.commandDelegate sendPluginResult:mOAOAResult callbackId:mAttributionDataListener];
-            mAttributionDataListener = nil;
         }
     }
     else if([type isEqualToString:afOnInstallConversionDataLoaded]){
@@ -524,8 +578,13 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
             [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListener];
-
             mConversionListener = nil;
+        }
+    }else if([type isEqualToString:afOnDeepLinking]){
+        mDDLResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
+        [mDDLResult setKeepCallback:[NSNumber numberWithBool:YES]];
+        if(mDeepLinkListener != nil){
+            [self.commandDelegate sendPluginResult:mDDLResult callbackId:mDeepLinkListener];
         }
     }
 }

@@ -28,6 +28,8 @@ public class AppsFlyerConstants {
 
     final static String AF_SUCCESS ="success";
     final static String AF_FAILURE ="failure";
+    final static String AF_ON_DEEP_LINKING = "onDeepLinkListener";
+    final static String AF_DEEP_LINK = "onDeepLinking";
     final static String AF_ON_ATTRIBUTION_FAILURE ="onAttributionFailure";
     final static String AF_ON_APP_OPEN_ATTRIBUTION ="onAppOpenAttribution";
     final static String AF_ON_INSTALL_CONVERSION_FAILURE ="onInstallConversionFailure";
