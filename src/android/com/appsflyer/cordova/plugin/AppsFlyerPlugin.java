@@ -24,6 +24,8 @@ import com.appsflyer.AppsFlyerLib;
 import com.appsflyer.AppsFlyerProperties;
 import com.appsflyer.CreateOneLinkHttpTask;
 import com.appsflyer.attribution.AppsFlyerRequestListener;
+import com.appsflyer.deeplink.DeepLinkListener;
+import com.appsflyer.deeplink.DeepLinkResult;
 import com.appsflyer.share.CrossPromotionHelper;
 import com.appsflyer.share.LinkGenerator;
 import com.appsflyer.share.ShareInviteHelper;
@@ -32,8 +34,8 @@ import com.appsflyer.AppsFlyerInAppPurchaseValidatorListener;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.util.Log;
-
 
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.*;
 
@@ -41,6 +43,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     private CallbackContext mConversionListener = null;
     private CallbackContext mAttributionDataListener = null;
+    private CallbackContext mDeepLinkListener = null;
     //    private Map<String, String> mAttributionData = null;
     private CallbackContext mInviteListener = null;
     private Uri intentURI = null;
@@ -57,8 +60,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      */
     @Override
     public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
         cordova.getActivity().setIntent(intent);
-//        AppsFlyerLib.getInstance().sendDeepLinkData(cordova.getActivity());
     }
 
     /**
@@ -75,6 +78,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setCurrencyCode(args);
         } else if ("registerOnAppOpenAttribution".equals(action)) {
             return registerOnAppOpenAttribution(callbackContext);
+        } else if ("registerDeepLink".equals(action)) {
+            return registerDeepLink(callbackContext);
         } else if ("setAppUserId".equals(action)) {
             return setAppUserId(args, callbackContext);
         } else if ("getAppsFlyerUID".equals(action)) {
@@ -122,13 +127,38 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return false;
     }
 
+    /**
+     * register listener for unified deep link.
+     *
+     * @param callbackContext
+     * @return
+     */
+    private boolean registerDeepLink(CallbackContext callbackContext) {
+        if (mDeepLinkListener == null) {
+            mDeepLinkListener = callbackContext;
+        }
+        return true;
+    }
+
 
     /**
-     * Tells the sdk to start tracking app launch
+     * check if the app was launched from deep link after init()
      */
     private void trackAppLaunch() {
         c = this.cordova.getActivity();
-//        AppsFlyerLib.getInstance().sendDeepLinkData(c);
+        intentURI = cordova.getActivity().getIntent().getData();
+        if (intentURI != null) {
+            cordova.getThreadPool().execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        AppsFlyerLib.getInstance().performOnAppAttribution(cordova.getContext(), new URI(intentURI.toString()));
+                    } catch (URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
         AppsFlyerLib.getInstance().logEvent(c, null, null);
     }
 
@@ -140,11 +170,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @return
      */
     private boolean registerOnAppOpenAttribution(final CallbackContext callbackContext) {
-
         if (mAttributionDataListener == null) {
             mAttributionDataListener = callbackContext;
         }
-
         return true;
     }
 
@@ -159,8 +187,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         String devKey = null;
         boolean isConversionData;
         boolean isDebug = false;
+        boolean isDeepLinking;
         AppsFlyerConversionListener gcdListener = null;
-
 
         AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
         AppsFlyerLib instance = AppsFlyerLib.getInstance();
@@ -183,7 +211,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             if (options.has(AF_COLLECT_IMEI)) {
                 AppsFlyerLib.getInstance().setCollectIMEI(options.optBoolean(AF_COLLECT_IMEI, true));
             }
-
+            isDeepLinking = options.optBoolean(AF_ON_DEEP_LINKING, false);
+            if (isDeepLinking) {
+                instance.subscribeForDeepLink(registerDeepLinkListener());
+            }
 
             instance.setDebugLog(isDebug);
 
@@ -239,6 +270,35 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     }
 
     /**
+     * register unified deep link listener
+     *
+     * @return deepLink listener
+     */
+    private DeepLinkListener registerDeepLinkListener() {
+        return new DeepLinkListener() {
+            @Override
+            public void onDeepLinking(@NonNull DeepLinkResult deepLinkResult) {
+                try {
+                    DeepLinkResult.Error dlError = deepLinkResult.getError();
+                    JSONObject deepLinkObj = new JSONObject();
+                    deepLinkObj.put("deepLinkStatus", deepLinkResult.getStatus());
+                    deepLinkObj.put("type", AF_DEEP_LINK);
+                    if (dlError != null) {
+                        deepLinkObj.put("status", AF_FAILURE);
+                        deepLinkObj.put("data", dlError.toString());
+                    } else {
+                        deepLinkObj.put("status", AF_SUCCESS);
+                        deepLinkObj.put("data", deepLinkResult.getDeepLink().toString());
+                    }
+                    sendEvent(deepLinkObj);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+    }
+
+    /**
      * GCD listener. handles success and errors in conversion data .
      *
      * @param instance
@@ -249,19 +309,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
             @Override
             public void onConversionDataSuccess(Map<String, Object> conversionData) {
-                intentURI = c.getIntent().getData();
-                if (intentURI != null) {
-                    cordova.getThreadPool().execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                AppsFlyerLib.getInstance().performOnAppAttribution(c.getApplicationContext(), new URI(intentURI.toString()));
-                            } catch (URISyntaxException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                }
                 handleSuccess(AF_ON_INSTALL_CONVERSION_DATA_LOADED, conversionData, null);
             }
 
@@ -272,11 +319,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
             @Override
             public void onAppOpenAttribution(Map<String, String> attributionData) {
-//                mAttributionData = attributionData;
-//                intentURI = c.getIntent().getData();
-//                handleSuccess(AF_ON_APP_OPEN_ATTRIBUTION, null, mAttributionData);
                 handleSuccess(AF_ON_APP_OPEN_ATTRIBUTION, null, attributionData);
-
             }
 
             @Override
@@ -284,74 +327,82 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 handleError(AF_ON_ATTRIBUTION_FAILURE, errorMessage);
             }
 
-
-            /**
-             * Handle error while sending conversion data
-             * @param eventType error type ("onAttributionFailure").
-             * @param errorMessage error message ().
-             */
-            private void handleError(String eventType, String errorMessage) {
-
-                try {
-                    JSONObject obj = new JSONObject();
-
-                    obj.put("status", AF_FAILURE);
-                    obj.put("type", eventType);
-                    obj.put("data", errorMessage);
-
-                    sendEvent(obj);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            /**
-             * Sending success conversion data
-             * @param eventType
-             * @param conversionData
-             * @param attributionData
-             */
-            private void handleSuccess(String eventType, Map<String, Object> conversionData, Map<String, String> attributionData) {
-                JSONObject obj = new JSONObject();
-
-                try {
-                    JSONObject data = new JSONObject(conversionData == null ? attributionData : conversionData);
-                    obj.put("status", AF_SUCCESS);
-                    obj.put("type", eventType);
-                    obj.put("data", data);
-
-                    sendEvent(obj);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            /**
-             * send the event as a conversion data
-             * @param params
-             */
-            private void sendEvent(JSONObject params) {
-
-                final String jsonStr = params.toString();
-
-                if (
-                        (params.optString("type") == AF_ON_ATTRIBUTION_FAILURE
-                                || params.optString("type") == AF_ON_APP_OPEN_ATTRIBUTION) && mAttributionDataListener != null) {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
-                    result.setKeepCallback(false);
-                    mAttributionDataListener.sendPluginResult(result);
-                    mAttributionDataListener = null;
-                } else if (
-                        (params.optString("type") == AF_ON_INSTALL_CONVERSION_DATA_LOADED
-                                || params.optString("type") == AF_ON_INSTALL_CONVERSION_FAILURE)
-                                && mConversionListener != null) {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
-                    result.setKeepCallback(false);
-                    mConversionListener.sendPluginResult(result);
-                    mConversionListener = null;
-                }
-            }
         };
+    }
+
+    /**
+     * Handle error while sending conversion data
+     *
+     * @param eventType    error type ("onAttributionFailure").
+     * @param errorMessage error message ().
+     */
+    private void handleError(String eventType, String errorMessage) {
+
+        try {
+            JSONObject obj = new JSONObject();
+
+            obj.put("status", AF_FAILURE);
+            obj.put("type", eventType);
+            obj.put("data", errorMessage);
+
+            sendEvent(obj);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Sending success conversion data
+     *
+     * @param eventType
+     * @param conversionData
+     * @param attributionData
+     */
+    private void handleSuccess(String eventType, Map<String, Object> conversionData, Map<String, String> attributionData) {
+        JSONObject obj = new JSONObject();
+
+        try {
+            JSONObject data = new JSONObject(conversionData == null ? attributionData : conversionData);
+            obj.put("status", AF_SUCCESS);
+            obj.put("type", eventType);
+            obj.put("data", data);
+
+            sendEvent(obj);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * send the event as a data object to the JavaScript side
+     *
+     * @param params
+     */
+    private void sendEvent(JSONObject params) {
+
+        final String jsonStr = params.toString();
+
+        if (
+                (params.optString("type") == AF_ON_ATTRIBUTION_FAILURE
+                        || params.optString("type") == AF_ON_APP_OPEN_ATTRIBUTION) && mAttributionDataListener != null) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
+            result.setKeepCallback(true);
+            mAttributionDataListener.sendPluginResult(result);
+        } else if (
+                (params.optString("type") == AF_ON_INSTALL_CONVERSION_DATA_LOADED
+                        || params.optString("type") == AF_ON_INSTALL_CONVERSION_FAILURE)
+                        && mConversionListener != null) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
+            result.setKeepCallback(false);
+            mConversionListener.sendPluginResult(result);
+            mConversionListener = null;
+        } else if (
+                params.optString("type") == AF_DEEP_LINK
+                        && mDeepLinkListener != null) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
+            result.setKeepCallback(true);
+            mDeepLinkListener.sendPluginResult(result);
+        }
     }
 
     /**

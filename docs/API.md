@@ -15,6 +15,7 @@ The list of available methods for this plugin is described below.
 | [`initSdk`](#initSdk) | `(Object args, function success, function error)` | Initialize the SDK|
 | [`logEvent`](#trackEvent) | `(String eventName, Object eventValue, function success, function error)` | Track rich in-app events |
 | [`registerOnAppOpenAttribution`](#registerOnAppOpenAttribution) | `(function success, function error)` | Get the deeplink data |
+| [`registerDeepLink`](#registerDeepLink) | `(function callBack)` | Get unified deep link data |
 | [`setCurrencyCode`](#setCurrencyCode) | `(String currencyId)` | Set currency code |
 | [`setAppUserId`](#setAppUserId) | `(String customerUserId)` | Set custom_user_id |
 | [`setGCMProjectNumber`](#initSdk) | `(String gcmProjectNumber)` | |
@@ -204,27 +205,30 @@ In any event, the SDK can be reactivated by calling the same API, but to pass fa
 
 ```javascript
 window.plugins.appsFlyer.registerOnAppOpenAttribution(function(res) {
+        console.log('AppsFlyer OAOA ==> ' + res);
+        alert('AppsFlyer OAOA ==> ' + res);
+     },
+     function onAppOpenAttributionError(err) {
+         console.log(err);
+     });
 
-{
-"data": {
-"af_deeplink": "true",
-"campaign": "boo",
-"key": "val",
-"media_source": "someMedia",
-"install_time": "2018-07-12 13:20:19",
-"af_status": "Non-organic",
-"path": "",
-"scheme": "https",
-"host": "ionic.fess.onelink.me"
-},
-"type": "onAppOpenAttribution",
-"status": "success"
-}
-},
-function  onAppOpenAttributionError(err){
-// ...
+```
+---
+##### <a id="registerDeepLink"> **`registerDeepLink(callBack): void`**
+
+**Note:** most be called before `initSdk()` and it overrides `registerOnAppOpenAttribution`.
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `callBack` | `(message: stringifed JSON)=>void` | function called after receiving dep link data|
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.registerDeepLink(function(res) {
+    console.log('AppsFlyer DDL ==> ' + res);
+    alert('AppsFlyer DDL ==> ' + res);
 });
-
 ```
 ---
 

@@ -9,6 +9,7 @@
 - [DeepLinking](#deeplinking)
     - [Deferred Deep Linking (Get Conversion Data)](#deferred-deep-linking)
     - [Direct Deeplinking](#handle-deeplinking)
+    - [Unified Deeplinking](#Unified-deep-linking)
     - [Android Deeplink Setup](#android-deeplink)
     - [iOS Deeplink Setup](#ios-deeplink)
 - [Uninstall](#uninstall)
@@ -71,11 +72,13 @@ window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
 ![alt text](https://massets.appsflyer.com/wp-content/uploads/2018/03/21101417/app-installed-Recovered.png "")
 
 
-#### The 2 Deep Linking Types:
+#### The 3 Deep Linking Types:
 Since users may or may not have the mobile app installed, there are 2 types of deep linking:
 
 1. Deferred Deep Linking - Serving personalized content to new or former users, directly after the installation. 
 2. Direct Deep Linking - Directly serving personalized content to existing users, which already have the mobile app installed.
+3. Unified deep linking - Unified deep linking sends new and existing users to a specific in-app activity as soon as the app is opened.<br>
+For more info please check out the [OneLink™ Deep Linking Guide](https://dev.appsflyer.com/docs/initial-setup-for-deep-linking-and-deferred-deep-linking).
 
 For more info please check out the [OneLink™ Deep Linking Guide](https://support.appsflyer.com/hc/en-us/articles/208874366-OneLink-Deep-Linking-Guide#Intro).
 
@@ -154,6 +157,36 @@ function onAppOpenAttributionError(err){
 
 ```
 
+###  <a id="Unified-deep-linking"> 3. Unified deep linking
+In order to use the unified deep link you need to send the `onDeepLinkListener: true` flag inside the object that sent to the sdk.<br>
+**NOTE:** when sending this flag, the sdk will ignore `onAppOpenAttribution`!<br>
+For more information about this api, please check [OneLink Guide Here](https://dev.appsflyer.com/docs/android-unified-deep-linking)
+
+
+```javascript
+window.plugins.appsFlyer.registerDeepLink(function(res) {
+    console.log('AppsFlyer DDL ==> ' + res);
+    alert('AppsFlyer DDL ==> ' + res);
+});
+
+let options = {
+    devKey: 'UsxXxXxed',
+    isDebug: true,
+    appId: '74xXxXx91',
+    onInstallConversionDataListener: true,
+    onDeepLinkListener: true // by default onDeepLinkListener is false!
+};
+
+window.plugins.appsFlyer.initSdk(options, function(res) {
+    console.log('AppsFlyer GCD ==>' + res);
+    alert('AppsFlyer GCD ==> ' + res);
+
+    }, function(err) {
+    console.log(`AppsFlyer GCD ==> ${err}`);
+});
+```
+
+**Note:** The code implementation for `onDeepLink` must be made **prior to the initialization** code of the SDK.
 
 ###  <a id="android-deeplink"> Android Deeplink Setup
     
@@ -215,7 +248,9 @@ For plugin version **6.2.0** and up you need to add this to `didFinishLaunchingW
     if (_AppsFlyerdelegate == nil) {
         _AppsFlyerdelegate = [[AppsFlyerPlugin alloc] init];
     }
-    [[AppsFlyerLib shared] setDelegate:_AppsFlyerdelegate];
+    [[AppsFlyerLib shared] setDelegate:_AppsFlyerdelegate]; //if you want to use onAppOpenAttribution listener (registerOnAppOpenAttribution())
+    //OR
+    [[AppsFlyerLib shared] setDeepLinkDelegate:_AppsFlyerdelegate]; //if you want to use DDL listener (registerDeepLink())
 ```
 And `#import "AppsFlyerPlugin.h"` to `AppDelegate.m` 
 
