@@ -251,6 +251,8 @@ For plugin version **6.2.0** and up you need to add this to `didFinishLaunchingW
     [[AppsFlyerLib shared] setDelegate:_AppsFlyerdelegate]; //if you want to use onAppOpenAttribution listener (registerOnAppOpenAttribution())
     //OR
     [[AppsFlyerLib shared] setDeepLinkDelegate:_AppsFlyerdelegate]; //if you want to use DDL listener (registerDeepLink())
+    [AppsFlyerLib shared].appsFlyerDevKey = @"APPSFLYER_DEV_KEY"; // replace APPSFLYER_DEV_KEY with your dev key 
+
 ```
 And `#import "AppsFlyerPlugin.h"` to `AppDelegate.m` 
 
