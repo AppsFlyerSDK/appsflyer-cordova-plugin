@@ -317,5 +317,15 @@ if (!window.CustomEvent) {
     AppsFlyer.prototype.addPushNotificationDeepLinkPath = function (path) {
         exec(null, null, 'AppsFlyerPlugin', 'addPushNotificationDeepLinkPath', [path]);
     };
+
+    /**
+     * Use this API to get the OneLink from click domains that launch the app. Make sure to call this API before SDK initialization.
+     * @param urls
+     */
+    AppsFlyer.prototype.setResolveDeepLinkURLs = function (urls) {
+        exec(null, null, 'AppsFlyerPlugin', 'setResolveDeepLinkURLs', [urls]);
+    };
+
+
     module.exports = new AppsFlyer();
 })(window);
