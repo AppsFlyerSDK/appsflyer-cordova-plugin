@@ -42,6 +42,7 @@ The list of available methods for this plugin is described below.
 | [`setPhoneNumber`](#setPhoneNumber) | `(String phoneNumber, function success)` | Set phone number for FB Advanced Matching |
 | [`setHost`](#setHost) | `(String hostPrefix, String hostName)` | Set custom host prefix and host name |
 | [`addPushNotificationDeepLinkPath`](#addPushNotificationDeepLinkPath) | `(path)` | configure push notification deep link resolution |
+| [`setResolveDeepLinkURLs`](#setResolveDeepLinkURLs) | `(urls)` | get the OneLink from click domains |
 
   
 ---
@@ -612,6 +613,22 @@ window.plugins.appsFlyer.addPushNotificationDeepLinkPath(path);
 
 ---
 
+---
+##### <a id="setResolveDeepLinkURLs"> **`setResolveDeepLinkURLs(urls): void`**
+Use this API to get the OneLink from click domains that launch the app. Make sure to call this API before SDK initialization.
+
+*Example:*
+
+```javascript
+let urls = ['clickdomain.com', 'anotherclickdomain.com'];
+window.plugins.appsFlyer.setResolveDeepLinkURLs(urls);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `urls` | `String[]` | strings array of domains |
+
+---
 ### <a id="deep-linking-tracking"> Deep linking Tracking
 
   

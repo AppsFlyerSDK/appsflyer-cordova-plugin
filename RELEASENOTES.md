@@ -1,4 +1,20 @@
 # Release Notes
+### 6.2.20
+Release date **February 8, 2021**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- Add setResolveDeepLink api
+
+### 6.2.10
+Release date **January 27, 2021**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- Add Unified DDL
+
 ### 6.2.0
 Release date **January 17, 2021**
 Release type: Major / **Minor** / Hotfix

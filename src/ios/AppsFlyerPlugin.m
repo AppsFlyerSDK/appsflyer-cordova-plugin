@@ -662,13 +662,14 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 * Set Onelink custom/branded domains
 */
 - (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand*)command {
-    NSArray* domains = command.arguments;
+    NSArray* domains = [command.arguments objectAtIndex:0];
     if (domains.count == 0) {
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: afNoDomains];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         return;
     }
     [[AppsFlyerLib shared] setOneLinkCustomDomains:domains];
+    NSLog(@"[DEBUG] AppsFlyer: %@", domains);
     CDVPluginResult *pluginResult = [CDVPluginResult
                                       resultWithStatus: CDVCommandStatus_OK messageAsString:afSuccess
                                       ];
@@ -716,7 +717,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
  Facebook Advanced Matching - set user email
  */
 - (void)setUserEmails:(CDVInvokedUrlCommand*)command {
-    NSArray* emails = command.arguments;
+    NSArray* emails = [command.arguments objectAtIndex:0];
     if (emails.count == 0) {
         return;
     }
@@ -789,13 +790,22 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 }
 
 - (void)addPushNotificationDeepLinkPath:(CDVInvokedUrlCommand*)command {
-    NSArray* path = command.arguments;
+    NSArray* path = [command.arguments objectAtIndex:0];
     if (path.count == 0) {
         return;
     }
     [[AppsFlyerLib shared] addPushNotificationDeepLinkPath:path];
     NSLog(@"[DEBUG] AppsFlyer: %@", path);
 
+}
+
+- (void)setResolveDeepLinkURLs:(CDVInvokedUrlCommand*)command {
+    NSArray* urls = [command.arguments objectAtIndex:0];
+    if (urls.count == 0) {
+        return;
+    }
+    [AppsFlyerLib shared].resolveDeepLinkURLs = urls;
+    NSLog(@"[DEBUG] AppsFlyer: %@", urls);
 }
 
 @end
