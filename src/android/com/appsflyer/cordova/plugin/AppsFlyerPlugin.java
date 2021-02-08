@@ -122,6 +122,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setHost(args);
         } else if ("addPushNotificationDeepLinkPath".equals(action)) {
             return addPushNotificationDeepLinkPath(args);
+        }else if ("setResolveDeepLinkURLs".equals(action)) {
+            return setResolveDeepLinkURLs(args);
         }
 
         return false;
@@ -1019,6 +1021,23 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             String[] path = stringToArray(pathStr);
             AppsFlyerLib.getInstance().addPushNotificationDeepLinkPath(path);
             Log.d("AppsFlyer", path.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    /**
+     * Use this API to get the OneLink from click domains that launch the app. Make sure to call this API before SDK initialization.
+     *
+     * @param args: urls
+     */
+    private boolean setResolveDeepLinkURLs(JSONArray args) {
+        try {
+            String urlsStr = args.getString(0);
+            String[] urls = stringToArray(urlsStr);
+            AppsFlyerLib.getInstance().setResolveDeepLinkURLs(urls);
+            Log.d("AppsFlyer", urls.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
