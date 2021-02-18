@@ -1,5 +1,5 @@
 #import "AppsFlyerPlugin.h"
-#import "AppsFlyerLib.h"
+#import "AppsFlyerAttribution.h"
 #import "AppDelegate.h"
 #if defined __has_include
 #  if __has_include (<FBSDKAppLinkUtility.h>)
@@ -19,8 +19,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
  NSString* mAttributionDataListener;
  NSString* mDeepLinkListener;
  NSString* mInviteListener;
- CDVPluginResult* mOAOAResult=nil;
- CDVPluginResult* mDDLResult=nil;
  BOOL isConversionData = NO;
  BOOL isDeepLinking = NO;
 
@@ -83,6 +81,10 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         return;
     }
     else{
+        if(isDeepLinking == YES){
+            [AppsFlyerLib shared].deepLinkDelegate = self;
+         }
+
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
@@ -98,9 +100,15 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 #endif
         [[AppsFlyerLib shared] start];
 
-        if(isDeepLinking == YES){
-            [AppsFlyerLib shared].deepLinkDelegate = self;
-         }
+        //post notification for the deep link object that the bridge is set and he can handle deep link
+        [AppsFlyerAttribution shared].isBridgeReady = YES;
+        [[NSNotificationCenter defaultCenter] postNotificationName:AF_BRIDGE_SET object:self];
+        // Register for background-foreground transitions natively instead of doing this in JavaScript
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(sendLaunch:)
+                                                     name:UIApplicationDidBecomeActiveNotification
+                                                   object:nil];
+
         if(isConversionData == YES){
           CDVPluginResult* pluginResult = nil;
           mConversionListener = command.callbackId;
@@ -116,6 +124,11 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
     }
   }
+
+-(void)sendLaunch:(UIApplication *)application {
+    [[NSNotificationCenter defaultCenter] postNotificationName:AF_BRIDGE_SET object:self];
+    [[AppsFlyerLib shared] start];
+}
 
 /**
 *   Sets new currency code. currencyId: ISO 4217 Currency Codes.
@@ -197,11 +210,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 - (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command
 {
     mAttributionDataListener = command.callbackId;
-    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-    if(mOAOAResult != nil){
-        [self.commandDelegate sendPluginResult:mOAOAResult callbackId:mAttributionDataListener];
-    }
 }
 
 /**
@@ -210,9 +218,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 - (void)registerDeepLink:(CDVInvokedUrlCommand *)command
 {
     mDeepLinkListener = command.callbackId;
-    if(mDDLResult != nil){
-        [self.commandDelegate sendPluginResult:mDDLResult callbackId:mDeepLinkListener];
-    }
 }
 
 /**
@@ -477,35 +482,33 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
  Unified deep link handler
  */
 - (void)didResolveDeepLink:(AppsFlyerDeepLinkResult* _Nonnull) result {
-    @try {
-        NSDictionary* message = [[NSMutableDictionary alloc] initWithCapacity:4];
-        [message setValue:afOnDeepLinking forKey:@"type"];
-        NSString *deepLinkStatus = nil;
-        switch(result.status) {
-            case AFSDKDeepLinkResultStatusFound:
-                deepLinkStatus = @"FOUND";
-                break;
-            case AFSDKDeepLinkResultStatusNotFound:
-                deepLinkStatus = @"NOT_FOUND";
-                break;
-            case AFSDKDeepLinkResultStatusFailure:
-                deepLinkStatus = @"Error";
-                break;
-            default:
-                [NSException raise:NSGenericException format:@"Unexpected FormatType."];
-        }
-        [message setValue:deepLinkStatus forKey:@"deepLinkStatus"];
-        if(result.error == nil){
-            [message setValue:afSuccess forKey:@"status"];
-            [message setValue:result.deepLink.clickEvent forKey:@"data"];
-        }else{
-            [message setValue:afFailure forKey:@"status"];
-            [message setValue:result.error.localizedDescription forKey:@"data"];
-        }
-        [self performSelectorOnMainThread:@selector(handleCallback:) withObject:message waitUntilDone:NO];
-    } @catch (NSException *exception) {
-        NSLog(@"AppsFlyer DEBUG: %@", exception);
+    NSString *deepLinkStatus = nil;
+    switch(result.status) {
+        case AFSDKDeepLinkResultStatusFound:
+            deepLinkStatus = @"FOUND";
+            break;
+        case AFSDKDeepLinkResultStatusNotFound:
+            deepLinkStatus = @"NOT_FOUND";
+            break;
+        case AFSDKDeepLinkResultStatusFailure:
+            deepLinkStatus = @"Error";
+            break;
+        default:
+            [NSException raise:NSGenericException format:@"Unexpected FormatType."];
     }
+    NSMutableDictionary* message = [[NSMutableDictionary alloc] initWithCapacity:4];
+    [message setObject:([deepLinkStatus isEqual:@"Error"] || [deepLinkStatus isEqual:@"NOT_FOUND"]) ? afFailure : afSuccess forKey:@"status"];
+    [message setObject:deepLinkStatus forKey:@"deepLinkStatus"];
+    [message setObject:afOnDeepLinking forKey:@"type"];
+    if([deepLinkStatus  isEqual: @"Error"]){
+        [message setObject:result.error.localizedDescription forKey:@"data"];
+    }else if([deepLinkStatus  isEqual: @"NOT_FOUND"]){
+        [message setObject:@"deep link not found" forKey:@"data"];
+    }else{
+        [message setObject:result.deepLink.clickEvent forKey:@"data"];
+    }
+
+    [self performSelectorOnMainThread:@selector(handleCallback:) withObject:message waitUntilDone:NO];
 }
 
 /**
@@ -546,7 +549,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
             [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:mAttributionDataListener];
-            mAttributionDataListener = nil;
         }
     }
     else if([type isEqualToString:afOnInstallConversionFailure]){
@@ -555,7 +557,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
             [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListener];
-
             mConversionListener = nil;
         }
     }
@@ -567,25 +568,20 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 -(void) reportOnSuccess:(NSString *)data withType:(NSString *)type {
 
     if([type isEqualToString:afOnAppOpenAttribution]){
-        mOAOAResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
-        [mOAOAResult setKeepCallback:[NSNumber numberWithBool:YES]];
-        if(mAttributionDataListener != nil){
-            [self.commandDelegate sendPluginResult:mOAOAResult callbackId:mAttributionDataListener];
-        }
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
+        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:mAttributionDataListener];
     }
     else if([type isEqualToString:afOnInstallConversionDataLoaded]){
         if(mConversionListener != nil){
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
-            [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
+            [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
             [self.commandDelegate sendPluginResult:pluginResult callbackId:mConversionListener];
-            mConversionListener = nil;
         }
     }else if([type isEqualToString:afOnDeepLinking]){
-        mDDLResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
-        [mDDLResult setKeepCallback:[NSNumber numberWithBool:YES]];
-        if(mDeepLinkListener != nil){
-            [self.commandDelegate sendPluginResult:mDDLResult callbackId:mDeepLinkListener];
-        }
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
+        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:mDeepLinkListener];
     }
 }
 

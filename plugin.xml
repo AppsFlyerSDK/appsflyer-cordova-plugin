@@ -79,8 +79,10 @@
         <header-file src="src/ios/AppsFlyerPlugin.h"/>
         <header-file src="src/ios/AppsFlyerDeepLink.h"/>
         <header-file src="src/ios/AppsFlyerDeepLinkResult.h"/>
+        <header-file src="src/ios/AppsFlyerAttribution.h"/>
         <header-file src="src/ios/AppsFlyerLib.h"/>
         <source-file src="src/ios/AppsFlyerPlugin.m"/>
+        <source-file src="src/ios/AppsFlyerAttribution.m"/>
         <header-file src="src/ios/AppsFlyerLinkGenerator.h"/>
         <header-file src="src/ios/AppsFlyerCrossPromotionHelper.h"/>
         <header-file src="src/ios/AppsFlyerShareInviteHelper.h"/>

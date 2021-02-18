@@ -1,7 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <Cordova/CDVPlugin.h>
-#import "AppsFlyerLib.h"
-
+#import "AppsFlyerAttribution.h"
 
 @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate, AppsFlyerDeepLinkDelegate>
 // @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerTrackerDelegate>
@@ -30,9 +29,6 @@
 - (void)getSdkVersion:(CDVInvokedUrlCommand *)command;
 - (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand *)command;
 @end
-
-static AppsFlyerPlugin *_AppsFlyerdelegate;
-
 
 // Appsflyer JS objects
 #define afDevKey                        @"devKey"
