@@ -269,9 +269,6 @@ In both cases, you need to add this code before the `@end` tag:<br>
 
     // version < 6.2.30
     [[AppsFlyerLib shared] handleOpenURL:url sourceApplication:sourceApplication withAnnotation:annotation];
-
-
-    [[AppsFlyerLib shared] handleOpenURL:url sourceApplication:sourceApplication withAnnotation:annotation];
     return YES;
 }
 // Open Universal Links
