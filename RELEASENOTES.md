@@ -1,6 +1,6 @@
 # Release Notes
 ### 6.2.30
-Release date **February 8, 2021**
+Release date **February 21, 2021**
 Release type: Major / **Minor** / Hotfix
 
 **Overview and Highlights:**

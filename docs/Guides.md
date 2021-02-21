@@ -243,34 +243,43 @@ window.plugins.appsFlyer.handleOpenUrl(url);
 Now you will get deep link information in the onAppOpenAttribution callback
 
 #### If you are using Ionic+Capacitor or Ionic+Cordova:<br>
-For plugin version **6.2.0** and up you need to add this to `didFinishLaunchingWithOptions`:
-```
-    if (_AppsFlyerdelegate == nil) {
-        _AppsFlyerdelegate = [[AppsFlyerPlugin alloc] init];
-    }
-    [[AppsFlyerLib shared] setDelegate:_AppsFlyerdelegate]; //if you want to use onAppOpenAttribution listener (registerOnAppOpenAttribution())
-    //OR
-    [[AppsFlyerLib shared] setDeepLinkDelegate:_AppsFlyerdelegate]; //if you want to use DDL listener (registerDeepLink())
-```
-And `#import "AppsFlyerPlugin.h"` to `AppDelegate.m` 
+##### import:<br>
+`#import "AppsFlyerPlugin.h"` to `AppDelegate.m` 
 
-For plugin version **6.1.30** and less, add `#import "AppsFlyerLib.h"` to `AppDelegate.m`
+For plugin version **6.1.30** and less:
+
+`#import "AppsFlyerLib.h"` to `AppDelegate.m`
 
 In both cases, you need to add this code before the `@end` tag:<br>
 ```
 // Deep linking
 // Open URI-scheme for iOS 9 and above
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url options:(NSDictionary *) options {
+    // version >= 6.2.30
+    [[AppsFlyerAttribution shared] handleOpenUrl:url options:options];
+
+    // version < 6.2.30    
     [[AppsFlyerLib shared] handleOpenUrl:url options:options];
     return YES;
 }
 // Open URI-scheme for iOS 8 and below
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString*)sourceApplication annotation:(id)annotation {
+    // version >= 6.2.30
+    [[AppsFlyerAttribution shared] handleOpenURL:url sourceApplication:sourceApplication withAnnotation:annotation];
+
+    // version < 6.2.30
+    [[AppsFlyerLib shared] handleOpenURL:url sourceApplication:sourceApplication withAnnotation:annotation];
+
+
     [[AppsFlyerLib shared] handleOpenURL:url sourceApplication:sourceApplication withAnnotation:annotation];
     return YES;
 }
 // Open Universal Links
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler {
+    // version >= 6.2.30
+    [[AppsFlyerAttribution shared] continueUserActivity:userActivity restorationHandler:restorationHandler];    
+    
+    //version < 6.2.30
     [[AppsFlyerLib shared] continueUserActivity:userActivity restorationHandler:restorationHandler];
     return YES;
 }
