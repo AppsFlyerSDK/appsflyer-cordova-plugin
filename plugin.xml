@@ -21,7 +21,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="cordova-plugin-appsflyer-sdk"
-        version="6.2.20">
+        version="6.2.30">
     <name>AppsFlyer</name>
     <description>Cordova Plugin AppsFlyer</description>
     <license>Apache 2.0</license>
@@ -79,8 +79,10 @@
         <header-file src="src/ios/AppsFlyerPlugin.h"/>
         <header-file src="src/ios/AppsFlyerDeepLink.h"/>
         <header-file src="src/ios/AppsFlyerDeepLinkResult.h"/>
+        <header-file src="src/ios/AppsFlyerAttribution.h"/>
         <header-file src="src/ios/AppsFlyerLib.h"/>
         <source-file src="src/ios/AppsFlyerPlugin.m"/>
+        <source-file src="src/ios/AppsFlyerAttribution.m"/>
         <header-file src="src/ios/AppsFlyerLinkGenerator.h"/>
         <header-file src="src/ios/AppsFlyerCrossPromotionHelper.h"/>
         <header-file src="src/ios/AppsFlyerShareInviteHelper.h"/>
@@ -90,7 +92,7 @@
             <config>
             </config>
             <pods use-frameworks="true">
-                <pod name="AppsFlyerFramework" spec="6.1.3"/>
+                <pod name="AppsFlyerFramework" spec="6.2.1"/>
             </pods>
         </podspec>
     </platform>
