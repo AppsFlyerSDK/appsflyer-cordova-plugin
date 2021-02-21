@@ -1,4 +1,13 @@
 # Release Notes
+### 6.2.30
+Release date **February 8, 2021**
+Release type: Major / **Minor** / Hotfix
+
+**Overview and Highlights:**
+
+- iOS SDK 6.2.1
+- Android SDK 6.2.0
+
 ### 6.2.20
 Release date **February 8, 2021**
 Release type: Major / **Minor** / Hotfix
