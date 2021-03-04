@@ -1,0 +1,14 @@
+{
+  "name": "cordova-plugin-appsflyer-sdk-tests",
+  "version": "6.2.30",
+  "description": "",
+  "cordova": {
+    "id": "cordova-plugin-appsflyer-sdk-tests",
+    "platforms": []
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "",
+  "license": "Apache 2.0"
+}
