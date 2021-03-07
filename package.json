@@ -38,12 +38,12 @@
   "scripts": {
     "test": "npm run jshint",
     "jshint": "node node_modules/jshint/bin/jshint www && node node_modules/jshint/bin/jshint src && node node_modules/jshint/bin/jshint tests",
-    "setupIonicCordova": "cd examples/ionic-cordova; npm install; cordova plugin rm cordova-plugin-appsflyer-sdk --save; ionic cordova platform rm android; ionic cordova platform rm ios; cordova plugin add cordova-plugin-appsflyer-sdk --save; ionic cordova platform add android; ionic cordova platform add ios",
+    "setupIonicCordova": "cd examples/ionic-cordova; npm install; ionic cordova plugin rm cordova-plugin-appsflyer-sdk --save; ionic cordova platform rm android; ionic cordova platform rm ios; ionic cordova plugin add cordova-plugin-appsflyer-sdk --save; ionic cordova platform add android; ionic cordova platform add ios",
     "runIonicCordovaIos": "cd examples/ionic-cordova; ionic cordova prepare ios; ionic cordova run ios;",
     "runIonicCordovaAndroid": "cd examples/ionic-cordova; ionic cordova prepare android; ionic cordova run android;",
-    "setupIonicCapacotor": "",
-    "runIonicCapacotorIos": "",
-    "runIonicCapacotorAndroid": ""
+    "setupCordova": "cd examples/cordova; npm install; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova platform rm android; cordova platform rm ios; cordova plugin add cordova-plugin-appsflyer-sdk --save; cordova platform add android; cordova platform add ios",
+    "runCordovaIos": "cd examples/cordova; cordova prepare ios; cordova run ios;",
+    "runCordovaAndroid": "cd examples/cordova; cordova prepare android; cordova run android;"
   },
   "devDependencies": {
     "jshint": "^2.6.0"
