@@ -1,0 +1,23 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      AppsFlyer
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">AppsFlyer</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div id="container">
+    <strong>AppsFlyer ionic-cordova App</strong>
+    <ion-button color="primary" (click)="logEvent()">Log event</ion-button>
+    <ion-button color="primary" (click)="brandedDomains()">set branded domains</ion-button>
+    <ion-button color="primary" (click)="ResolveDeepLinksUrls()">set Resolve DeepLink</ion-button>
+    <ion-button color="primary" (click)="getSDKVersion()">get sdk version</ion-button>
+  </div>
+</ion-content>
