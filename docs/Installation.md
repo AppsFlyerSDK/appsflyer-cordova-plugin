@@ -87,6 +87,8 @@ Copy:
 -  `AppsFlyerX+AppController.h`
 -  `AppsFlyerX+AppController.m`
 -  `libAppsFlyerLib.a`
+-  `AppsFlyerAttribution.h`
+-  `AppsFlyerAttribution.m`
 
 to `platforms/ios/<ProjectName>/Plugins`
 

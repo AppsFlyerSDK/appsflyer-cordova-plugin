@@ -384,34 +384,18 @@ window.plugins.appsFlyer.registerUninstall("<token>");
 ##  <a id="demo"> Demo
 
 
-This plugin has a `examples` folder with `demoA` (Angular 1)  and `demoC` (Cordova) projects bundled with it. To give it a try , clone this repo and from root a.e. `cordova-plugin-appsflyer-sdk` execute the following:
+This plugin has an `examples` folder with `cordova` (pure Cordova (javascript))  and `ionic-cordova` (ionic) projects bundled with it. To give it a try , clone this repo and from root a.e. `cordova-plugin-appsflyer-sdk` execute the following:
 
 For Cordova:
 ```sh
-npm run setup_c 
+npm run setupCordova 
 ```
--  `npm run demo_c.ra` - runs Android
--  `npm run demo_c.ba` - builds Android
--  `npm run demo_c.ri` - runs iOS
--  `npm run demo_c.bi` - builds iOS
+-  `npm run runCordovaIos` - run iOS
+-  `npm run runCordovaAndroid` - run Android
 
-
-For Angular:
+For Ionic-Cordova:
 ```sh
-npm run setup_a
+npm run setupIonicCordova
 ```
--  `npm run demo_a.ra` - runs Android
--  `npm run demo_a.ba` - builds Android
--  `npm run demo_a.ri` - runs iOS
--  `npm run demo_a.bi` - builds iOS
-
-For Ionic-native:
-```sh
-npm run setup_ionic-native
-```
--  `npm run demo_In.ra` - runs Android
--  `npm run demo_In.ba` - builds Android
--  `npm run demo_In.ri` - runs iOS
--  `npm run demo_In.bi` - builds iOS
-
-![demo printscreen](../examples/demo_example.png?raw=true)
+-  `npm run runIonicCordovaIos` - run iOS
+-  `npm run runIonicCordovaAndroid` - run Android
