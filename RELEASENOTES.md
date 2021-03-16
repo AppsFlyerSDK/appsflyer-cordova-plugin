@@ -1,4 +1,10 @@
 # Release Notes
+### 6.2.41
+Release date: *2021-March-16*
+
+**Overview and Highlights:**
+- Cordova > update iOS 6.2.4
+
 ### 6.2.40
 Release date: *2021-March-08*
 
