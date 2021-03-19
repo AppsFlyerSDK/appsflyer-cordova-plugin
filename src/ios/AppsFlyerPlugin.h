@@ -1,6 +1,8 @@
 #import <Foundation/Foundation.h>
 #import <Cordova/CDVPlugin.h>
 #import "AppsFlyerAttribution.h"
+#import <objc/message.h>
+typedef void (*bypassDidFinishLaunchingWithOption)(id, SEL, NSInteger);
 
 @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate, AppsFlyerDeepLinkDelegate>
 // @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerTrackerDelegate>

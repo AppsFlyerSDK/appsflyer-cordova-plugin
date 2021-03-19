@@ -89,6 +89,13 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
         [AppsFlyerLib shared].useUninstallSandbox = useUninstallSandbox;
+        // Load SKAD rules
+        SEL SKSel = NSSelectorFromString(@"__willResolveSKRules:");
+        id AppsFlyer = [AppsFlyerLib shared];
+        if ([AppsFlyer respondsToSelector:SKSel]) {
+            bypassDidFinishLaunchingWithOption msgSend = (bypassDidFinishLaunchingWithOption)objc_msgSend;
+            msgSend(AppsFlyer, SKSel, 2);
+        }
 
 #ifndef AFSDK_NO_IDFA
         //Here we set the time that the sdk will wait before he starts the launch. we take the time from the 'option' object in the app's index.js
