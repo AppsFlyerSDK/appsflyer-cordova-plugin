@@ -632,6 +632,7 @@ window.plugins.appsFlyer.setResolveDeepLinkURLs(urls);
 ---
 
 ##### <a id="DisableSKAD"> **`DisableSKAD(disableSkad): void`**
+enable or disable SKAD support. set True if you want to disable it!<br>
 `disableSKAD` must be called before calling `initSDK` and for iOS ONLY!.
 
 *Example:*
