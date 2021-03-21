@@ -326,8 +326,12 @@ if (!window.CustomEvent) {
         exec(null, null, 'AppsFlyerPlugin', 'setResolveDeepLinkURLs', [urls]);
     };
 
-    AppsFlyer.prototype.setDisableSKAD = function (isDisabled) {
-        exec(null, null, 'AppsFlyerPlugin', 'setDisableSKAD', [isDisabled]);
+    /**
+     * enable or disable SKAD support. set True if you want to disable it!
+     * @param isDisabled
+     */
+    AppsFlyer.prototype.DisableSKAD = function (isDisabled) {
+        exec(null, null, 'AppsFlyerPlugin', 'DisableSKAD', [isDisabled]);
     };
 
 
