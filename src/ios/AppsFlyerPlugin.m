@@ -824,9 +824,9 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         isDisValueBool = [(NSNumber*)isDisValue boolValue];
         [AppsFlyerLib shared].disableSKAdNetwork = isDisValueBool;
         if (isDisValueBool){
-            NSLog(@"[DEBUG] AppsFlyer: SKADNetworks is disabled");
+            NSLog(@"[DEBUG] AppsFlyer: SKADNetwork is disabled");
         }else{
-            NSLog(@"[DEBUG] AppsFlyer: SKADNetworks is enabled");
+            NSLog(@"[DEBUG] AppsFlyer: SKADNetwork is enabled");
         }
     }
 }
