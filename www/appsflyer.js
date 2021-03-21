@@ -326,6 +326,10 @@ if (!window.CustomEvent) {
         exec(null, null, 'AppsFlyerPlugin', 'setResolveDeepLinkURLs', [urls]);
     };
 
+    AppsFlyer.prototype.setDisableSKAD = function (isDisabled) {
+        exec(null, null, 'AppsFlyerPlugin', 'setDisableSKAD', [isDisabled]);
+    };
+
 
     module.exports = new AppsFlyer();
 })(window);

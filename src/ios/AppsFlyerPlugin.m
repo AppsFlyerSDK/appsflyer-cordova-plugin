@@ -811,6 +811,22 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSLog(@"[DEBUG] AppsFlyer: %@", urls);
 }
 
+- (void)setDisableSKAD:(CDVInvokedUrlCommand *)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+
+    BOOL isDisValueBool = NO;
+    id isDisValue = nil;
+    isDisValue = [command.arguments objectAtIndex:0];
+    if ([isDisValue isKindOfClass:[NSNumber class]]) {
+        isDisValueBool = [(NSNumber*)isDisValue boolValue];
+        [AppsFlyerLib shared].disableSKAdNetwork = isDisValueBool;
+        NSLog(@"[DEBUG] AppsFlyer: disableSKADNetwork set to %@", isDisValueBool);
+    }
+}
+
 @end
 
 
