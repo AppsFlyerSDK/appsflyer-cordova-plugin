@@ -89,6 +89,13 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
         [AppsFlyerLib shared].useUninstallSandbox = useUninstallSandbox;
+        // Load SKAD rules
+        SEL SKSel = NSSelectorFromString(@"__willResolveSKRules:");
+        id AppsFlyer = [AppsFlyerLib shared];
+        if ([AppsFlyer respondsToSelector:SKSel]) {
+            bypassDidFinishLaunchingWithOption msgSend = (bypassDidFinishLaunchingWithOption)objc_msgSend;
+            msgSend(AppsFlyer, SKSel, 2);
+        }
 
 #ifndef AFSDK_NO_IDFA
         //Here we set the time that the sdk will wait before he starts the launch. we take the time from the 'option' object in the app's index.js
@@ -802,6 +809,26 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     }
     [AppsFlyerLib shared].resolveDeepLinkURLs = urls;
     NSLog(@"[DEBUG] AppsFlyer: %@", urls);
+}
+
+- (void)disableSKAD:(CDVInvokedUrlCommand *)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+
+    BOOL isDisValueBool = NO;
+    id isDisValue = nil;
+    isDisValue = [command.arguments objectAtIndex:0];
+    if ([isDisValue isKindOfClass:[NSNumber class]]) {
+        isDisValueBool = [(NSNumber*)isDisValue boolValue];
+        [AppsFlyerLib shared].disableSKAdNetwork = isDisValueBool;
+        if (isDisValueBool){
+            NSLog(@"[DEBUG] AppsFlyer: SKADNetwork is disabled");
+        }else{
+            NSLog(@"[DEBUG] AppsFlyer: SKADNetwork is enabled");
+        }
+    }
 }
 
 @end

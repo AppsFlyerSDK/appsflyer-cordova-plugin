@@ -1,4 +1,10 @@
 # Release Notes
+### 6.2.42
+Release date: *2021-March-22*
+
+**Overview and Highlights:**
+- Cordova > SKAD Rules fix
+
 ### 6.2.41
 Release date: *2021-March-16*
 
