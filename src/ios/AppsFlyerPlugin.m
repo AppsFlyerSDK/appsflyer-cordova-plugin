@@ -811,7 +811,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSLog(@"[DEBUG] AppsFlyer: %@", urls);
 }
 
-- (void)DisableSKAD:(CDVInvokedUrlCommand *)command
+- (void)disableSKAD:(CDVInvokedUrlCommand *)command
 {
     if ([command.arguments count] == 0) {
         return;

@@ -43,7 +43,7 @@ The list of available methods for this plugin is described below.
 | [`setHost`](#setHost) | `(String hostPrefix, String hostName)` | Set custom host prefix and host name |
 | [`addPushNotificationDeepLinkPath`](#addPushNotificationDeepLinkPath) | `(path)` | configure push notification deep link resolution |
 | [`setResolveDeepLinkURLs`](#setResolveDeepLinkURLs) | `(urls)` | get the OneLink from click domains |
-| [`DisableSKAD`](#DisableSKAD) | `(boolean disableSkad)` | disable or enable SKAD |
+| [`disableSKAD`](#disableSKAD) | `(boolean disableSkad)` | disable or enable SKAD |
 
   
 ---
@@ -631,7 +631,7 @@ window.plugins.appsFlyer.setResolveDeepLinkURLs(urls);
 
 ---
 
-##### <a id="DisableSKAD"> **`DisableSKAD(disableSkad): void`**
+##### <a id="disableSKAD"> **`disableSKAD(disableSkad): void`**
 enable or disable SKAD support. set True if you want to disable it!<br>
 `disableSKAD` must be called before calling `initSDK` and for iOS ONLY!.
 

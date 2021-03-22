@@ -330,8 +330,8 @@ if (!window.CustomEvent) {
      * enable or disable SKAD support. set True if you want to disable it!
      * @param isDisabled
      */
-    AppsFlyer.prototype.DisableSKAD = function (isDisabled) {
-        exec(null, null, 'AppsFlyerPlugin', 'DisableSKAD', [isDisabled]);
+    AppsFlyer.prototype.disableSKAD = function (isDisabled) {
+        exec(null, null, 'AppsFlyerPlugin', 'disableSKAD', [isDisabled]);
     };
 
 
