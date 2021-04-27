@@ -2,10 +2,8 @@
 #import <Cordova/CDVPlugin.h>
 #import "AppsFlyerAttribution.h"
 #import <objc/message.h>
-typedef void (*bypassDidFinishLaunchingWithOption)(id, SEL, NSInteger);
 
 @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate, AppsFlyerDeepLinkDelegate>
-// @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerTrackerDelegate>
 - (void)initSdk:(CDVInvokedUrlCommand*)command;
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command;
 - (void)setCurrencyCode:(CDVInvokedUrlCommand*)command;
