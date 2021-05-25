@@ -34,7 +34,7 @@ import com.appsflyer.AppsFlyerInAppPurchaseValidatorListener;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.*;
@@ -44,10 +44,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     private CallbackContext mConversionListener = null;
     private CallbackContext mAttributionDataListener = null;
     private CallbackContext mDeepLinkListener = null;
-    //    private Map<String, String> mAttributionData = null;
     private CallbackContext mInviteListener = null;
     private Uri intentURI = null;
-    //    private Uri newIntentURI = null;
     private Activity c;
 
     @Override
@@ -122,7 +120,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setHost(args);
         } else if ("addPushNotificationDeepLinkPath".equals(action)) {
             return addPushNotificationDeepLinkPath(args);
-        }else if ("setResolveDeepLinkURLs".equals(action)) {
+        } else if ("setResolveDeepLinkURLs".equals(action)) {
             return setResolveDeepLinkURLs(args);
         }
 
@@ -290,7 +288,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                         deepLinkObj.put("data", dlError.toString());
                     } else {
                         deepLinkObj.put("status", AF_SUCCESS);
-                        deepLinkObj.put("data", deepLinkResult.getDeepLink().toString());
+                        if (deepLinkResult.getStatus() == DeepLinkResult.Status.FOUND) {
+                            deepLinkObj.put("data", deepLinkResult.getDeepLink().getClickEvent());
+                            deepLinkObj.put("isDeferred", deepLinkResult.getDeepLink().isDeferred());
+                        }
                     }
                     sendEvent(deepLinkObj);
                 } catch (Exception e) {
