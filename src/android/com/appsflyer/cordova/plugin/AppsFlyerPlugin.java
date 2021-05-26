@@ -140,28 +140,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
-
-    /**
-     * check if the app was launched from deep link after init()
-     */
-    private void trackAppLaunch() {
-        c = this.cordova.getActivity();
-        intentURI = cordova.getActivity().getIntent().getData();
-        if (intentURI != null) {
-            cordova.getThreadPool().execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        AppsFlyerLib.getInstance().performOnAppAttribution(cordova.getContext(), new URI(intentURI.toString()));
-                    } catch (URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }
-        AppsFlyerLib.getInstance().logEvent(c, null, null);
-    }
-
     /**
      * Get the deeplink data
      *
@@ -192,6 +170,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
         AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
         AppsFlyerLib instance = AppsFlyerLib.getInstance();
+        c = this.cordova.getActivity();
 
         try {
             final JSONObject options = args.getJSONObject(0);
@@ -232,14 +211,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             } else {
                 //callbackContext.success(SUCCESS);
             }
-
             instance.init(devKey, gcdListener, cordova.getActivity());
 
-            trackAppLaunch();
-
-
             if (mConversionListener == null) {
-                instance.start(c.getApplication(), devKey, new AppsFlyerRequestListener() {
+                instance.start(c, devKey, new AppsFlyerRequestListener() {
                     @Override
                     public void onSuccess() {
                         callbackContext.success(SUCCESS);
@@ -251,11 +226,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                     }
                 });
             } else {
-                instance.start(c.getApplicationContext());
+                instance.start(c);
             }
 
-
-            instance.start(c.getApplicationContext());
+            instance.start(c);
 
             if (gcdListener != null) {
                 sendPluginNoResult(callbackContext);
@@ -396,9 +370,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                         || params.optString("type") == AF_ON_INSTALL_CONVERSION_FAILURE)
                         && mConversionListener != null) {
             PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
-            result.setKeepCallback(false);
+            result.setKeepCallback(true);
             mConversionListener.sendPluginResult(result);
-            mConversionListener = null;
         } else if (
                 params.optString("type") == AF_DEEP_LINK
                         && mDeepLinkListener != null) {
