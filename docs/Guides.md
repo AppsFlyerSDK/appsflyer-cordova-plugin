@@ -265,10 +265,10 @@ In both cases, you need to add this code before the `@end` tag:<br>
 // Open URI-scheme for iOS 8 and below
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString*)sourceApplication annotation:(id)annotation {
     // version >= 6.2.30
-    [[AppsFlyerAttribution shared] handleOpenURL:url sourceApplication:sourceApplication annotation:annotation];
+    [[AppsFlyerAttribution shared] handleOpenUrl:url sourceApplication:sourceApplication annotation:annotation];
 
     // version < 6.2.30
-    [[AppsFlyerLib shared] handleOpenURL:url sourceApplication:sourceApplication withAnnotation:annotation];
+    [[AppsFlyerLib shared] handleOpenUrl:url sourceApplication:sourceApplication withAnnotation:annotation];
     return YES;
 }
 // Open Universal Links
