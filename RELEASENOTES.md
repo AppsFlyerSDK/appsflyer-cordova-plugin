@@ -1,4 +1,11 @@
 # Release Notes
+### 6.3.0
+Release date: *2021-May-27*
+
+**Overview and Highlights:**
+- Cordova > update to native sdk 6.3.0
+- Cordova (Ios) >> deep linking listeners 
+
 ### 6.2.60
 Release date: *2021-April-27*
 
