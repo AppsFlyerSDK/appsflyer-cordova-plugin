@@ -122,9 +122,35 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return addPushNotificationDeepLinkPath(args);
         } else if ("setResolveDeepLinkURLs".equals(action)) {
             return setResolveDeepLinkURLs(args);
+        } else if ("setDisableAdvertisingIdentifier".equals(action)) {
+            return setDisableAdvertisingIdentifier(args, callbackContext);
         }
 
         return false;
+    }
+
+    /**
+     * Disable collection of Google, Amazon and Open advertising ids (GAID, AAID, OAID).
+     *
+     * @param args
+     * @param callbackContext Success callback - called after value is set.
+     *                        *                        Error callback - called when error occurs.
+     * @return true
+     */
+    private boolean setDisableAdvertisingIdentifier(JSONArray args, CallbackContext callbackContext) {
+        cordova.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    boolean disable = args.getBoolean(0);
+                    AppsFlyerLib.getInstance().setDisableAdvertisingIdentifiers(disable);
+                    callbackContext.success(SUCCESS);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return true;
     }
 
     /**
