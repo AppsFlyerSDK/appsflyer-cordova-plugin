@@ -1,4 +1,13 @@
 # Release Notes
+### 6.3.20
+Release date: *2021-June-21*
+
+**Overview and Highlights:**
+- Update native SDK to 6.3.2
+- Add Android API `setDisableAdvertisingIdentifiers`
+- Android - fix UDL bug on the first launch 
+- Cordova (iOS) >> add a flag to disable deep link auto resolving
+
 ### 6.3.0
 Release date: *2021-May-27*
 
