@@ -5,6 +5,8 @@
 
 #import "AppDelegate.h"
 
+#define APPSFLYER_DEEPLINK_FLAG @"AppsFlyerDisableDeepLinks"
+
 @interface AppDelegate (AppsFlyerX)
 
 -(BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options;
