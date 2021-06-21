@@ -149,7 +149,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                     e.printStackTrace();
                 }
             }
-        }
+         });
         return true;
     }
 
