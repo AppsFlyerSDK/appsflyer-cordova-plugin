@@ -499,9 +499,7 @@ window.plugins.appsFlyer.disableCollectASA(true, successC);
 | `successC` | `function` | success callback |
 ---
 ##### <a id="setDisableAdvertisingIdentifier"> **`setDisableAdvertisingIdentifier(disableAdvertisingIdentifier, successC): void`**
-**iOS ONLY**<br>
-AppsFlyer SDK dynamically loads the Apple adSupport.framework. This framework is required to collect IDFA for attribution purposes.<br>
-If you don't want AppsFlyer to dynamically load this framework, set this property to true.<br>
+Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).<br>
 *Example:*
 
 ```javascript
@@ -510,7 +508,7 @@ window.plugins.appsFlyer.setDisableAdvertisingIdentifier(true, successC);
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `disableAdvertisingIdentifier` | `boolean` | If you don't want AppsFlyer to dynamically load adSupport.framework, set this property to true |
+| `disableAdvertisingIdentifier` | `boolean` |Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).|
 | `successC` | `function` | success callback |
 ---
 
