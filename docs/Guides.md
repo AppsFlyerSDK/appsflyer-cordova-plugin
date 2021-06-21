@@ -222,8 +222,11 @@ In your app’s manifest add the following intent-filter to your relevant activi
 ```
 
 ###  <a id="ios-deeplink"> iOS Deeplink Setup
+* Since **V6.3.0** the plugin will resolve the deep links automatically. You may disable the automatically resolving by add the a boolean flag to the main plist file.
+`AppsFlyerDisableDeepLinks` set to 1 (true)
+* If you chose to disable the automatically resolving or using older versions, please follow the [URI](#ios-uri) and [Univeral Links](#ios-universal) setup sections.
 
-#### URI Scheme
+#### <a id="ios-uri"> URI Scheme
 
 For more on URI-schemes check out the guide [here](https://dev.appsflyer.com/docs/initial-setup-2#deciding-on-a-uri-scheme)
 
@@ -242,7 +245,7 @@ window.plugins.appsFlyer.handleOpenUrl(url);
 ```
 Now you will get deep link information in the onAppOpenAttribution callback
 
-#### If you are using Ionic+Capacitor or Ionic+Cordova:<br>
+#### <a id="ios-universal"> If you are using Ionic+Capacitor or Ionic+Cordova:<br>
 ##### import:<br>
 `#import "AppsFlyerPlugin.h"` to `AppDelegate.m` 
 

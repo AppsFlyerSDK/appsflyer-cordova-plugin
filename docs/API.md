@@ -35,7 +35,7 @@ The list of available methods for this plugin is described below.
 | [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase) | `(Object purchaseInfo, function success, function error)` | API for server verification of in-app purchases |
 | [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox) | `(boolean isSandbox, function success, function error)` | In app purchase receipt validation Apple environment |
 | [`disableCollectASA`](#disableCollectASA) | `(boolean collectASA, function success)` | **iOS**  - set the SDK to load OR not to load iAd.framework dynamically|
-| [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)` | **iOS** - set the SDK to load OR not to load adSupport.framework dynamically |
+| [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)` | Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID). |
 | [`setOneLinkCustomDomains`](#setOneLinkCustomDomains) | `(domains, function success, function error)` | Set Onelink custom/branded domains |
 | [`enableFacebookDeferredApplinks`](#enableFacebookDeferredApplinks) | `(boolean isEnabled)` | support deferred deep linking from Facebook Ads |
 | [`setUserEmails`](#setUserEmails) | `(emails, function success)` | Set user emails for FB Advanced Matching |
