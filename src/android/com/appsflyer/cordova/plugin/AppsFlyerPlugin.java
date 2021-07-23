@@ -34,8 +34,9 @@ import com.appsflyer.AppsFlyerInAppPurchaseValidatorListener;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.*;
 
@@ -143,7 +144,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             public void run() {
                 try {
                     boolean disable = args.getBoolean(0);
-                    AppsFlyerLib.getInstance().setDisableAdvertisingIdentifiers(disable);
+//                    AppsFlyerLib.getInstance().setDisableAdvertisingIdentifiers(disable);
                     callbackContext.success(SUCCESS);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -856,7 +857,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
      * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
      *
-     * @param purchase info, success and failure callbacks
+     *  purchase info, success and failure callbacks
      */
     public boolean validateAndLogInAppPurchase(JSONArray args, CallbackContext callbackContext) {
         String publicKey = "";
