@@ -1,4 +1,11 @@
 # Release Notes
+### 6.3.30
+Release date: *2021-July-29* 
+
+**Overview and Highlights:**
+- Cordova (IOS) >> deep link not working and/or blocking others plugins (Added optional swizzling)
+- Cordova (IOS) >> deep link not working on cold start with Capacitor
+
 ### 6.3.20
 Release date: *2021-June-21*
 

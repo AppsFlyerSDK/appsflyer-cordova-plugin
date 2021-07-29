@@ -1,3 +1,4 @@
+
 # Cordova Appsflyer Plugin Guides
 
 <img src="https://massets.appsflyer.com/wp-content/uploads/2016/06/26122512/banner-img-ziv.png"  width="300">
@@ -222,10 +223,20 @@ In your app’s manifest add the following intent-filter to your relevant activi
 ```
 
 ###  <a id="ios-deeplink"> iOS Deeplink Setup
-* Since **V6.3.0** the plugin will resolve the deep links automatically. You may disable the automatically resolving by add the a boolean flag to the main plist file.
-`AppsFlyerDisableDeepLinks` set to 1 (true)
-* If you chose to disable the automatically resolving or using older versions, please follow the [URI](#ios-uri) and [Univeral Links](#ios-universal) setup sections.
+#### Starting from V6.3.3 
+ Since **V6.3.3**, the plugin will resolve the deep links automatically. If you are using another plugin for deep linking(like `cordova-plugin-deeplinks`, `ionic-plugin-deeplinks`, etc.) , you’ll need to enable method swizzling.
+ * To enable method swizzling, please add the [preprocessor macro](https://stackoverflow.com/a/26928784) flag `​AFSDK_SHOULD_SWIZZLE=1`
+ * To completely disable AppsFlyer deep links implementation, please add the [preprocessor macro](https://stackoverflow.com/a/26928784) flag `​AFSDK_DISABLE_APP_DELEGATE=1`
+ * Please follow the [URI](#ios-uri) and [Univeral Links](#ios-universal) setup sections **if you choose to disable** the automatically resolving or using older versions.
 
+
+
+#### Starting from V6.3.0 up to V6.3.2
+* Since **V6.3.0**, the plugin will resolve the deep links automatically. (⚠️   Potential conflict with other deep linking plugins ⚠️)
+
+
+#### Below V6.3.0 
+* Please follow the [URI](#ios-uri) and [Univeral Links](#ios-universal) setup sections.
 #### <a id="ios-uri"> URI Scheme
 
 For more on URI-schemes check out the guide [here](https://dev.appsflyer.com/docs/initial-setup-2#deciding-on-a-uri-scheme)
