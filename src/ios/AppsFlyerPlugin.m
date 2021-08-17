@@ -131,6 +131,19 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 }
 
 /**
+ Set the language of the device. The data will be displayed in Raw Data Reports
+*/
+- (void)setCurrentDeviceLanguage:(CDVInvokedUrlCommand*)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+
+    NSString* language  = [command.arguments objectAtIndex:0];
+    [[AppsFlyerLib shared] setCurrentDeviceLanguage:language];
+}
+
+/**
 *   Sets new currency code. currencyId: ISO 4217 Currency Codes.
 */
 - (void)setCurrencyCode:(CDVInvokedUrlCommand*)command

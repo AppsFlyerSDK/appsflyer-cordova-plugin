@@ -856,7 +856,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
      * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
      *
-     * @param purchase info, success and failure callbacks
      */
     public boolean validateAndLogInAppPurchase(JSONArray args, CallbackContext callbackContext) {
         String publicKey = "";
