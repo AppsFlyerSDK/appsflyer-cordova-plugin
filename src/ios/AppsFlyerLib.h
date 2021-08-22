@@ -2,7 +2,7 @@
 //  AppsFlyerLib.h
 //  AppsFlyerLib
 //
-//  AppsFlyer iOS SDK 6.3.2 (17)
+//  AppsFlyer iOS SDK 6.3.5 (24)
 //  Copyright (c) 2012-2020 AppsFlyer Ltd. All rights reserved.
 //
 
@@ -196,17 +196,17 @@ NS_SWIFT_NAME(DeepLinkDelegate)
  (including in-app purchases, game levels, etc.)
  to evaluate ROI and user engagement.
  The iOS SDK is compatible with all iOS/tvOS devices with iOS version 7 and above.
- 
+
  @see [SDK Integration Validator](https://support.appsflyer.com/hc/en-us/articles/207032066-AppsFlyer-SDK-Integration-iOS)
  for more information.
- 
+
  */
 @interface AppsFlyerLib : NSObject
 
 /**
  Gets the singleton instance of the AppsFlyerLib class, creating it if
  necessary.
- 
+
  @return The singleton instance of AppsFlyerLib.
  */
 + (AppsFlyerLib *)shared;
@@ -219,7 +219,7 @@ NS_SWIFT_NAME(DeepLinkDelegate)
 
 /**
  In case you use custom data and you want to receive it in the raw reports.
- 
+
  @see [Setting additional custom data](https://support.appsflyer.com/hc/en-us/articles/207032066-AppsFlyer-SDK-Integration-iOS#setting-additional-custom-data) for more information.
  */
 @property(nonatomic, strong, nullable, setter = setAdditionalData:) NSDictionary * customData;
@@ -256,15 +256,15 @@ NS_SWIFT_NAME(waitForATTUserAuthorization(timeoutInterval:));
 /**
  In case of in app purchase events, you can set the currency code your user has purchased with.
  The currency code is a 3 letter code according to ISO standards
- 
+
  Objective-C:
- 
+
  <pre>
  [[AppsFlyerLib shared] setCurrencyCode:@"USD"];
  </pre>
- 
+
  Swift:
- 
+
  <pre>
  AppsFlyerLib.shared().currencyCode = "USD"
  </pre>
@@ -319,9 +319,9 @@ NS_SWIFT_NAME(waitForATTUserAuthorization(timeoutInterval:));
 /**
  For advertisers who wrap OneLink within another Universal Link.
  An advertiser will be able to deeplink from a OneLink wrapped within another Universal Link and also log this retargeting conversion.
- 
+
  Objective-C:
- 
+
  <pre>
  [[AppsFlyerLib shared] setResolveDeepLinkURLs:@[@"domain.com", @"subdomain.domain.com"]];
  </pre>
@@ -330,9 +330,9 @@ NS_SWIFT_NAME(waitForATTUserAuthorization(timeoutInterval:));
 
 /**
  For advertisers who use vanity OneLinks.
- 
+
  Objective-C:
- 
+
  <pre>
  [[AppsFlyerLib shared] oneLinkCustomDomains:@[@"domain.com", @"subdomain.domain.com"]];
  </pre>
@@ -352,29 +352,45 @@ NS_SWIFT_NAME(waitForATTUserAuthorization(timeoutInterval:));
 @property(nonatomic) BOOL disableIDFVCollection;
 
 /**
+ Set the language of the device. The data will be displayed in Raw Data Reports
+ Objective-C:
+
+ <pre>
+ [[AppsFlyerLib shared] setCurrentDeviceLanguage:@"EN"]
+ </pre>
+
+ Swift:
+
+ <pre>
+ AppsFlyerLib.shared().currentDeviceLanguage("EN")
+ </pre>
+ */
+@property(nonatomic, nullable) NSString *currentDeviceLanguage;
+
+/**
  Enable the collection of Facebook Deferred AppLinks
  Requires Facebook SDK and Facebook app on target/client device.
  This API must be invoked prior to initializing the AppsFlyer SDK in order to function properly.
- 
+
  Objective-C:
- 
+
  <pre>
  [[AppsFlyerLib shared] enableFacebookDeferredApplinksWithClass:[FBSDKAppLinkUtility class]]
  </pre>
- 
+
  Swift:
- 
+
  <pre>
  AppsFlyerLib.shared().enableFacebookDeferredApplinks(with: FBSDKAppLinkUtility.self)
  </pre>
- 
+
  @param facebookAppLinkUtilityClass requeries method call `[FBSDKAppLinkUtility class]` as param.
  */
 - (void)enableFacebookDeferredApplinksWithClass:(Class _Nullable)facebookAppLinkUtilityClass;
 
 /**
  Use this to send the user's emails
- 
+
  @param userEmails The list of strings that hold mails
  @param type Hash algoritm
  */
@@ -390,9 +406,9 @@ NS_SWIFT_NAME(waitForATTUserAuthorization(timeoutInterval:));
 
 /**
  Use this method to log an events with multiple values. See AppsFlyer's documentation for details.
- 
+
  Objective-C:
- 
+
  <pre>
  [[AppsFlyerLib shared] logEvent:AFEventPurchase
         withValues: @{AFEventParamRevenue  : @200,
@@ -401,16 +417,16 @@ NS_SWIFT_NAME(waitForATTUserAuthorization(timeoutInterval:));
                       AFEventParamContentId: @"092",
                       AFEventParamReceiptId: @"9277"}];
  </pre>
- 
+
  Swift:
- 
+
  <pre>
  AppsFlyerLib.shared().logEvent(AFEventPurchase,
         withValues: [AFEventParamRevenue  : "1200",
                      AFEventParamContent  : "shoes",
                      AFEventParamContentId: "123"])
  </pre>
- 
+
  @param eventName Contains name of event that could be provided from predefined constants in `AppsFlyerLib.h`
  @param values Contains dictionary of values for handling by backend
  */
@@ -424,7 +440,7 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
 /**
  To log and validate in app purchases you can call this method from the completeTransaction: method on
  your `SKPaymentTransactionObserver`.
- 
+
  @param productIdentifier The product identifier
  @param price The product price
  @param currency The product currency
@@ -443,11 +459,11 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
 
 /**
  To log location for geo-fencing. Does the same as code below.
- 
+
  <pre>
  AppsFlyerLib.shared().logEvent(AFEventLocation, withValues: [AFEventParamLong:longitude, AFEventParamLat:latitude])
  </pre>
- 
+
  @param longitude The location longitude
  @param latitude The location latitude
  */
@@ -455,16 +471,16 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
 
 /**
  This method returns AppsFlyer's internal id(unique for your app)
- 
+
  @return Internal AppsFlyer Id
  */
 - (NSString *)getAppsFlyerUID;
 
 /**
  In case you want to log deep linking. Does the same as `-handleOpenURL:sourceApplication:withAnnotation`.
- 
+
  @warning Preferred to use `-handleOpenURL:sourceApplication:withAnnotation`.
- 
+
  @param url The URL that was passed to your AppDelegate.
  @param sourceApplication The sourceApplication that passed to your AppDelegate.
  */
@@ -473,7 +489,7 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
 /**
  In case you want to log deep linking.
  Call this method from inside your AppDelegate `-application:openURL:sourceApplication:annotation:`
- 
+
  @param url The URL that was passed to your AppDelegate.
  @param sourceApplication The sourceApplication that passed to your AppDelegate.
  @param annotation The annotation that passed to your app delegate.
@@ -486,7 +502,7 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
  Call this method from inside of your AppDelegate `-application:openURL:options:` method.
  This method is functionally the same as calling the AppsFlyer method
  `-handleOpenURL:sourceApplication:withAnnotation`.
- 
+
  @param url The URL that was passed to your app delegate
  @param options The options dictionary that was passed to your AppDelegate.
  */
@@ -495,7 +511,7 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
 /**
  Allow AppsFlyer to handle restoration from an NSUserActivity.
  Use this method to log deep links with OneLink.
- 
+
  @param userActivity The NSUserActivity that caused the app to be opened.
  */
 - (BOOL)continueUserActivity:(NSUserActivity * _Nullable)userActivity
@@ -503,11 +519,11 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
 
 /**
  Enable AppsFlyer to handle a push notification.
- 
+
  @see [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207364076-Measuring-Push-Notification-Re-Engagement-Campaigns)
- 
+
  @warning To make it work - set data, related to AppsFlyer under key @"af".
- 
+
  @param pushPayload The `userInfo` from received remote notification. One of root keys should be @"af".
  */
 - (void)handlePushNotification:(NSDictionary * _Nullable)pushPayload;
@@ -515,14 +531,14 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
 
 /**
  Register uninstall - you should register for remote notification and provide AppsFlyer the push device token.
- 
+
  @param deviceToken The `deviceToken` from `-application:didRegisterForRemoteNotificationsWithDeviceToken:`
  */
 - (void)registerUninstall:(NSData * _Nullable)deviceToken;
 
 /**
  Get SDK version.
- 
+
  @return The AppsFlyer SDK version info.
  */
 - (NSString *)getSDKVersion;
@@ -536,7 +552,7 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
  Used to force the trigger `onAppOpenAttribution` delegate.
  Notice, re-engagement, session and launch won't be counted.
  Only for OneLink/UniversalLink/Deeplink resolving.
- 
+
  @param URL The param to resolve into -[AppsFlyerLibDelegate onAppOpenAttribution:]
  */
 - (void)performOnAppAttributionWithURL:(NSURL * _Nullable)URL;
@@ -544,17 +560,17 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
 /**
  @brief This property accepts a string value representing the host name for all endpoints.
  Can be used to Zero rate your application’s data usage. Contact your CSM for more information.
- 
+
  @warning To use `default` SDK endpoint – set value to `nil`.
- 
+
  Objective-C:
- 
+
  <pre>
  [[AppsFlyerLib shared] setHost:@"example.com"];
  </pre>
- 
+
  Swift:
- 
+
  <pre>
  AppsFlyerLib.shared().host = "example.com"
  </pre>
@@ -580,7 +596,7 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
 
 /**
  API to shut down all SDK activities.
- 
+
  @warning This will disable all requests from AppsFlyer SDK.
  */
 @property(atomic) BOOL isStopped;
@@ -608,7 +624,7 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
  Validate if URL contains certain string and append quiery
  parameters to deeplink URL. In case if URL does not contain user-defined string,
  parameters are not appended to the url.
- 
+
  @param containsString string to check in URL.
  @param parameters NSDictionary, which containins parameters to append to the deeplink url after it passed validation.
  */
@@ -619,7 +635,7 @@ NS_SWIFT_NAME(appendParametersToDeeplinkURL(contains:parameters:));
 /**
  Adds array of keys, which are used to compose key path
  to resolve deeplink from push notification payload `userInfo`.
- 
+
  @param deepLinkPath an array of strings which contains keys to search for deeplink in payload.
  */
 - (void)addPushNotificationDeepLinkPath:(NSArray<NSString *> *)deepLinkPath;
