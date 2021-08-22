@@ -36,7 +36,7 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
 
 ### <a id="plugin-build-for"> This plugin is built for
 
-- iOS AppsFlyerSDK **v6.3.2**
+- iOS AppsFlyerSDK **v6.3.5**
 - Android AppsFlyerSDK **v6.3.2**
 
 ### <a id="breakingChanges"> ❗v6 Breaking Changes
@@ -74,8 +74,8 @@ open the `Podfile` and replace `pod 'AppsFlyerFramework', '6.1.1'` with `pod 'Ap
 Run `pod install` inside the `ios` folder
 
 inside xcode, go to your target and define Preprocessor Macro `AFSDK_NO_IDFA=1`
-![Add Preprocessor macro](https://github.com/amit-kremer93/resources/blob/main/preprocessorMacro.png)
-
+![Add Preprocessor macro](https://github.com/amit-kremer93/resources/blob/main/preprocessorMacro.png) <br>
+* You can add the Preprocessor Macro using our [Hooks](/docs/Hooks.md).
 
 ***Change to Regular mode***<br>
 Go to the `ios` folder inside `platform` folder:

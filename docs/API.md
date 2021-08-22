@@ -44,6 +44,7 @@ The list of available methods for this plugin is described below.
 | [`addPushNotificationDeepLinkPath`](#addPushNotificationDeepLinkPath) | `(path)` | configure push notification deep link resolution |
 | [`setResolveDeepLinkURLs`](#setResolveDeepLinkURLs) | `(urls)` | get the OneLink from click domains |
 | [`disableSKAD`](#disableSKAD) | `(boolean disableSkad)` | disable or enable SKAD |
+| [`setCurrentDeviceLanguage`](#setCurrentDeviceLanguage) | `(string language)` | Set the language of the device. |
 
   
 ---
@@ -642,6 +643,21 @@ appsFlyer.disableSKAD(true);
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
 | `disableSkad` | `boolean` | disable or enable SKAD support |
+
+---
+##### <a id="setCurrentDeviceLanguage"> **`setCurrentDeviceLanguage(language): void`**
+Set the language of the device. The data will be displayed in Raw Data Reports<br>
+`setCurrentDeviceLanguage` must be called before calling `initSDK` and for iOS ONLY!.
+
+*Example:*
+
+```javascript
+appsFlyer.setCurrentDeviceLanguage('en');
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `language` |  `string` | Set the language of the device. |
 
 ---
 ### <a id="deep-linking-tracking"> Deep linking Tracking

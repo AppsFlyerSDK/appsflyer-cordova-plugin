@@ -334,6 +334,16 @@ if (!window.CustomEvent) {
         exec(null, null, 'AppsFlyerPlugin', 'disableSKAD', [isDisabled]);
     };
 
+    /**
+     *  Set the language of the device. The data will be displayed in Raw Data Reports
+     * @param language: The device language
+     */
+    AppsFlyer.prototype.setCurrentDeviceLanguage = function (language ){
+        argscheck.checkArgs('S', 'AppsFlyer.setCurrentDeviceLanguage', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'setCurrentDeviceLanguage', [language]);
+
+    };
+
 
     module.exports = new AppsFlyer();
 })(window);

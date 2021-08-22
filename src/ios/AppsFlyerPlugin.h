@@ -28,6 +28,7 @@
 - (void)disableCollectASA:(CDVInvokedUrlCommand *)command;
 - (void)getSdkVersion:(CDVInvokedUrlCommand *)command;
 - (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand *)command;
+- (void)setCurrentDeviceLanguage:(CDVInvokedUrlCommand*)command;
 @end
 
 // Appsflyer JS objects

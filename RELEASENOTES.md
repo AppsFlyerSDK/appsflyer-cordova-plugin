@@ -1,4 +1,11 @@
 # Release Notes
+### 6.3.50
+Release date: *2021-Aug-23* 
+
+**Overview and Highlights:**
+- Update iOS native SDK to 6.3.5
+- Added a new API `setCurrentDeviceLanguage` for iOS
+- Added Cordova hooks scripts for defining Preprocessor Macro 
 ### 6.3.30
 Release date: *2021-July-29* 
 

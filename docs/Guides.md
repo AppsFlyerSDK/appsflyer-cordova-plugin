@@ -230,6 +230,7 @@ In your app’s manifest add the following intent-filter to your relevant activi
  * Please follow the [URI](#ios-uri) and [Univeral Links](#ios-universal) setup sections **if you choose to disable** the automatically resolving or using older versions.
 
 ![alt text](https://raw.githubusercontent.com/AppsFlyerSDK/appsflyer-cordova-plugin/releases/6.x.x/6.3.x/6.3.30/resources/PreprocessorMacroExample.png)
+* You can add the Preprocessor Macro using our [Hooks](/docs/Hooks.md).
 
 
 #### Starting from V6.3.0 up to V6.3.2
