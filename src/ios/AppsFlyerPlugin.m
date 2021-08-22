@@ -138,9 +138,14 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     if ([command.arguments count] == 0) {
         return;
     }
+    id isStringValue = nil;
+    NSString* language;
+    isStringValue = [command.arguments objectAtIndex:0];
+    if ([isStringValue isKindOfClass:[NSString class]]) {
+        language = ( NSString* ) isStringValue;
+        [[AppsFlyerLib shared] setCurrentDeviceLanguage:language];
+    }
 
-    NSString* language  = [command.arguments objectAtIndex:0];
-    [[AppsFlyerLib shared] setCurrentDeviceLanguage:language];
 }
 
 /**

@@ -338,8 +338,10 @@ if (!window.CustomEvent) {
      *  Set the language of the device. The data will be displayed in Raw Data Reports
      * @param language: The device language
      */
-    AppsFlyer.prototype.setCurrentDeviceLanguage = function (language){
+    AppsFlyer.prototype.setCurrentDeviceLanguage = function (language ){
+        argscheck.checkArgs('S', 'AppsFlyer.setCurrentDeviceLanguage', arguments);
         exec(null, null, 'AppsFlyerPlugin', 'setCurrentDeviceLanguage', [language]);
+
     };
 
 
