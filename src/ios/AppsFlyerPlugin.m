@@ -842,4 +842,10 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     }
 }
 
+
+- (void)setAdditionalData:(CDVInvokedUrlCommand*)command{
+    NSDictionary *additionalData = (NSDictionary*)[command.arguments objectAtIndex: 0];
+    [[AppsFlyerLib shared] setAdditionalData:additionalData];
+}
+
 @end

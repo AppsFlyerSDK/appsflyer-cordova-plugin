@@ -29,6 +29,8 @@
 - (void)getSdkVersion:(CDVInvokedUrlCommand *)command;
 - (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand *)command;
 - (void)setCurrentDeviceLanguage:(CDVInvokedUrlCommand*)command;
+- (void)setAdditionalData:(CDVInvokedUrlCommand*)command;
+
 @end
 
 // Appsflyer JS objects

@@ -119,6 +119,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setResolveDeepLinkURLs(args);
         } else if ("setDisableAdvertisingIdentifier".equals(action)) {
             return setDisableAdvertisingIdentifier(args, callbackContext);
+        } else if ("setAdditionalData".equals(action)) {
+            return setAdditionalData(args);
         }
 
         return false;
@@ -1039,6 +1041,18 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    private boolean setAdditionalData(JSONArray args){
+        cordova.getThreadPool().execute(() -> {
+            try {
+                Map<String, Object> additionalData = toObjectMap(args.getJSONObject(0));
+                AppsFlyerLib.getInstance().setAdditionalData(additionalData);
+            }catch (JSONException e){
+                e.printStackTrace();
+            }
+        });
+        return true;
+    }
+
     /**
      * takes string representation of a string array and converts it to an array. use this method because old version of cordova cannot pass an array to native.
      * newer versions can, but can break flow to older users
@@ -1112,5 +1126,17 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         }
         return map;
     }
+
+    private Map<String, Object> toObjectMap(JSONObject jsonobj) throws JSONException {
+        Map<String, Object> map = new HashMap<String, Object>();
+        Iterator<String> keys = jsonobj.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = jsonobj.get(key);
+            map.put(key, value);
+        }
+        return map;
+    }
+
 
 }

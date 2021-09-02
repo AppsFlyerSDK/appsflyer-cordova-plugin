@@ -292,9 +292,8 @@ if (!window.CustomEvent) {
 
     /**
      * Facebook Advanced Matching
-     * @param args: Strings array of emails
-     * @param callbackContext: success functions
-     * @return
+     * @param userEmails: Strings array of emails
+     * @param successC: success functions
      */
     AppsFlyer.prototype.setUserEmails = function (userEmails, successC) {
         exec(successC, null, 'AppsFlyerPlugin', 'setUserEmails', [userEmails]);
@@ -344,6 +343,15 @@ if (!window.CustomEvent) {
 
     };
 
+    /**
+     * The setAdditionalData API allows you to add custom data to events sent from the SDK.
+     * Typically it is used to integrate on the SDK level with several external partner platforms
+     * @param additionalData
+     */
+    AppsFlyer.prototype.setAdditionalData = function (additionalData){
+        exec(null, null, 'AppsFlyerPlugin', 'setAdditionalData', [additionalData]);
+
+    };
 
     module.exports = new AppsFlyer();
 })(window);
