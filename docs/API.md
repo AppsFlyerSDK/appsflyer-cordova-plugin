@@ -32,6 +32,7 @@ The list of available methods for this plugin is described below.
 | [`getSdkVersion`](#getSdkVersion) | `((function success)` | Get the current SDK version |
 | [`setSharingFilterForAllPartners`](#setSharingFilterForAllPartners) | | Used by advertisers to exclude all networks/integrated partners from getting data |
 | [`setSharingFilter`](#setSharingFilter) | `(partners)` | Used by advertisers to exclude specified networks/integrated partners from getting data |
+| [`setSharingFilterForPartners`](#setSharingFilterForPartners) | `(partners)` | Used by advertisers to exclude specified networks/integrated partners from getting data |
 | [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase) | `(Object purchaseInfo, function success, function error)` | API for server verification of in-app purchases |
 | [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox) | `(boolean isSandbox, function success, function error)` | In app purchase receipt validation Apple environment |
 | [`disableCollectASA`](#disableCollectASA) | `(boolean collectASA, function success)` | **iOS**  - set the SDK to load OR not to load iAd.framework dynamically|
@@ -45,6 +46,7 @@ The list of available methods for this plugin is described below.
 | [`setResolveDeepLinkURLs`](#setResolveDeepLinkURLs) | `(urls)` | get the OneLink from click domains |
 | [`disableSKAD`](#disableSKAD) | `(boolean disableSkad)` | disable or enable SKAD |
 | [`setCurrentDeviceLanguage`](#setCurrentDeviceLanguage) | `(string language)` | Set the language of the device. |
+| [`setAdditionalData`](#setAdditionalData) | `(Object additionalData)` | Allows you to add custom data to events sent from the SDK. |
 
   
 ---
@@ -427,6 +429,24 @@ window.plugins.appsFlyer.setSharingFilter(partners);
 
 ---
 
+##### <a id="setSharingFilterForPartners"> **`setSharingFilterForPartners(partners): void`**
+
+Used by advertisers to exclude specified networks/integrated partners from getting data networks Comma separated array of partners that need to be excluded. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032126#additional-apis-exclude-partners-from-getting-data)
+
+*Example:*
+
+```javascript
+let  partners = ["facebook_int","googleadwords_int","snapchat_int","doubleclick_int"];
+
+window.plugins.appsFlyer.setSharingFilterForPartners(partners);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `partners` | `array` | Comma separated array of partners that need to be excluded |
+
+---
+
 ##### <a id="validateAndLogInAppPurchase"> **`validateAndLogInAppPurchase(purchaseInfo, successC, failureC): void`**
 
 Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases)
@@ -658,6 +678,24 @@ appsFlyer.setCurrentDeviceLanguage('en');
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
 | `language` |  `string` | Set the language of the device. |
+
+---
+##### <a id="setAdditionalData"> **`setAdditionalData(language): void`**
+The setAdditionalData API allows you to add custom data to events sent from the SDK.<br>
+Typically it is used to integrate on the SDK level with several external partner platforms.
+
+*Example:*
+
+```javascript
+appsFlyer.setAdditionalData({"aa":"cc",
+        "af":"cordova",
+        "ts":195659889569,
+        "revenue": 15});
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `additionalData` |  `Object` | Set the language of the device. |
 
 ---
 ### <a id="deep-linking-tracking"> Deep linking Tracking

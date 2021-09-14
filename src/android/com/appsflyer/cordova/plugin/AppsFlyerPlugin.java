@@ -1,25 +1,51 @@
 package com.appsflyer.cordova.plugin;
 
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.ADDITIONAL_PARAMETERS;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_COLLECT_ANDROID_ID;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_COLLECT_IMEI;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_CONVERSION_DATA;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEEP_LINK;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEV_KEY;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_FAILURE;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_IS_DEBUG;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_APP_OPEN_ATTRIBUTION;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_ATTRIBUTION_FAILURE;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_DEEP_LINKING;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_DATA_LOADED;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_FAILURE;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_SUCCESS;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.CURRENCY;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.FAILURE;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_CAMPAIGN;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_CHANNEL;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_CUSTOMERID;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_DEEPLINK;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_FAIL;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_IMAGEURL;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_REFERRER;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_CUSTOMER_ID;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_DEVKEY_FOUND;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_EVENT_NAME_FOUND;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_PARAMETERS_ERROR;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_VALID_TOKEN;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PRICE;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PROMOTE_ID;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PUBLIC_KEY;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PURCHASE_DATA;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SIGNATURE;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_FAILED;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_SUCCESS;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.EmptyStackException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaInterface;
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CordovaWebView;
-import org.apache.cordova.PluginResult;
-import org.json.JSONObject;
-import org.json.JSONArray;
-import org.json.JSONException;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.appsflyer.AppsFlyerConversionListener;
+import com.appsflyer.AppsFlyerInAppPurchaseValidatorListener;
 import com.appsflyer.AppsFlyerLib;
 import com.appsflyer.AppsFlyerProperties;
 import com.appsflyer.CreateOneLinkHttpTask;
@@ -29,15 +55,19 @@ import com.appsflyer.deeplink.DeepLinkResult;
 import com.appsflyer.share.CrossPromotionHelper;
 import com.appsflyer.share.LinkGenerator;
 import com.appsflyer.share.ShareInviteHelper;
-import com.appsflyer.AppsFlyerInAppPurchaseValidatorListener;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.util.Log;
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaInterface;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaWebView;
+import org.apache.cordova.PluginResult;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class AppsFlyerPlugin extends CordovaPlugin {
 
@@ -102,6 +132,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return logAndOpenStore(args, callbackContext);
         } else if ("getSdkVersion".equals(action)) {
             return getSdkVersion(callbackContext);
+        } else if ("setSharingFilterForPartners".equals(action)) {
+            return setSharingFilterForPartners(args);
         } else if ("setSharingFilter".equals(action)) {
             return setSharingFilter(args, callbackContext);
         } else if ("setSharingFilterForAllPartners".equals(action)) {
@@ -124,6 +156,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setResolveDeepLinkURLs(args);
         } else if ("setDisableAdvertisingIdentifier".equals(action)) {
             return setDisableAdvertisingIdentifier(args, callbackContext);
+        } else if ("setAdditionalData".equals(action)) {
+            return setAdditionalData(args);
         }
 
         return false;
@@ -149,7 +183,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                     e.printStackTrace();
                 }
             }
-         });
+        });
         return true;
     }
 
@@ -814,31 +848,31 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+
+    private boolean setSharingFilterForPartners(JSONArray parameters) {
+        cordova.getThreadPool().execute(() -> {
+            String[] networksArray = convertToStringArray(parameters);
+            if (networksArray != null && networksArray.length > 0) {
+                AppsFlyerLib.getInstance().setSharingFilterForPartners(networksArray);
+            }
+        });
+
+        return true;
+    }
+
+
     /**
      * @param parameters      Comma separated array of partners that need to be excluded
      * @param callbackContext
      */
+    @Deprecated
     private boolean setSharingFilter(JSONArray parameters, CallbackContext callbackContext) {
-        try {
-            String partners = parameters.getString(0);
-            if (partners.equals("null") || parameters.length() == 0) {
-                callbackContext.error(FAILURE);
-                return true;
+        cordova.getThreadPool().execute(() -> {
+            String[] networksArray = convertToStringArray(parameters);
+            if (networksArray != null && networksArray.length > 0) {
+                AppsFlyerLib.getInstance().setSharingFilter(networksArray);
             }
-            partners = partners.substring(1, partners.length() - 1);
-            partners = partners.replaceAll(" ", "");
-
-            String[] networksArray = partners.split("[ ,]");
-            for (String partner : networksArray) {
-                partner = partner.substring(1, partner.length() - 1);
-            }
-            AppsFlyerLib.getInstance().setSharingFilter(networksArray);
-            callbackContext.success(SUCCESS);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-            callbackContext.error(FAILURE);
-        }
+        });
 
         return true;
     }
@@ -846,6 +880,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     /**
      * Used by advertisers to exclude all networks/integrated partners from getting data
      */
+    @Deprecated
     private boolean setSharingFilterForAllPartners(CallbackContext callbackContext) {
         AppsFlyerLib.getInstance().setSharingFilterForAllPartners();
         callbackContext.success(SUCCESS);
@@ -855,7 +890,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     /**
      * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
      * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
-     *
      */
     public boolean validateAndLogInAppPurchase(JSONArray args, CallbackContext callbackContext) {
         String publicKey = "";
@@ -879,7 +913,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 additionalParameters = toMap(additionalParametersJson);
             }
 
-            if (publicKey == "" || signature == "" || purchaseData == "" || price == "" || currency == "") {
+            if (publicKey.isEmpty() || signature.isEmpty() || purchaseData.isEmpty() || price.isEmpty() || currency.isEmpty()) {
                 callbackContext.error(NO_PARAMETERS_ERROR);
                 return true;
             }
@@ -920,22 +954,18 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @return
      */
     private boolean setOneLinkCustomDomains(JSONArray parameters, CallbackContext callbackContext) {
-        try {
-            String str = parameters.getString(0);
-            String[] domains = stringToArray(str);
-            if (domains.length == 0 || parameters.length() == 0) {
-                callbackContext.error(FAILURE);
-                return true;
-            }
+
+        String[] domains = convertToStringArray(parameters);
+        if (domains != null && domains.length > 0) {
             AppsFlyerLib.getInstance().setOneLinkCustomDomain(domains);
             callbackContext.success(SUCCESS);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
+        } else {
             callbackContext.error(FAILURE);
         }
         return true;
+
     }
+
 
     /**
      * use this api If you need deep linking data from Facebook, deferred deep linking, Dynamic Product Ads, or reasons that
@@ -966,8 +996,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      */
     private boolean setUserEmails(JSONArray args, CallbackContext callbackContext) {
         try {
-            String str = args.getString(0);
-            String[] emails = stringToArray(str);
+            String[] emails = convertToStringArray(args);
+            if (emails == null || emails.length == 0) {
+                callbackContext.error(FAILURE);
+                return true;
+            }
             AppsFlyerLib.getInstance().setUserEmails(emails);
             callbackContext.success(SUCCESS);
         } catch (Exception e) {
@@ -1017,9 +1050,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     private boolean addPushNotificationDeepLinkPath(JSONArray args) {
         try {
             String pathStr = args.getString(0);
-            String[] path = stringToArray(pathStr);
-            AppsFlyerLib.getInstance().addPushNotificationDeepLinkPath(path);
-            Log.d("AppsFlyer", path.toString());
+            String[] path = convertToStringArray(args);
+            if (path != null && path.length > 0) {
+                AppsFlyerLib.getInstance().addPushNotificationDeepLinkPath(path);
+                Log.d("AppsFlyer", path.toString());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1033,13 +1068,26 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      */
     private boolean setResolveDeepLinkURLs(JSONArray args) {
         try {
-            String urlsStr = args.getString(0);
-            String[] urls = stringToArray(urlsStr);
-            AppsFlyerLib.getInstance().setResolveDeepLinkURLs(urls);
-            Log.d("AppsFlyer", urls.toString());
+            String[] urls = convertToStringArray(args);
+            if (urls != null && urls.length > 0) {
+                AppsFlyerLib.getInstance().setResolveDeepLinkURLs(urls);
+                Log.d("AppsFlyer", urls.toString());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return true;
+    }
+
+    private boolean setAdditionalData(JSONArray args) {
+        cordova.getThreadPool().execute(() -> {
+            try {
+                Map<String, Object> additionalData = toObjectMap(args.getJSONObject(0));
+                AppsFlyerLib.getInstance().setAdditionalData(additionalData);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        });
         return true;
     }
 
@@ -1050,7 +1098,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @param str
      * @return String array
      */
-    private String[] stringToArray(String str) {
+    private String[] stringToArray(@NonNull String str) {
         String[] realArr = null;
         str = str.substring(1, str.length() - 1);
         str = str.replaceAll(" ", "");
@@ -1060,6 +1108,52 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             Log.i("element", el);
         }
         return realArr;
+    }
+
+    /**
+     * this method get a JSONArray of strings and convert it to String array
+     *
+     * @param json JSONArray object that contains string elements
+     * @return the provided JSONArray converted to String array
+     * @throws JSONException
+     */
+    private String[] jsonArrayToStringArray(@NonNull JSONArray json) throws JSONException {
+        if (json.length() == 0) {
+            return null;
+        }
+        String[] arr = new String[json.length()];
+        for (int i = 0; i < json.length(); i++) {
+            arr[i] = json.getString(i);
+        }
+        return arr;
+    }
+
+    /**
+     * This method get the JSONArray object from JS and convert it to String array.
+     * The first element can be string representation of a string array or JSONArray of strings.
+     *
+     * @param json JSONArray object from JS.
+     * @return String array or null
+     */
+    private String[] convertToStringArray(JSONArray json) {
+        if (json == null || json.length() == 0) {
+            return null;
+        }
+
+        String[] arr = null;
+
+        try {
+            Object obj = json.get(0);
+            if (obj instanceof String) {
+                arr = stringToArray((String) obj);
+            } else if (obj instanceof JSONArray) {
+                arr = jsonArrayToStringArray((JSONArray) obj);
+            }
+        } catch (JSONException | ClassCastException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return arr;
     }
 
     private Map<String, String> toMap(JSONObject jsonobj) throws JSONException {
@@ -1072,5 +1166,17 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         }
         return map;
     }
+
+    private Map<String, Object> toObjectMap(JSONObject jsonobj) throws JSONException {
+        Map<String, Object> map = new HashMap<String, Object>();
+        Iterator<String> keys = jsonobj.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = jsonobj.get(key);
+            map.put(key, value);
+        }
+        return map;
+    }
+
 
 }
