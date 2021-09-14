@@ -204,6 +204,16 @@ if (!window.CustomEvent) {
     /**
      * Used by advertisers to exclude specified networks/integrated partners from getting data
      * networks Comma separated array of partners that need to be excluded
+     *
+     */
+    AppsFlyer.prototype.setSharingFilterForPartners = function (networks) {
+        exec(null, null, 'AppsFlyerPlugin', 'setSharingFilterForPartners', [networks]);
+    };
+
+    /**
+     * Used by advertisers to exclude specified networks/integrated partners from getting data
+     * networks Comma separated array of partners that need to be excluded
+     *  @deprecated deprecated since 6.4.0. Use setSharingFilterForPartners instead
      */
     AppsFlyer.prototype.setSharingFilter = function (networks) {
         exec(null, null, 'AppsFlyerPlugin', 'setSharingFilter', [networks]);
@@ -211,6 +221,7 @@ if (!window.CustomEvent) {
 
     /**
      * Used by advertisers to exclude all networks/integrated partners from getting data
+     *  @deprecated deprecated since 6.4.0. Use setSharingFilterForPartners instead
      */
     AppsFlyer.prototype.setSharingFilterForAllPartners = function () {
         argscheck.checkArgs('*', 'AppsFlyer.setSharingFilterForAllPartners', arguments);

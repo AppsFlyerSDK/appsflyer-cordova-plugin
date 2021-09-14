@@ -30,6 +30,8 @@
 - (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand *)command;
 - (void)setCurrentDeviceLanguage:(CDVInvokedUrlCommand*)command;
 - (void)setAdditionalData:(CDVInvokedUrlCommand*)command;
+- (void)setSharingFilter:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
+- (void)setSharingFilterForAllPartners:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
 
 @end
 
