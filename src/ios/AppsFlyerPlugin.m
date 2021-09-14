@@ -612,6 +612,19 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
     [[AppsFlyerLib shared] handleOpenUrl:url options:nil];
 }
+
+/**
+* Used by advertisers to exclude specified networks/integrated partners from getting data
+*/
+- (void)setSharingFilterForPartners:(CDVInvokedUrlCommand*)command {
+    NSArray* partners = [command.arguments objectAtIndex:0];
+    if ([partners count] == 0) {
+           return;
+       }
+    [[AppsFlyerLib shared] setSharingFilter:partners];
+
+}
+
 /**
 * Used by advertisers to exclude specified networks/integrated partners from getting data
 */
@@ -840,6 +853,12 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             NSLog(@"[DEBUG] AppsFlyer: SKADNetwork is enabled");
         }
     }
+}
+
+
+- (void)setAdditionalData:(CDVInvokedUrlCommand*)command{
+    NSDictionary *additionalData = (NSDictionary*)[command.arguments objectAtIndex: 0];
+    [[AppsFlyerLib shared] setAdditionalData:additionalData];
 }
 
 @end
