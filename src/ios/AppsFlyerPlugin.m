@@ -617,8 +617,8 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 * Used by advertisers to exclude specified networks/integrated partners from getting data
 */
 - (void)setSharingFilterForPartners:(CDVInvokedUrlCommand*)command {
-    NSArray* partners = [command.arguments objectAtIndex:0];
-    if ([partners count] == 0) {
+    NSArray* partners = [command argumentAtIndex:0];
+    if (partners == nil ||[partners count] == 0) {
            return;
        }
     [[AppsFlyerLib shared] setSharingFilterForPartners:partners];
@@ -629,8 +629,8 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 * Used by advertisers to exclude specified networks/integrated partners from getting data
 */
 - (void)setSharingFilter:(CDVInvokedUrlCommand*)command {
-    NSArray* partners = [command.arguments objectAtIndex:0];
-    if ([partners count] == 0) {
+    NSArray* partners = [command argumentAtIndex:0];
+    if (partners == nil || [partners count] == 0) {
            return;
        }
       [[AppsFlyerLib shared] setSharingFilter:partners];
@@ -689,8 +689,8 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 * Set Onelink custom/branded domains
 */
 - (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand*)command {
-    NSArray* domains = [command.arguments objectAtIndex:0];
-    if (domains.count == 0) {
+    NSArray* domains = [command argumentAtIndex:0];
+    if (domains == nil || domains.count == 0) {
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: afNoDomains];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         return;
@@ -744,8 +744,8 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
  Facebook Advanced Matching - set user email
  */
 - (void)setUserEmails:(CDVInvokedUrlCommand*)command {
-    NSArray* emails = [command.arguments objectAtIndex:0];
-    if (emails.count == 0) {
+    NSArray* emails = [command argumentAtIndex:0];
+    if (emails == nil || emails.count == 0) {
         return;
     }
     [[AppsFlyerLib shared] setUserEmails:emails withCryptType: EmailCryptTypeSHA256];
@@ -817,8 +817,8 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 }
 
 - (void)addPushNotificationDeepLinkPath:(CDVInvokedUrlCommand*)command {
-    NSArray* path = [command.arguments objectAtIndex:0];
-    if (path.count == 0) {
+    NSArray* path = [command argumentAtIndex:0];
+    if (path == nil || path.count == 0) {
         return;
     }
     [[AppsFlyerLib shared] addPushNotificationDeepLinkPath:path];
@@ -827,8 +827,8 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 }
 
 - (void)setResolveDeepLinkURLs:(CDVInvokedUrlCommand*)command {
-    NSArray* urls = [command.arguments objectAtIndex:0];
-    if (urls.count == 0) {
+    NSArray* urls = [command argumentAtIndex:0];
+    if (urls == nil || urls.count == 0) {
         return;
     }
     [AppsFlyerLib shared].resolveDeepLinkURLs = urls;
