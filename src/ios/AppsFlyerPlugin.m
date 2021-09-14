@@ -621,7 +621,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     if ([partners count] == 0) {
            return;
        }
-    [[AppsFlyerLib shared] setSharingFilter:partners];
+    [[AppsFlyerLib shared] setSharingFilterForPartners:partners];
 
 }
 
