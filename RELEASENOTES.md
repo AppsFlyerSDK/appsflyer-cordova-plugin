@@ -1,4 +1,14 @@
 # Release Notes
+### 6.4.0
+Release date: *2021-Sep-14* 
+
+**Overview and Highlights:**
+
+- Cordova (iOS) >> app crash when passing null instead of Array (Bug fixed)
+- Cordova >> Android >> setOneLinkCustomDomains not working (Bug fixed)
+- Cordova >> Add setSharingFilterForPartners API
+- Cordova >> add setAdditionalData API
+
 ### 6.3.50
 Release date: *2021-Aug-23* 
 
