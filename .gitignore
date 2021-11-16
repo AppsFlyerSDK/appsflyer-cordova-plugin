@@ -12,6 +12,7 @@ Thumbs.db
 *.user
 
 node_modules/
+package-lock.json
 
 
 examples/demoA/node_modules/
