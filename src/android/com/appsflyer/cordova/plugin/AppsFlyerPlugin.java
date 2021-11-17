@@ -1002,6 +1002,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 String[] emails = convertToStringArray(args);
                 if (emails == null || emails.length == 0) {
                     callbackContext.error(FAILURE);
+                    return;
                 }
                 AppsFlyerLib.getInstance().setUserEmails(AppsFlyerProperties.EmailsCryptType.SHA256, emails);
                 callbackContext.success(SUCCESS);
