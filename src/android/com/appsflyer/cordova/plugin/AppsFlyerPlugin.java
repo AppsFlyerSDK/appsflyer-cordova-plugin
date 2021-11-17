@@ -158,6 +158,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setDisableAdvertisingIdentifier(args, callbackContext);
         } else if ("setAdditionalData".equals(action)) {
             return setAdditionalData(args);
+        } else if ("setPartnerData".equals(action)) {
+            return setPartnerData(args);
         }
 
         return false;
@@ -1084,6 +1086,19 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             try {
                 Map<String, Object> additionalData = toObjectMap(args.getJSONObject(0));
                 AppsFlyerLib.getInstance().setAdditionalData(additionalData);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        });
+        return true;
+    }
+
+    private boolean setPartnerData(JSONArray args) {
+        cordova.getThreadPool().execute(() -> {
+            try {
+                String partnerId = args.getString(0);
+                Map<String, Object> data = toObjectMap(args.getJSONObject(1));
+                AppsFlyerLib.getInstance().setPartnerData(partnerId, data);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
