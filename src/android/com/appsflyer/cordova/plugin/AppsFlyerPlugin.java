@@ -995,18 +995,18 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @return
      */
     private boolean setUserEmails(JSONArray args, CallbackContext callbackContext) {
-        try {
-            String[] emails = convertToStringArray(args);
-            if (emails == null || emails.length == 0) {
-                callbackContext.error(FAILURE);
-                return true;
+        cordova.getThreadPool().execute(() -> {
+            try {
+                String[] emails = convertToStringArray(args);
+                if (emails == null || emails.length == 0) {
+                    callbackContext.error(FAILURE);
+                }
+                AppsFlyerLib.getInstance().setUserEmails(AppsFlyerProperties.EmailsCryptType.SHA256, emails);
+                callbackContext.success(SUCCESS);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            AppsFlyerLib.getInstance().setUserEmails(AppsFlyerProperties.EmailsCryptType.SHA256, emails);
-            callbackContext.success(SUCCESS);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        });
         return true;
     }
 
