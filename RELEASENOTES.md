@@ -1,4 +1,14 @@
 # Release Notes
+### 6.4.4
+Release date: *2021-Dec-14* 
+
+**Overview and Highlights:**
+
+- Cordova >> Android >> setUserEmails with no encryption available
+- Cordova >> Add setPartnerData API
+- Cordova >> Update iOS SDK to v6.4.4
+- Cordova >> Update Android SDK to v6.4.3
+
 ### 6.4.0
 Release date: *2021-Sep-14* 
 

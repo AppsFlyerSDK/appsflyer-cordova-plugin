@@ -47,20 +47,20 @@ window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
 
 ##  <a id="ios14"> Set plugin for IOS 14
 
-1. Add ```#import <AppTrackingTransparency/AppTrackingTransparency.h>``` in your ```AppDelegate.m``` file<br>
-2. Add the ATT pop-up for IDFA collection. your ```AppDelegate.m``` should look like this:
+1. Add ```#import <AppTrackingTransparency/AppTrackingTransparency.h>``` in your ```Classes/MainViewController.m``` file<br>
+2. Add the ATT pop-up for IDFA collection. your ```MainViewController.m``` should look like this:
 
 
 ```javascript
--(BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)launchOptions
-{
-    self.viewController = [[MainViewController alloc] init];
-    if (@available(iOS 14, *)) {
-        [ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {
-            //If you want to do something with the pop-up
-        }];
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [self.launchView setAlpha:1];
+
+    if @available(iOS 14, *) {
+      [ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {
+        NSLog(@"Status: %lu", (unsigned long)status);
+      }];
     }
-    return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 ```
 
