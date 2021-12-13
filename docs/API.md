@@ -47,6 +47,8 @@ The list of available methods for this plugin is described below.
 | [`disableSKAD`](#disableSKAD) | `(boolean disableSkad)` | disable or enable SKAD |
 | [`setCurrentDeviceLanguage`](#setCurrentDeviceLanguage) | `(string language)` | Set the language of the device. |
 | [`setAdditionalData`](#setAdditionalData) | `(Object additionalData)` | Allows you to add custom data to events sent from the SDK. |
+| [`setPartnerData`](#setPartnerData) | `(partnerId, data)` | Allows sending custom data for partner integration purposes. |
+
 
   
 ---
@@ -680,7 +682,7 @@ appsFlyer.setCurrentDeviceLanguage('en');
 | `language` |  `string` | Set the language of the device. |
 
 ---
-##### <a id="setAdditionalData"> **`setAdditionalData(language): void`**
+##### <a id="setAdditionalData"> **`setAdditionalData(additionalData): void`**
 The setAdditionalData API allows you to add custom data to events sent from the SDK.<br>
 Typically it is used to integrate on the SDK level with several external partner platforms.
 
@@ -696,6 +698,21 @@ appsFlyer.setAdditionalData({"aa":"cc",
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
 | `additionalData` |  `Object` | Set the language of the device. |
+
+---
+##### <a id="setPartnerData"> **`setPartnerData(partnerId, data): void`**
+Allows sending custom data for partner integration purposes.
+
+*Example:*
+
+```javascript
+appsFlyer.setPartnerData("af_int", {apps: "Flyer", cuid: "123abc"});
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `partnerId` |  `String` | ID of the partner (usually suffixed with "_int"). |
+| `data` |  `Object` | Customer data, depends on the integration configuration with the specific partner. |
 
 ---
 ### <a id="deep-linking-tracking"> Deep linking Tracking
