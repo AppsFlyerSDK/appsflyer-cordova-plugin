@@ -158,6 +158,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setDisableAdvertisingIdentifier(args, callbackContext);
         } else if ("setAdditionalData".equals(action)) {
             return setAdditionalData(args);
+        } else if ("setPartnerData".equals(action)) {
+            return setPartnerData(args);
         }
 
         return false;
@@ -995,18 +997,19 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @return
      */
     private boolean setUserEmails(JSONArray args, CallbackContext callbackContext) {
-        try {
-            String[] emails = convertToStringArray(args);
-            if (emails == null || emails.length == 0) {
-                callbackContext.error(FAILURE);
-                return true;
+        cordova.getThreadPool().execute(() -> {
+            try {
+                String[] emails = convertToStringArray(args);
+                if (emails == null || emails.length == 0) {
+                    callbackContext.error(FAILURE);
+                    return;
+                }
+                AppsFlyerLib.getInstance().setUserEmails(AppsFlyerProperties.EmailsCryptType.SHA256, emails);
+                callbackContext.success(SUCCESS);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            AppsFlyerLib.getInstance().setUserEmails(emails);
-            callbackContext.success(SUCCESS);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        });
         return true;
     }
 
@@ -1084,6 +1087,19 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             try {
                 Map<String, Object> additionalData = toObjectMap(args.getJSONObject(0));
                 AppsFlyerLib.getInstance().setAdditionalData(additionalData);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        });
+        return true;
+    }
+
+    private boolean setPartnerData(JSONArray args) {
+        cordova.getThreadPool().execute(() -> {
+            try {
+                String partnerId = args.getString(0);
+                Map<String, Object> data = toObjectMap(args.getJSONObject(1));
+                AppsFlyerLib.getInstance().setPartnerData(partnerId, data);
             } catch (JSONException e) {
                 e.printStackTrace();
             }

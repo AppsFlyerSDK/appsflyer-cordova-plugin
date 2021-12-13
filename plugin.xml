@@ -92,7 +92,7 @@
             <config>
             </config>
             <pods use-frameworks="true">
-               <pod name="AppsFlyerFramework" spec="6.4.0"/>
+               <pod name="AppsFlyerFramework" spec="6.4.4"/>
             </pods>
         </podspec>
     </platform>
