@@ -335,8 +335,8 @@ Related reading: [Apple developer](https://developer.apple.com/documentation/sto
 
 **To register the AppsFlyer endpoint:**
 
-1.  Open your project's `config.xml` in file.
-2. Pase the following snippet in inside the `widget` element. 
+1. Open your project's `config.xml` in file.
+2. Paste the following snippet inside the `widget` element. 
 ```xml
     <config-file platform="ios" target="*-Info.plist" parent="NSAdvertisingAttributionReportEndpoint">
         <string>https://appsflyer-skadnetwork.com/</string>
