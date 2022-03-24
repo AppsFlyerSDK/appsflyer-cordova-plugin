@@ -100,6 +100,7 @@ Great installation and setup guides can be viewed [here](/docs/Guides.md).
 - [Deeplinking Guide](/docs/Guides.md#deeplinking)  
 - [Uninstall Guide](/docs/Guides.md#uninstall)  
 - [Set plugin for IOS 14](/docs/Guides.md#ios14)  
+- [Send SKAN postback copies for IOS 15](/docs/Guides.md#skanPostback)  
   
   
 ## <a id="setup"> 🚀 Setup  
