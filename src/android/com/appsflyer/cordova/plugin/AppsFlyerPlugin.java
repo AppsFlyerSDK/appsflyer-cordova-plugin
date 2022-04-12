@@ -37,7 +37,6 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_FAILED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_SUCCESS;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -65,6 +64,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -76,7 +76,30 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     private CallbackContext mDeepLinkListener = null;
     private CallbackContext mInviteListener = null;
     private Uri intentURI = null;
-    private Activity c;
+
+    static class AppsFlyerRequestListenerImpl implements AppsFlyerRequestListener {
+        final WeakReference<CallbackContext> mCallbackContextRef;
+
+        public AppsFlyerRequestListenerImpl(@NonNull CallbackContext callbackContext) {
+            this.mCallbackContextRef = new WeakReference<>(callbackContext);
+        }
+
+        @Override
+        public void onSuccess() {
+            CallbackContext callbackContext = mCallbackContextRef.get();
+            if (callbackContext != null) {
+                callbackContext.success(SUCCESS);
+            }
+        }
+
+        @Override
+        public void onError(int i, String s) {
+            CallbackContext callbackContext = mCallbackContextRef.get();
+            if (callbackContext != null) {
+                callbackContext.error(FAILURE);
+            }
+        }
+    }
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -232,7 +255,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
         AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
         AppsFlyerLib instance = AppsFlyerLib.getInstance();
-        c = this.cordova.getActivity();
+        Context c = this.cordova.getActivity();
 
         try {
             final JSONObject options = args.getJSONObject(0);
@@ -276,17 +299,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             instance.init(devKey, gcdListener, cordova.getActivity());
 
             if (mConversionListener == null) {
-                instance.start(c, devKey, new AppsFlyerRequestListener() {
-                    @Override
-                    public void onSuccess() {
-                        callbackContext.success(SUCCESS);
-                    }
-
-                    @Override
-                    public void onError(int i, String s) {
-                        callbackContext.error(FAILURE);
-                    }
-                });
+                instance.start(c, devKey, new AppsFlyerRequestListenerImpl(callbackContext));
             } else {
                 instance.start(c);
             }
