@@ -53,7 +53,7 @@ window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
 - (void)viewDidLoad {  
  [super viewDidLoad]; [self.launchView setAlpha:1];  
   
- if @available(iOS 14, *) { [ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {  
+ if (@available(iOS 14, *)) { [ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {  
  NSLog(@"Status: %lu", (unsigned long)status);  
  }]; }}  
 ```  
