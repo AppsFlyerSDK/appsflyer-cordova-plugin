@@ -381,6 +381,14 @@ if (!window.CustomEvent) {
         exec(null, null, 'AppsFlyerPlugin', 'sendPushNotificationData', [pushData]);
     };
 
+    /**
+     * Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device.
+     * @param disable - Defaults to false
+     */
+    AppsFlyer.prototype.setDisableNetworkData = function (disable){
+        exec(null, null, 'AppsFlyerPlugin', 'setDisableNetworkData', [disable]);
+    };
+
 
     module.exports = new AppsFlyer();
 })(window);
