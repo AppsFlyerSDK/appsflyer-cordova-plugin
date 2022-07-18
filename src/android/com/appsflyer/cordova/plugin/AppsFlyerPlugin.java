@@ -162,9 +162,24 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setPartnerData(args);
         } else if ("sendPushNotificationData".equals(action)) {
             return sendPushNotificationData(args);
+        } else if ("setDisableNetworkData".equals(action)) {
+            return setDisableNetworkData(args);
         }
 
         return false;
+    }
+
+    private boolean setDisableNetworkData(JSONArray args) {
+        cordova.getThreadPool().execute(() -> {
+            try {
+                boolean disable = args.getBoolean(0);
+                AppsFlyerLib.getInstance().setDisableNetworkData(disable);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        });
+        return true;
     }
 
     private boolean sendPushNotificationData(JSONArray args) {
@@ -175,6 +190,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 if (i != null) {
                     i.putExtras(jsonToBundle(js));
                     cordova.getActivity().setIntent(i);
+                    AppsFlyerLib.getInstance().sendPushNotificationData(cordova.getActivity());
                 }
             } catch (JSONException e) {
                 Log.d("AppsFlyer", "Could not parse json to bundle");
