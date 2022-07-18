@@ -373,5 +373,14 @@ if (!window.CustomEvent) {
         exec(null, null, 'AppsFlyerPlugin', 'setPartnerData', [partnerId, data]);
     };
 
+    /**
+     * Measure and get data from push-notification campaigns.
+     * @param pushData - JSON object contains the push data
+     */
+    AppsFlyer.prototype.sendPushNotificationData = function (pushData){
+        exec(null, null, 'AppsFlyerPlugin', 'sendPushNotificationData', [pushData]);
+    };
+
+
     module.exports = new AppsFlyer();
 })(window);

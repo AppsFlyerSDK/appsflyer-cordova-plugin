@@ -37,12 +37,13 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_FAILED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_SUCCESS;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import android.os.Bundle;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import com.appsflyer.AppsFlyerConversionListener;
 import com.appsflyer.AppsFlyerInAppPurchaseValidatorListener;
@@ -76,7 +77,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     private CallbackContext mDeepLinkListener = null;
     private CallbackContext mInviteListener = null;
     private Uri intentURI = null;
-    private Activity c;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -100,7 +100,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @throws JSONException
      */
     @Override
-    public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+    public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) {
         Log.d("AppsFlyer", "Executing...");
         if ("setCurrencyCode".equals(action)) {
             return setCurrencyCode(args);
@@ -160,9 +160,27 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setAdditionalData(args);
         } else if ("setPartnerData".equals(action)) {
             return setPartnerData(args);
+        } else if ("sendPushNotificationData".equals(action)) {
+            return sendPushNotificationData(args);
         }
 
         return false;
+    }
+
+    private boolean sendPushNotificationData(JSONArray args) {
+        cordova.getThreadPool().execute(() -> {
+            try {
+                JSONObject js = args.getJSONObject(0);
+                Intent i = cordova.getActivity().getIntent();
+                if (i != null) {
+                    i.putExtras(jsonToBundle(js));
+                    cordova.getActivity().setIntent(i);
+                }
+            } catch (JSONException e) {
+                Log.d("AppsFlyer", "Could not parse json to bundle");
+            }
+        });
+        return true;
     }
 
     /**
@@ -232,7 +250,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
         AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
         AppsFlyerLib instance = AppsFlyerLib.getInstance();
-        c = this.cordova.getActivity();
 
         try {
             final JSONObject options = args.getJSONObject(0);
@@ -276,7 +293,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             instance.init(devKey, gcdListener, cordova.getActivity());
 
             if (mConversionListener == null) {
-                instance.start(c, devKey, new AppsFlyerRequestListener() {
+                instance.start(cordova.getActivity(), devKey, new AppsFlyerRequestListener() {
                     @Override
                     public void onSuccess() {
                         callbackContext.success(SUCCESS);
@@ -288,10 +305,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                     }
                 });
             } else {
-                instance.start(c);
+                instance.start(cordova.getActivity());
             }
 
-            instance.start(c);
+            instance.start(cordova.getActivity());
 
             if (gcdListener != null) {
                 sendPluginNoResult(callbackContext);
@@ -1194,5 +1211,39 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return map;
     }
 
+    private Bundle jsonToBundle(JSONObject json) throws JSONException {
+        Bundle bundle = new Bundle();
+        Iterator<String> iterator = json.keys();
+        while (iterator.hasNext()) {
+            String key = iterator.next();
+            Object value = json.get(key);
+            switch (value.getClass().getSimpleName()) {
+                case "String":
+                    bundle.putString(key, (String) value);
+                    break;
+                case "Integer":
+                    bundle.putInt(key, (Integer) value);
+                    break;
+                case "Long":
+                    bundle.putLong(key, (Long) value);
+                    break;
+                case "Boolean":
+                    bundle.putBoolean(key, (Boolean) value);
+                    break;
+                case "JSONObject":
+                    bundle.putBundle(key, jsonToBundle((JSONObject) value));
+                    break;
+                case "Float":
+                    bundle.putFloat(key, (Float) value);
+                    break;
+                case "Double":
+                    bundle.putDouble(key, (Double) value);
+                    break;
+                default:
+                    bundle.putString(key, value.getClass().getSimpleName());
+            }
+        }
+        return bundle;
+    }
 
 }
