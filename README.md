@@ -62,6 +62,10 @@ We have renamed the following APIs:
 ```  
 $ cordova plugin add cordova-plugin-appsflyer-sdk  
 ```  
+To install cordova manually check out the doc [here](/docs/Installation.md).  
+  
+> **_NOTE:_** for Ionic installation see [this](#ionic) section  
+
   
 ## ⚠️ Adding AD_ID permission for Android ⚠️
 In v6.8.0 of the AppsFlyer SDK, we added the normal permission `com.google.android.gms.permission.AD_ID` to the SDK's AndroidManifest, 
@@ -70,9 +74,7 @@ If your app is targeting children, you need to revoke this permission to comply 
 You can read more about it [here](https://dev.appsflyer.com/hc/docs/install-android-sdk#the-ad_id-permission). </br>
 
 
-To install cordova manually check out the doc [here](/docs/Installation.md).  
-  
-> **_NOTE:_** for Ionic installation see [this](#ionic) section  
+
   
 ## <a id="appKids">👨‍👩‍👧‍👦 Add or Remove Strict mode for App-kids  
 Starting from version **6.1.10** iOS SDK comes in two variants: **Strict** mode and **Regular** mode. Please read more [here](https://support.appsflyer.com/hc/en-us/articles/207032066#integration-strict-mode-sdk)  
