@@ -148,6 +148,11 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
 }
 
+- (void)sendPushNotificationData:(CDVInvokedUrlCommand*)command{
+  NSDictionary* pushPayload = [command.arguments objectAtIndex:0];
+  [[AppsFlyerLib shared] handlePushNotification:pushPayload];
+}
+
 /**
 *   Sets new currency code. currencyId: ISO 4217 Currency Codes.
 */
