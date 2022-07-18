@@ -63,6 +63,13 @@ We have renamed the following APIs:
 $ cordova plugin add cordova-plugin-appsflyer-sdk  
 ```  
   
+## ⚠️ Adding AD_ID permission for Android ⚠️
+In v6.8.0 of the AppsFlyer SDK, we added the normal permission `com.google.android.gms.permission.AD_ID` to the SDK's AndroidManifest, 
+to allow the SDK to collect the Android Advertising ID on apps targeting API 33.
+If your app is targeting children, you need to revoke this permission to comply with Google's Data policy.
+You can read more about it [here](https://dev.appsflyer.com/hc/docs/install-android-sdk#the-ad_id-permission). </br>
+
+
 To install cordova manually check out the doc [here](/docs/Installation.md).  
   
 > **_NOTE:_** for Ionic installation see [this](#ionic) section  
