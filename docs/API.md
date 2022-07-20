@@ -48,7 +48,8 @@ The list of available methods for this plugin is described below.
 | [`setCurrentDeviceLanguage`](#setCurrentDeviceLanguage) | `(string language)` | Set the language of the device. |
 | [`setAdditionalData`](#setAdditionalData) | `(Object additionalData)` | Allows you to add custom data to events sent from the SDK. |
 | [`setPartnerData`](#setPartnerData) | `(partnerId, data)` | Allows sending custom data for partner integration purposes. |
-
+| [`sendPushNotificationData`](#sendPushNotificationData) | `(Object data)` | Measure and get data from push-notification campaigns.|
+| [`setDisableNetworkData`](#setDisableNetworkData) | `(boolean disable)` | Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device.|
 
   
 ---
@@ -713,6 +714,32 @@ appsFlyer.setPartnerData("af_int", {apps: "Flyer", cuid: "123abc"});
 | ----------- |-----------------------------|--------------|
 | `partnerId` |  `String` | ID of the partner (usually suffixed with "_int"). |
 | `data` |  `Object` | Customer data, depends on the integration configuration with the specific partner. |
+
+------
+##### <a id="sendPushNotificationData"> **`sendPushNotificationData(pushData): void`**
+Measure and get data from push-notification campaigns.
+*Example:*
+ 
+```javascript
+appsFlyer.sendPushNotificationData({apps: "Flyer", cuid: "123abc", someKey: "Some Value"});
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `pushData` |  `Object` | JSON object contains the push data |
+
+---
+##### <a id="sendPushNotificationData"> **`setDisableNetworkData(disable): void`**
+Measure and get data from push-notification campaigns.
+*Example:*
+ 
+```javascript
+appsFlyer.setDisableNetworkData(true);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `disable` |  `boolean` | If should opt out, default to false|
 
 ---
 ### <a id="deep-linking-tracking"> Deep linking Tracking
