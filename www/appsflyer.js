@@ -382,7 +382,6 @@ if (!window.CustomEvent) {
     };
 
     /**
-     * 
      * Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device.
      * @param disable - Defaults to false
      */
