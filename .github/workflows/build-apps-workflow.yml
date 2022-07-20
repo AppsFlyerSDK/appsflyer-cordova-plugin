@@ -1,0 +1,52 @@
+name: Build apps with AppsFlyer plugin
+
+on:
+  workflow_call:
+
+jobs:
+  Build-Cordova-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: install cordova-appsflyer on an Android app
+        run: |
+          npm install -g cordova
+          cd examples/cordova
+          npm install
+          npm install ../../
+          cordova platforms add android
+          cordova prepare android
+      - name: Build apk
+        run: |
+          cd examples/cordova/platforms/android
+          echo "pwd: $(pwd)"
+          gradle wrapper
+          echo "ls: $(ls)"
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
+  # Build-RN-ios:
+  #   runs-on: macos-latest
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: install react-native-appsflyer on an iOS app
+  #     run: |
+  #       cd demos/appsflyer-react-native-app
+  #       yarn install --force
+  #       yarn add ../../ --save
+  #   - name: Install Dependencies
+  #     run: |
+  #       cd demos/appsflyer-react-native-app/ios
+  #       pod install --repo-update
+
+  #   - name: Setup provisioning profile
+  #     env:
+  #       IOS_KEYS: ${{ secrets.IOS_KEYS }}
+  #     run: |
+  #       chmod +x .github/workflows/scripts/decryptSecrets.sh
+  #       ./.github/workflows/scripts/decryptSecrets.sh
+  #   - name: Archive app
+  #     run: |
+  #       sudo xcode-select --switch /Applications/Xcode_12.5.1.app
+  #       chmod +x .github/workflows/scripts/archiveApp.sh
+  #       cd demos/appsflyer-react-native-app/ios
+  #       ./../../../.github/workflows/scripts/archiveApp.sh
