@@ -1,0 +1,25 @@
+name: Release plugin to QA
+
+on:
+  push:
+    branches:
+      - releases/[0-9].x.x/[0-9].[0-9].x/[0-9].[0-9].[0-9]+-rc[0-9]+
+    paths-ignore:
+      - '**.md'
+      - '**.yml'
+      - 'examples/**'
+      - 'hooks/**'
+      - 'resources/**'
+      - 'tests/**'
+      - 'docs/**'
+
+jobs:
+
+  Build-Sample-Apps:
+    uses: ./.github/workflows/build-apps-workflow.yml
+    secrets: inherit
+
+  Deploy-To-QA:
+    needs: [Build-Sample-Apps]
+    uses: ./.github/workflows/deploy-to-QA.yml
+    secrets: inherit
