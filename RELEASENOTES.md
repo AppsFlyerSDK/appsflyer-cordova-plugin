@@ -1,3 +1,11 @@
+## 6.8.0
+ Release date: *2022-07-20*
+
+- Cordova >> update SDKs versions 6.8.0
+- Cordova >> Android >> add `setDisableNetworkData` API
+- Cordova Plugin >> add support for the handlePushNotificationData API
+- Update Cordova Plugin to v6.8.0
+
 # Release Notes
 ### 6.4.4
 Release date: *2021-Dec-14* 
