@@ -50,7 +50,7 @@
         <config-file target="AndroidManifest.xml" parent="/manifest" mode="merge">
             <uses-permission android:name="android.permission.INTERNET"/>
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+            <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
         </config-file>
         <config-file target="AndroidManifest.xml" parent="/*/application">
             <receiver android:name="com.appsflyer.MultipleInstallBroadcastReceiver" android:exported="true">
@@ -92,7 +92,7 @@
             <config>
             </config>
             <pods use-frameworks="true">
-               <pod name="AppsFlyerFramework" spec="6.5.2"/>
+               <pod name="AppsFlyerFramework" spec="6.8.0"/>
             </pods>
         </podspec>
     </platform>

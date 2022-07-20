@@ -373,5 +373,22 @@ if (!window.CustomEvent) {
         exec(null, null, 'AppsFlyerPlugin', 'setPartnerData', [partnerId, data]);
     };
 
+    /**
+     * Measure and get data from push-notification campaigns.
+     * @param pushData - JSON object contains the push data
+     */
+    AppsFlyer.prototype.sendPushNotificationData = function (pushData){
+        exec(null, null, 'AppsFlyerPlugin', 'sendPushNotificationData', [pushData]);
+    };
+
+    /**
+     * Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device.
+     * @param disable - Defaults to false
+     */
+    AppsFlyer.prototype.setDisableNetworkData = function (disable){
+        exec(null, null, 'AppsFlyerPlugin', 'setDisableNetworkData', [disable]);
+    };
+
+
     module.exports = new AppsFlyer();
 })(window);
