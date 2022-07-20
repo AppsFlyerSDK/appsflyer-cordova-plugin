@@ -4,20 +4,24 @@ on:
   workflow_call:
 
 jobs:
-  Build-RN-android:
+  Build-Cordova-android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: install cordova-appsflyer on an Android app
         run: |
+          npm install -g cordova
           cd examples/cordova
           npm install
-          cordova plugin add ../../
+          npm install ../../
           cordova platforms add android
           cordova prepare android
       - name: Build apk
         run: |
           cd examples/cordova/platforms/android
+          echo "pwd: $(pwd)"
+          gradle wrapper
+          echo "ls: $(ls)"
           chmod +x ./gradlew
           ./gradlew assembleRelease
   # Build-RN-ios:
