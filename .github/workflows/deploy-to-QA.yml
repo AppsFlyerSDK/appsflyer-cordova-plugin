@@ -16,7 +16,6 @@ jobs:
         run: |
           git config --global user.name $COMMIT_AUTHOR
           git config --global user.email $COMMIT_EMAIL
-
       - name: Check if fixed version is on Jira
         env:
           JIRA_TOKEN: ${{ secrets.CI_JIRA_TOKEN }}
@@ -33,7 +32,7 @@ jobs:
         run: |
           plugin_rc_version=$(echo "${{github.ref_name}}" | grep -Eo '[0-9].[0-9].[0-9]+-rc[0-9]+')
           echo "Updating plugin to version $plugin_rc_version"
-          npm version $plugin_rc_version
+          npm version $plugin_rc_version --no-git-tag-version
           echo "Updating plugin.xml to version $plugin_rc_version"
           sed -i -r -e "s/version=\"[0-9].[0-9].[0-9]+\"/version=\"$plugin_rc_version\"/gi" plugin.xml
           git add plugin.xml
@@ -44,7 +43,7 @@ jobs:
           CI_NPM_TOKEN: ${{ secrets.CI_NPM_TOKEN }}
         run: |
           echo "//registry.npmjs.org/:_authToken=$CI_NPM_TOKEN" > ~/.npmrc
-          npm publish --tag QA --dry-run
+          npm publish --tag QA
       - name: Generate and send slack report
         env:
           SLACK_TOKEN: ${{ secrets.CI_SLACK_TOKEN }}
