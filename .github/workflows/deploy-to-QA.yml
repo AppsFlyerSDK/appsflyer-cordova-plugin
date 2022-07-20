@@ -16,6 +16,7 @@ jobs:
         run: |
           git config --global user.name $COMMIT_AUTHOR
           git config --global user.email $COMMIT_EMAIL
+          
       - name: Check if fixed version is on Jira
         env:
           JIRA_TOKEN: ${{ secrets.CI_JIRA_TOKEN }}
