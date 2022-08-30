@@ -41,8 +41,8 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
   
 ### <a id="plugin-build-for"> This plugin is built for  
   
-- iOS AppsFlyerSDK **v6.8.0**  
-- Android AppsFlyerSDK **v6.8.0**  
+- iOS AppsFlyerSDK **v6.8.1**  
+- Android AppsFlyerSDK **v6.8.2**  
   
 ### <a id="breakingChanges"> ❗v6 Breaking Changes  
   
