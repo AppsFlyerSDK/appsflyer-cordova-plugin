@@ -365,6 +365,7 @@ if (!window.CustomEvent) {
 
     /**
      * The setPartnerData API allows sending custom data for partner integration purposes.
+     *
      * Typically it is used to integrate on the SDK level with several external partner platforms
      * @param partnerId - ID of the partner (usually suffixed with "_int")
      * @param data - Customer data, depends on the integration configuration with the specific partner
