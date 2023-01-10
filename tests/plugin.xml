@@ -11,3 +11,4 @@
     <js-module src="tests.js" name="tests">
     </js-module>
 </plugin>
+
