@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jasmine",
-    "updateLocal": "cordova plugin remove cordova-plugin-appsflyer-sdk-tests && cordova plugin remove cordova-plugin-appsflyer-sdk && cordova plugin add /Users/noakogonia/projects/Dev/appsflyer-cordova-plugin-forked && cordova plugin add /Users/noakogonia/projects/Dev/appsflyer-cordova-plugin-forked/tests"
+    "updateLocal": "cordova plugin remove cordova-plugin-appsflyer-sdk-tests && cordova plugin remove cordova-plugin-appsflyer-sdk && cordova plugin add ../appsflyer-cordova-plugin && cordova plugin add ../appsflyer-cordova-plugin/tests"
   },
   "keywords": [
     "ecosystem:cordova"
@@ -14,20 +14,15 @@
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
   "devDependencies": {
-    "cordova-android": "^10.1.2",
-    "cordova-ios": "^6.2.0",
-    "cordova-plugin-appsflyer-sdk": "file:../appsflyer-cordova-plugin-forked",
-    "cordova-plugin-appsflyer-sdk-tests": "file:../appsflyer-cordova-plugin-forked/tests",
+    "cordova-plugin-appsflyer-sdk": "file:../appsflyer-cordova-plugin",
+    "cordova-plugin-appsflyer-sdk-tests": "file:../appsflyer-cordova-plugin/tests",
     "cordova-plugin-test-framework": "^1.1.6",
     "jasmine": "^4.5.0",
     "jasmine-reporters": "^2.5.2",
     "jasmine-spec-reporter": "^7.0.0"
   },
   "cordova": {
-    "platforms": [
-      "ios",
-      "android"
-    ],
+    "platforms": [],
     "plugins": {
       "cordova-plugin-test-framework": {},
       "cordova-plugin-appsflyer-sdk": {},
