@@ -28,13 +28,17 @@ if (!window.CustomEvent) {
                 errorCB(AppsFlyerError.INVALID_ARGUMENT_ERROR);
             }
         } else {
-            if (args.appId !== undefined && typeof args.appId != 'string') {
+            if (args.appId !== undefined && (typeof args.appId != 'string' || args.appId === "")) {
                 if (errorCB) {
                     errorCB(AppsFlyerError.APPID_NOT_VALID);
                 }
             } else if (args.devKey !== undefined && typeof args.devKey != 'string') {
                 if (errorCB) {
                     errorCB(AppsFlyerError.DEVKEY_NOT_VALID);
+                }
+            } else if (args.devKey === undefined || args.devKey === "") {
+                if (errorCB) {
+                    errorCB(AppsFlyerError.NO_DEVKEY_FOUND);
                 }
             } else {
                 exec(successCB, errorCB, 'AppsFlyerPlugin', 'initSdk', [args]);
