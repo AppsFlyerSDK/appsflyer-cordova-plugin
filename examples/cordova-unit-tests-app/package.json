@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jasmine",
-    "updateLocal": "cordova plugin remove cordova-plugin-appsflyer-sdk-tests && cordova plugin remove cordova-plugin-appsflyer-sdk && cordova plugin add ../.. --link && cordova plugin add ../../tests --link"
+    "setEnv": "cordova plugin add ../.. --link && cordova plugin add ../../tests --link && cordova plugin add cordova-plugin-test-framework && cordova platform add ios && cordova platform add android",
+    "unitTestsAndroid": "cordova-paramedic --platform android --plugin plugins/cordova-plugin-appsflyer-sdk --outputDir /Users/noakogonia/projects/Dev/appsflyer-cordova-plugin/examples/cordova-unit-tests-app/test-results --verbose --target emulator-5554"
   },
   "keywords": [
     "ecosystem:cordova"
