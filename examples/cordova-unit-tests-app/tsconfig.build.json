@@ -1,5 +1,0 @@
-// tsconfig.build.json
-{
-  "extends": "./tsconfig",
-  "exclude": ["**/*.test.*", "**/__mocks__/*", "**/__tests__/*"]
-}
