@@ -8,3 +8,4 @@ EMULATOR_ID=${EMULATOR_ID_OBJECT[0]}
 echo "the emulator id is: ${EMULATOR_ID}"
 cd "${PROJECT_PATH}"
 cordova-paramedic --platform android --plugin plugins/cordova-plugin-appsflyer-sdk --outputDir "${HOME}"/projects/Dev/appsflyer-cordova-plugin/examples/cordovatry/testResults --verbose --target "${EMULATOR_ID}"
+
