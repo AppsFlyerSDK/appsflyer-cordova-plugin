@@ -30,6 +30,5 @@ jobs:
           target: google_apis
           arch: x86_64
           options: '-gpu swiftshader_indirect'
-          script: | 
-            cd examples/cordovatry && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh \
-            && ./testsScripts/cordovaParamedicRunUnitTests.sh
+          script: |
+            cd examples/cordovatry && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh \ && ./testsScripts/cordovaParamedicRunUnitTests.sh
