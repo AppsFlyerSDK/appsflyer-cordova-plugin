@@ -24,7 +24,7 @@ jobs:
         run: |
           cd examples/cordovatry/testsScripts/
           chmod +x setEnv.sh
-          setEnv.sh
+          ./setEnv.sh
 
       - name: Run Android unit tests on emulator
         uses: ReactiveCircus/android-emulator-runner@v2
