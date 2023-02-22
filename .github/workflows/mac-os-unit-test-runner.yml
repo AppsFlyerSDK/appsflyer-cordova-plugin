@@ -32,5 +32,5 @@ jobs:
           arch: x86_64
           options: '-gpu swiftshader_indirect'
           script: |
-            npm install -g cordova-paramedic
+            npm install cordova-paramedic
             cd examples/cordovatry && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh
