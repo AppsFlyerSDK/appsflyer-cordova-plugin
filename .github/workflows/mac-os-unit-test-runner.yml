@@ -18,8 +18,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          chmod +x examples/cordovatry/testsScripts/setEnv.sh
-          ./examples/cordovatry/testsScripts/setEnv.sh
+          cd examples/cordovatry
+          chmod +x testsScripts/setEnv.sh
+          ./testsScripts/setEnv.sh
 
       - name: Run Android unit tests on emulator
         uses: ReactiveCircus/android-emulator-runner@v2
