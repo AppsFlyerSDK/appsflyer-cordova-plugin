@@ -1,3 +1,10 @@
+name: Run unit tests on Android via emulator
+on:
+  pull_request:
+    types:
+      - opened
+    branches:
+      - 'add-new-unit-tests'
 jobs:
   connected-tests:
 
