@@ -21,7 +21,7 @@ for targetDir in ${TARGET_PLUGIN_DIR} ${TARGET_TEST_PLUGIN_DIR}
     cp ../../plugin.xml ${targetDir}
     if [ "$targetDir" == "$TARGET_TEST_PLUGIN_DIR" ];
     then
-      cp ../../testsScripts/testsScripts.js ${targetDir}
+      cp ../../tests/tests.js ${targetDir}
     fi
   done
 
