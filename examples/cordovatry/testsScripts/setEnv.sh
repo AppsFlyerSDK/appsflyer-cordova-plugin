@@ -25,6 +25,7 @@ for targetDir in ${TARGET_PLUGIN_DIR} ${TARGET_TEST_PLUGIN_DIR}
     fi
   done
 
+npm install cordova -g
 echo "install cordova-plugin-test-framework plugin"
 cordova plugin add cordova-plugin-test-framework
 
