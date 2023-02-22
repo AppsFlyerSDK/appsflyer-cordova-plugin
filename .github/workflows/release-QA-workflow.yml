@@ -10,7 +10,7 @@ on:
       - 'examples/**'
       - 'hooks/**'
       - 'resources/**'
-      - 'tests/**'
+      - 'testsScripts/**'
       - 'docs/**'
 
 jobs:
