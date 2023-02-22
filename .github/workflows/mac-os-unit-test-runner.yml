@@ -22,21 +22,15 @@ jobs:
           chmod +x testsScripts/setEnv.sh
           ./testsScripts/setEnv.sh
 
-#      - name: Run Android unit tests on emulator
-#        uses: ReactiveCircus/android-emulator-runner@v2
-#        with:
-#          api-level: 30
-#          target: google_apis
-#          arch: x86_64
-#          script: npm run runAndroidUnitTestsOnEmulator
-
       - name: Run Android unit tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          emulator-options: -no-window
+          emulator-options: -no-window -no-snapshot
           api-level: 30
           target: google_apis
           arch: x86_64
-          script: cd examples/cordovatry
+          options: '-gpu swiftshader_indirect'
+          script: | 
+            cd examples/cordovatry
             chmod +x testsScripts/cordovaParamedicRunUnitTests.sh
             ./testsScripts/cordovaParamedicRunUnitTests.sh
