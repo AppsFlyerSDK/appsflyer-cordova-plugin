@@ -34,6 +34,9 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           emulator-options: -no-window
+          api-level: 30
+          target: google_apis
+          arch: x86_64
           script: cd examples/cordovatry
             chmod +x testsScripts/cordovaParamedicRunUnitTests.sh
             ./testsScripts/cordovaParamedicRunUnitTests.sh
