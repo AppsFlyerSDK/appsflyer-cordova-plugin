@@ -16,15 +16,10 @@ jobs:
           distribution: 'adopt'
           cache: 'gradle'
 
-#      - name: Set env
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: '12.x'
       - name: Install dependencies
         run: |
-          cd examples/cordovatry/testsScripts/
-          chmod +x setEnv.sh
-          ./setEnv.sh
+          chmod +x examples/cordovatry/testsScripts/setEnv.sh
+          ./examples/cordovatry/testsScripts/setEnv.sh
 
       - name: Run Android unit tests on emulator
         uses: ReactiveCircus/android-emulator-runner@v2
