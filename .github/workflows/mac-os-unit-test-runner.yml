@@ -33,7 +33,6 @@ jobs:
       - name: Run Android unit tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
         emulator-options: -no-window
-        run: |
-          cd examples/cordovatry
+        script: cd examples/cordovatry
           chmod +x testsScripts/cordovaParamedicRunUnitTests.sh
           ./testsScripts/cordovaParamedicRunUnitTests.sh
