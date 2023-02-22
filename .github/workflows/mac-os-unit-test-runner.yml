@@ -1,11 +1,9 @@
 name: Run unit tests on Android via emulator
 on:
-  pull_request:
-    types:
-      - opened
+  push:
+
 jobs:
   unit-tests:
-
     runs-on: macos-latest
     steps:
       - name: Checkout
