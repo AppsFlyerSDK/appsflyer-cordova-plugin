@@ -3,8 +3,6 @@ on:
   pull_request:
     types:
       - opened
-    branches:
-      - 'add-new-unit-tests'
 jobs:
   unit-tests:
 
