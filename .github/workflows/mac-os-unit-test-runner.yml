@@ -22,9 +22,8 @@ jobs:
 #          node-version: '12.x'
       - name: Install dependencies
         run: |
-          pwd
-          ls
-          npm run setEnv
+          chmod +x /examples/cordovatry/testsScripts/setEnv.sh
+          ./examples/cordovatry/testsScripts/setEnv.sh
 
       - name: Run Android unit tests on emulator
         uses: ReactiveCircus/android-emulator-runner@v2
