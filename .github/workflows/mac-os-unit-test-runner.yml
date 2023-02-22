@@ -21,7 +21,10 @@ jobs:
 #        with:
 #          node-version: '12.x'
       - name: Install dependencies
-        run: npm run setEnv
+        run: |
+          pwd
+          ls
+          npm run setEnv
 
       - name: Run Android unit tests on emulator
         uses: ReactiveCircus/android-emulator-runner@v2
