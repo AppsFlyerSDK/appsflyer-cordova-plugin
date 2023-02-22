@@ -8,6 +8,7 @@ do
 done
 
 echo "Copy cordova-plugin-appsflyer-sdk directories code to the new folder under plugins"
+pwd
 for dirName in src testsScripts www
   do
     cp -r ../../"${dirName}" ${TARGET_PLUGIN_DIR}/"${dirName}"
