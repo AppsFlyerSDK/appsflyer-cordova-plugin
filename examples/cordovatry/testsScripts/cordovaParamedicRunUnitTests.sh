@@ -8,6 +8,6 @@
 #echo "the emulator id is: ${EMULATOR_ID}"
 #cd "${PROJECT_PATH}"
 #cordova-paramedic --platform android --plugin plugins/cordova-plugin-appsflyer-sdk --outputDir "${HOME}"/projects/Dev/appsflyer-cordova-plugin/examples/cordovatry/testResults --verbose --target "${EMULATOR_ID}"
-npm install cordova-paramedic
+npm install cordova-paramedic -g
 cordova-paramedic --platform android --plugin plugins/cordova-plugin-appsflyer-sdk --outputDir "${HOME}"/projects/Dev/appsflyer-cordova-plugin/examples/cordovatry/testResults --verbose
 
