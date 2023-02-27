@@ -1,6 +1,6 @@
 # shellcheck disable=SC2164
-EMULATOR_NAME=$(emulator -list-avds | sed -n 1p)
-echo "the emulator name is: ${EMULATOR_NAME}"
+#EMULATOR_NAME=$(emulator -list-avds | sed -n 1p)
+#echo "the emulator name is: ${EMULATOR_NAME}"
 #PROJECT_PATH=$(pwd)
 #cd ~/Library/Android/sdk && emulator -avd "${EMULATOR_NAME}" -no-window & adb wait-for-device shell "while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;"
 #EMULATOR_ID_OBJECT=$(adb devices | grep "emulator" | awk '{print $1}')
