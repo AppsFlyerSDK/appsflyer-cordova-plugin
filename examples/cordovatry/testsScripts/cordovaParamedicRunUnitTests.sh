@@ -1,3 +1,4 @@
+#If you want to run locally use these commented lines:
 # shellcheck disable=SC2164
 #EMULATOR_NAME=$(emulator -list-avds | sed -n 1p)
 #echo "the emulator name is: ${EMULATOR_NAME}"
@@ -8,6 +9,8 @@
 #echo "the emulator id is: ${EMULATOR_ID}"
 #cd "${PROJECT_PATH}"
 #cordova-paramedic --platform android --plugin plugins/cordova-plugin-appsflyer-sdk --outputDir "${HOME}"/projects/Dev/appsflyer-cordova-plugin/examples/cordovatry/testResults --verbose --target "${EMULATOR_ID}"
+
+#Otherwise, when running through git actions that's the proper way to do this:
 npm install "https://github.com/apache/cordova-paramedic.git#master" --save -g
 cordova-paramedic --platform android --plugin plugins/cordova-plugin-appsflyer-sdk --outputDir "${HOME}"/projects/Dev/appsflyer-cordova-plugin/examples/cordovatry/testResults --verbose
 
