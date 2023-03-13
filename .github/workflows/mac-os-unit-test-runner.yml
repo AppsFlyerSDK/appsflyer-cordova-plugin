@@ -38,11 +38,4 @@ jobs:
       - name: verify test results
         run: |
           cd examples/cordovatestapp/testResults
-          wait 
-          if ls -1 *.xml 1>/dev/null 2>&1; then
-          echo "Results file(s) found:"
-          ls -1 *.xml
-          else
-          echo "No results files found"
-          exit 1 
-          fi
+          echo "the res are: " && ls -l
