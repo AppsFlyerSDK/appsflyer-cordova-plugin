@@ -34,6 +34,6 @@ jobs:
           options: '-gpu swiftshader_indirect'
           script: |
             cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh
-            cd "${HOME}"/projects/Dev/appsflyer-cordova-plugin/examples/cordovatestapp/testResults
+            cd "/examples/cordovatestapp/testResults
             ls -l
             cat results.txt > /dev/null
