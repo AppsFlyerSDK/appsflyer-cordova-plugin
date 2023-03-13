@@ -8,7 +8,7 @@
 #EMULATOR_ID=${EMULATOR_ID_OBJECT[0]}
 #echo "the emulator id is: ${EMULATOR_ID}"
 #cd "${PROJECT_PATH}"
-#cordova-paramedic --platform android --plugin plugins/cordova-plugin-appsflyer-sdk --outputDir "${HOME}"/projects/Dev/appsflyer-cordova-plugin/examples/cordova-test-app/testResults --verbose --target "${EMULATOR_ID}"
+#cordova-paramedic --platform android --plugin plugins/cordova-plugin-appsflyer-sdk --outputDir "${HOME}"/projects/Dev/appsflyer-cordova-plugin/examples/cordovatestapp/testResults --verbose --target "${EMULATOR_ID}"
 
 #Otherwise, when running through git actions that's the proper way to do this:
 npm install "https://github.com/apache/cordova-paramedic.git#master" --save -g

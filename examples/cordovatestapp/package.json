@@ -1,5 +1,5 @@
 {
-  "name": "com.example.cordovatry",
+  "name": "com.example.cordovatestapp",
   "displayName": "Hi",
   "version": "1.0.0",
   "description": "A sample Apache Cordova application that responds to the deviceready event.",
