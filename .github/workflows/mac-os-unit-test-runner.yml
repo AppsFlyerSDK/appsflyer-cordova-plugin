@@ -33,4 +33,6 @@ jobs:
           arch: x86_64
           options: '-gpu swiftshader_indirect'
           script: |
-            cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh >> cd /testResults && echo "the name of the results file is: " && ls -l
+            cd examples/cordovatry && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh
+            cd /testResults && echo "the file name is: " && ls -l
+            cat results.txt > /dev/null
