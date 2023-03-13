@@ -33,7 +33,7 @@ jobs:
           arch: x86_64
           options: '-gpu swiftshader_indirect'
           script: |
-            cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh
+            cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh &> output.txt
 
       - name: verify test results
         run: |
