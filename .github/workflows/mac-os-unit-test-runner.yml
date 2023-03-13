@@ -34,6 +34,7 @@ jobs:
           options: '-gpu swiftshader_indirect'
           script: |
             cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh
-            cd "/examples/cordovatestapp/testResults
+            cd "/examples/cordovatestapp/testResults"
+            echo "the name of the results file is: "
             ls -l
             cat results.txt > /dev/null
