@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm install
-          cd examples/cordovatry 
+          cd examples/cordovatestapp 
           chmod +x testsScripts/setEnv.sh
           ./testsScripts/setEnv.sh
 
@@ -34,6 +34,6 @@ jobs:
           options: '-gpu swiftshader_indirect'
           script: |
             cd examples/cordovatry && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh
-            cd "${HOME}"/projects/Dev/appsflyer-cordova-plugin/examples/cordovatry/testResults
+            cd "${HOME}"/projects/Dev/appsflyer-cordova-plugin/examples/cordovatestapp/testResults
             ls -l
             cat results.txt > /dev/null
