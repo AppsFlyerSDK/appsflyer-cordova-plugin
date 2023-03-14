@@ -44,4 +44,6 @@ jobs:
         run: |
           echo "im at" && pwd
           echo "doing ls: "
+          cd ..
+          echo "now im at" && pwd
           ls -l
