@@ -42,6 +42,6 @@ jobs:
     steps:
       - name: Verify test results
         run: |
+          echo "im at" && pwd
           cd examples/cordovatestapp/testResults
           echo "the res are: " && ls -l
-        continue-on-error: true
