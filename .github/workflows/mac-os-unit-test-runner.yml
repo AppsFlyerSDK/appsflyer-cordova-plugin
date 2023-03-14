@@ -43,4 +43,4 @@ jobs:
       - name: Verify test results
         run: |
           echo "im at" && pwd
-          echo "doing ls: " && ls -l
+          echo "doing ls: " && ls
