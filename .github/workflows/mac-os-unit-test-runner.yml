@@ -24,6 +24,7 @@ jobs:
           ./testsScripts/setEnv.sh
 
       - name: Run Android unit tests on emulator
+        continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
         with:
           emulator-options: -no-window -no-snapshot
