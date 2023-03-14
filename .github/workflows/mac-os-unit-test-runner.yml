@@ -38,7 +38,7 @@ jobs:
 
       - name: Verify test results
         run: |
-          cd examples/cordovatestapp
+          cd examples/cordovatestapp/examples
           echo "im at" && pwd
           echo "doing ls: "
           ls -l
