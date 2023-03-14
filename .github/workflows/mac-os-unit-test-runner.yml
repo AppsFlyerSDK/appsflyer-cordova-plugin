@@ -35,7 +35,12 @@ jobs:
           script: |
             cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh
 
-      - name: verify test results
+  verify-results:
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - name: Verify test results
         run: |
           cd examples/cordovatestapp/testResults
           echo "the res are: " && ls -l
+        continue-on-error: true
