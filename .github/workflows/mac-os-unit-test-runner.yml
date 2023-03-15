@@ -40,6 +40,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: always()
         with:
+          run: echo "I'm at" && pwd && "the folders below are " && ls -l
           name: Test Results
           path: /examples/cordovatestapp/examples/cordovatestapp/testResults/junitresults-cordovapluginappsflyersdktests.tests.xml
           reporter: java-junit
