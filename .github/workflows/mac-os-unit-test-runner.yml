@@ -37,8 +37,10 @@ jobs:
             cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh
 
       - name: Verify test results
-        run: |
-          cd examples/cordovatestapp/examples/cordovatestapp/testResults
-          echo "im at" && pwd
-          echo "doing ls: "
-          ls -l
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Test Results
+          path: appsflyer-cordova-plugin/examples/cordovatestapp/examples/cordovatestapp/testResults/junitresults-cordovapluginappsflyersdktests.tests.xml
+          reporter: java-junit
+          fail-on-error: true
