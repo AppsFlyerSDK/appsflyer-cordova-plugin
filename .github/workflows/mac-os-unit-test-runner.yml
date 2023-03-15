@@ -41,6 +41,6 @@ jobs:
         if: always()
         with:
           name: Test Results
-          path: /Users/runner/work/appsflyer-cordova-plugin/appsflyer-cordova-plugin/examples/cordovatestapp/examples/cordovatestapp/testResults/junitresults-cordovapluginappsflyersdktests.tests.xml
+          path: appsflyer-cordova-plugin/examples/cordovatestapp/examples/cordovatestapp/testResults/junitresults-cordovapluginappsflyersdktests.tests.xml
           reporter: java-junit
           fail-on-error: true
