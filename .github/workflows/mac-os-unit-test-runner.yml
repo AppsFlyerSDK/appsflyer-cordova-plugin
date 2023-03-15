@@ -36,6 +36,14 @@ jobs:
           script: |
             cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh
 
+      - name: ls
+        run: |
+          echo "im at" && pwd
+          ls -l
+          cd examples/cordovatestapp/examples/cordovatestapp/testResults
+          echo "doing ls to the results folder: "
+          ls -l
+
       - name: Verify test results
         uses: dorny/test-reporter@v1
         if: always()
