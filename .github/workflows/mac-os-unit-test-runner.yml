@@ -40,7 +40,7 @@ jobs:
         run: |
           echo "im at" && pwd
           ls -l
-          cd examples/cordovatestapp/examples/cordovatestapp/testResults
+          cd examples/cordovatestapp/testResults
           echo "doing ls to the results folder: "
           ls -l
 
@@ -49,6 +49,6 @@ jobs:
         if: always()
         with:
           name: Test Results
-          path: examples/cordovatestapp/examples/cordovatestapp/testResults/junitresults-cordovapluginappsflyersdktests.tests.xml
+          path: examples/cordovatestapp/testResults/junitresults-cordovapluginappsflyersdktests.tests.xml
           reporter: java-junit
           fail-on-error: true
