@@ -409,11 +409,13 @@ exports.defineAutoTests = function () {
 
         it("appsflyer.init error callback appId and devkey are not defined iOS", function (done) {
 
-            window.console.log("the platform is android? ", isAndroid);
-            window.console.log("the platform is with var? ", platform);
-            window.console.log("the platform is? ", window.cordova.platformId);
-            window.console.log("true? ", true);
-            window.console.log("the platform is ios? ", isIOS);
+            window.console.log("the platform is android? ");
+            window.console.log(isAndroid);
+            window.console.log("the platform is with var? ");
+            window.console.log(platform);
+            window.console.log("the platform is? ");
+            window.console.log(window.cordova.platformId);
+            window.console.log("true?", true);
 
             if (isAndroid) {
                 return;
