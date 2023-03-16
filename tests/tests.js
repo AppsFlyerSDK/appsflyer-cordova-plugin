@@ -363,6 +363,7 @@ exports.defineAutoTests = function () {
         it("appsflyer.init error callback appId is undefined", function (done) {
 
             if (isAndroid) {
+                done();
                 return;
             }
             var successCB = function (result) {
@@ -386,6 +387,7 @@ exports.defineAutoTests = function () {
         it("appsflyer.init error callback appId defined as Integer", function (done) {
 
             if (isAndroid) {
+                done();
                 return;
             }
             var successCB = function (result) {
@@ -409,7 +411,7 @@ exports.defineAutoTests = function () {
 
         it("appsflyer.init error callback appId and devkey are not defined iOS", function (done) {
             if (isAndroid) {
-                window.console.log("I'm inside the condition");
+                done();
                 return;
             }
             var successCB = function (result) {
