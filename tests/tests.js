@@ -1,7 +1,7 @@
 /* jshint jasmine: true */
 
 exports.defineAutoTests = function () {
-
+    var platform = window.cordova.platformId;
     var isIOS = window.cordova.platformId === 'ios';
     var isAndroid = window.cordova.platformId === 'android';
 
@@ -410,6 +410,9 @@ exports.defineAutoTests = function () {
         it("appsflyer.init error callback appId and devkey are not defined iOS", function (done) {
 
             window.console.log("the platform is android? ", isAndroid);
+            window.console.log("the platform is with var? ", platform);
+            window.console.log("the platform is? ", window.cordova.platformId);
+            window.console.log("true? ", true);
             window.console.log("the platform is ios? ", isIOS);
 
             if (isAndroid) {
