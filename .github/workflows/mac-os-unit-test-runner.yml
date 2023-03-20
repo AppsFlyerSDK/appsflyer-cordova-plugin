@@ -56,9 +56,9 @@ jobs:
       - name: Run ios unit tests on simulator
         uses: futureware-tech/simulator-action@v2
         with:
-          model: 'iPhone 8'
-          script: |
-            cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
+          model: 'iPhone 11'
+        -run: |
+          cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
 
       - name: Verify test results
         uses: dorny/test-reporter@v1
