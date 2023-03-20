@@ -3,7 +3,7 @@ on:
   push:
 
 jobs:
-  unit-tests:
+  android-unit-tests:
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -34,7 +34,7 @@ jobs:
           arch: x86_64
           options: '-gpu swiftshader_indirect'
           script: |
-            cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTests.sh && ./testsScripts/cordovaParamedicRunUnitTests.sh
+            cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh
 
       - name: ls
         run: |
@@ -48,7 +48,23 @@ jobs:
         uses: dorny/test-reporter@v1
         if: always()
         with:
-          name: Test Results
+          name: Android Test Results
+          path: examples/cordovatestapp/testResults/junitresults-cordovapluginappsflyersdktests.tests.xml
+          reporter: java-junit
+          fail-on-error: true
+
+      - name: Run ios unit tests on simulator
+        uses: futureware-tech/simulator-action@v2
+        with:
+          model: 'iPhone 8'
+          script: |
+            cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
+
+      - name: Verify test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Ios Test Results
           path: examples/cordovatestapp/testResults/junitresults-cordovapluginappsflyersdktests.tests.xml
           reporter: java-junit
           fail-on-error: true

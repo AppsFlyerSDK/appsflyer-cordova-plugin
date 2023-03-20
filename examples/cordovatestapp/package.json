@@ -7,7 +7,7 @@
   "scripts": {
     "test": "jasmine",
     "setEnv": "testsScripts/setEnv.sh",
-    "runAndroidUnitTestsOnEmulator": "testsScripts/cordovaParamedicRunUnitTests.sh"
+    "runAndroidUnitTestsOnEmulator": "testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh"
   },
   "keywords": [
     "ecosystem:cordova"
