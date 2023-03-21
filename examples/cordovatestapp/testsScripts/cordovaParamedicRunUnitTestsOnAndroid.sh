@@ -13,5 +13,5 @@
 #Otherwise, when running through git actions that's the proper way to do this:
 npm install "https://github.com/apache/cordova-paramedic.git#master" --save -g
 DIR=$(pwd)
-cordova-paramedic --platform android --plugin plugins/cordova-plugin-appsflyer-sdk --outputDir "${DIR}"/testResults --verbose
+cordova-paramedic --platform android --plugin plugins/cordova-plugin-appsflyer-sdk --outputDir "${DIR}"/testResults/android --verbose
 
