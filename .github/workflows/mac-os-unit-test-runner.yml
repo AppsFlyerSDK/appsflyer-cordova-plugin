@@ -74,7 +74,7 @@ jobs:
           cd examples
           echo "im at" && pwd
           ls -l
-          cd examples/cordovatestapp
+          cd cordovatestapp
           echo "im at" && pwd
           ls -l
           echo "doing ls to the results folder: "
