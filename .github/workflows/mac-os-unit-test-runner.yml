@@ -51,10 +51,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Set up macOS environment
-        uses: apple/setup-darwin@v1
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
         with:
-          xcode-select: true
+          node-version: '14'
 
       - name: Install dependencies
         run: |
@@ -62,6 +62,15 @@ jobs:
           cd examples/cordovatestapp
           chmod +x testsScripts/setEnv.sh
           ./testsScripts/setEnv.sh
+
+      - name: Install Xcode and iOS Simulator using Homebrew
+        run: |
+          brew update
+          brew install --cask xcode
+          xcode-select --install
+          sudo gem install cocoapods
+          pod setup
+          npm install -g cordova-paramedic
 
       - name: Run iOS unit tests on simulator
         run: |
