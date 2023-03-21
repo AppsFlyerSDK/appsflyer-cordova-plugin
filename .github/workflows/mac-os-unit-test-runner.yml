@@ -70,6 +70,7 @@ jobs:
       - name: Run iOS unit tests on simulator
         run: |
           npm install -g cordova-paramedic
+          npm install -g ios-deploy
           cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
 
       - name: Verify test results
