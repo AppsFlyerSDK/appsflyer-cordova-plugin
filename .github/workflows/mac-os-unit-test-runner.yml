@@ -51,11 +51,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Set up Xcode
-        uses: actions/setup-xcode@v2.4.0
-        with:
-          xcode-version: '13.x'
+      - name: Set up macOS environment
+        uses: actions/setup-macos@v2
 
+      - name: Install Xcode
+        run: sudo xcode-select --switch /Applications/Xcode.app
+        
       - name: Install dependencies
         run: |
           npm install
