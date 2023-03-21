@@ -65,10 +65,10 @@ jobs:
 
       - name: Install Xcode and iOS Simulator using xcversion gem
         run: |
-          sudo gem install xcversion
+          sudo gem install xcversion --no-document
           xcversion list
           xcversion install 12.5.1
-          sudo gem install cocoapods
+          sudo gem install cocoapods --no-document
           pod setup
           npm install -g cordova-paramedic
 
