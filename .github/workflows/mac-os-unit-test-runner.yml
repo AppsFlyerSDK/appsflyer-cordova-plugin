@@ -63,14 +63,11 @@ jobs:
           chmod +x testsScripts/setEnv.sh
           ./testsScripts/setEnv.sh
 
-      - name: Install Xcode and iOS Simulator using Homebrew
+      - name: Install Xcode and iOS Simulator using xcversion gem
         run: |
-          brew update
-          brew install xcversion
+          sudo gem install xcversion
+          xcversion list
           xcversion install 12.5.1
-          brew install xcode-install
-          xcversion install 12.5.1
-          xcode-select --install
           sudo gem install cocoapods
           pod setup
           npm install -g cordova-paramedic
