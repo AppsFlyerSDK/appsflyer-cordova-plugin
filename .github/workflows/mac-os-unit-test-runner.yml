@@ -45,6 +45,7 @@ jobs:
           reporter: java-junit
           fail-on-error: true
 
+
   ios-unit-tests:
     runs-on: macos-11
     steps:
@@ -65,6 +66,14 @@ jobs:
           cd examples/cordovatestapp
           chmod +x testsScripts/setEnv.sh
           ./testsScripts/setEnv.sh
+
+      - name: ls
+        run: |
+          echo "im at" && pwd
+          ls -l
+          cd examples/cordovatestapp/testResults
+          echo "doing ls to the results folder: "
+          ls -l
 
       - name: Run iOS unit tests on simulator
         run: |
