@@ -71,7 +71,12 @@ jobs:
         run: |
           echo "im at" && pwd
           ls -l
-          cd examples/cordovatestapp/testResults
+          cd examples
+          echo "im at" && pwd
+          ls -l
+          cd examples/cordovatestapp
+          echo "im at" && pwd
+          ls -l
           echo "doing ls to the results folder: "
           ls -l
 
