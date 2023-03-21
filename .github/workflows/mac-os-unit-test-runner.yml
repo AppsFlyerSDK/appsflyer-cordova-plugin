@@ -67,21 +67,10 @@ jobs:
           chmod +x testsScripts/setEnv.sh
           ./testsScripts/setEnv.sh
 
-      - name: ls
-        run: |
-          echo "im at" && pwd
-          ls -l
-          cd examples
-          echo "im at" && pwd
-          ls -l
-          cd cordovatestapp
-          echo "im at" && pwd
-          ls -l
-          echo "doing ls to the results folder: "
-          ls -l
-
       - name: Run iOS unit tests on simulator
         run: |
+          echo "im at" && pwd
+          ls -l
           cd examples/cordovatestapp
           npm install -g cordova-paramedic
           cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
