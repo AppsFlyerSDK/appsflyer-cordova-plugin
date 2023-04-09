@@ -165,7 +165,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         } else if ("setDisableNetworkData".equals(action)) {
             return setDisableNetworkData(args);
         }
-
         return false;
     }
 
@@ -276,7 +275,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             if (devKey.trim().equals("")) {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
             }
-
+            setPluginInfo();
             isDebug = options.optBoolean(AF_IS_DEBUG, false);
 
             if (options.has(AF_COLLECT_ANDROID_ID)) {
@@ -1138,6 +1137,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
         });
         return true;
+    }
+
+    private void setPluginInfo(){
+        PluginInfo pluginInfo = new PluginInfo(Plugin.CORDOVA, PLUGIN_VERSION);
+        AppsFlyerLib.getInstance().setPluginInfo(pluginInfo);
     }
 
     /**
