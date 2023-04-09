@@ -36,6 +36,7 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SIGNATURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_FAILED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_SUCCESS;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PLUGIN_VERSION;
 
 import android.content.Context;
 import android.content.Intent;
