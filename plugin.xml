@@ -42,9 +42,6 @@
 
     <!-- android -->
     <platform name="android">
-        <preference name="GradlePluginKotlinEnabled" value="true" />
-        <preference name="GradlePluginKotlinCodeStyle" value="official" />
-        <preference name="GradlePluginKotlinVersion" value="1.6.20" />
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="AppsFlyerPlugin">
                 <param name="android-package" value="com.appsflyer.cordova.plugin.AppsFlyerPlugin"/>
@@ -67,7 +64,6 @@
                      target-dir="src/com/appsflyer/cordova/plugin"/>
         <source-file src="src/android/com/appsflyer/cordova/plugin/AppsFlyerConstants.java"
                      target-dir="src/com/appsflyer/cordova/plugin"/>
-
         <framework src="src/android/cordovaAF.gradle" custom="true" type="gradleReference"/>
     </platform>
 
