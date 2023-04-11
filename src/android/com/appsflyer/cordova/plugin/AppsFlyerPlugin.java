@@ -57,8 +57,8 @@ import com.appsflyer.deeplink.DeepLinkResult;
 import com.appsflyer.share.CrossPromotionHelper;
 import com.appsflyer.share.LinkGenerator;
 import com.appsflyer.share.ShareInviteHelper;
-// import com.appsflyer.internal.platform_extension.plugin;
-// import com.appsflyer.internal.platform_extension.pluginInfo;
+import com.appsflyer.internal.platform_extension.plugin;
+import com.appsflyer.internal.platform_extension.pluginInfo;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -278,7 +278,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             if (devKey.trim().equals("")) {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
             }
-//             setPluginInfo();
+            setPluginInfo();
             isDebug = options.optBoolean(AF_IS_DEBUG, false);
 
             if (options.has(AF_COLLECT_ANDROID_ID)) {
@@ -1142,10 +1142,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
-//     private void setPluginInfo(){
-//         PluginInfo pluginInfo = new PluginInfo(Plugin.CORDOVA, PLUGIN_VERSION);
-//         AppsFlyerLib.getInstance().setPluginInfo(pluginInfo);
-//     }
+    private void setPluginInfo(){
+        PluginInfo pluginInfo = new PluginInfo(Plugin.CORDOVA, PLUGIN_VERSION);
+        AppsFlyerLib.getInstance().setPluginInfo(pluginInfo);
+    }
 
     /**
      * takes string representation of a string array and converts it to an array. use this method because old version of cordova cannot pass an array to native.
