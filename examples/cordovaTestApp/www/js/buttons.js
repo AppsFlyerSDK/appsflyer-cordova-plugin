@@ -2,7 +2,7 @@
 let trackEventBtn = document.getElementById('logEvent');
 
 if (trackEventBtn) {
-    alert("Inapp button pressed")
+    alert("Inapp button pressed");
     trackEventBtn.addEventListener('click', logEvent, false);
 }
 
@@ -12,15 +12,15 @@ function logEvent(eventName, eventValues) {
         'af_content_id': 'id123',
         'af_currency': 'USD',
         'af_content_type': 'shoes',
-        'af_revenue': '10',
+        'af_revenue': '10'
     };
     window.plugins.appsFlyer.logEvent(eventName, eventValues, callBackFunction, callBackFunction);
 }
 
 function setHost() {
-    let prefix = "foo"
-    let name = "bar"
-    window.plugins.appsflyer.setHost(prefix, name)
+    let prefix = "foo";
+    let name = "bar";
+    window.plugins.appsFlyer.setHost(prefix, name);
 }
 
 function callBackFunction(id) {
