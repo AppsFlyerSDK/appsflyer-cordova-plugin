@@ -36,6 +36,7 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SIGNATURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_FAILED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_SUCCESS;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PLUGIN_VERSION;
 
 import android.content.Context;
 import android.content.Intent;
@@ -56,6 +57,8 @@ import com.appsflyer.deeplink.DeepLinkResult;
 import com.appsflyer.share.CrossPromotionHelper;
 import com.appsflyer.share.LinkGenerator;
 import com.appsflyer.share.ShareInviteHelper;
+import com.appsflyer.internal.platform_extension.Plugin;
+import com.appsflyer.internal.platform_extension.PluginInfo;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -165,7 +168,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         } else if ("setDisableNetworkData".equals(action)) {
             return setDisableNetworkData(args);
         }
-
         return false;
     }
 
@@ -276,7 +278,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             if (devKey.trim().equals("")) {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
             }
-
+            setPluginInfo();
             isDebug = options.optBoolean(AF_IS_DEBUG, false);
 
             if (options.has(AF_COLLECT_ANDROID_ID)) {
@@ -1138,6 +1140,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
         });
         return true;
+    }
+
+    private void setPluginInfo(){
+        PluginInfo pluginInfo = new PluginInfo(Plugin.CORDOVA, PLUGIN_VERSION);
+        AppsFlyerLib.getInstance().setPluginInfo(pluginInfo);
     }
 
     /**

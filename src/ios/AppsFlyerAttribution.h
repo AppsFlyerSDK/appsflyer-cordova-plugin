@@ -7,7 +7,7 @@
 #ifndef AppsFlyerAttribution_h
 #define AppsFlyerAttribution_h
 #endif /* AppsFlyerAttribution_h */
-#import "AppsFlyerLib.h"
+#import <AppsFlyerLib/AppsFlyerLib.h>
 
 @interface AppsFlyerAttribution : NSObject
 @property NSUserActivity*_Nullable  userActivity;
