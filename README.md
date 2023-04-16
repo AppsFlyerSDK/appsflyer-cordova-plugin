@@ -22,7 +22,7 @@ This plugin is not 100% compatible for use with Capacitor! To use this plugin wi
 - Cordova AppsFlyer plugin version **4.4.0** and higher are meant to be used with **cordova-android@7.0.0** and up <br>  
 For lower versions of cordova-android please use plugin version 4.3.3 available @ https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/tree/4.3.3 <br>  
 - From version **6.1.10** the plugin uses cocoapods(NOT StaticLib) in order to support iOS app-kids Strict mode. <br>  
-You can read more [here](https://support.appsflyer.com/hc/en-us/articles/207032066#integration-strict-mode-sdk)  
+You can read more [here](https://support.appsflyer.com/hc/en-us/articles/207032066#integration-strict-mode-sdk)
 - From version **6.10.2** the plugin requires using the implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.20' in Android.
 ----------  
 
@@ -43,7 +43,7 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
 ### <a id="plugin-build-for"> This plugin is built for  
   
 - iOS AppsFlyerSDK **v6.10.1**  
-- Android AppsFlyerSDK **v6.10.2**  will wo
+- Android AppsFlyerSDK **v6.10.2**
   
 ### <a id="breakingChanges"> ❗v6 Breaking Changes  
   
