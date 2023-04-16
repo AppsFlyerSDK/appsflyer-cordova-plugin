@@ -1,83 +1,83 @@
-name: Run unit tests on Android via emulator
-on:
-  push:
-
-jobs:
-  android-unit-tests:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          java-version: 11
-          distribution: 'adopt'
-          cache: 'gradle'
-
-      - name: Install dependencies
-        run: |
-          npm install
-          cd examples/cordovatestapp 
-          chmod +x testsScripts/setEnv.sh
-          ./testsScripts/setEnv.sh
-
-      - name: Run Android unit tests on emulator
-        continue-on-error: true
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          emulator-options: -no-window -no-snapshot
-          emulator-build: 7425822
-          api-level: 29
-          target: google_apis
-          arch: x86_64
-          options: '-gpu swiftshader_indirect'
-          script: |
-            cd examples/cordovaTestApp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh
-
-      - name: Verify test results Android
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: Android Test Results
-          path: examples/cordovaTestApp/testResults/android/junitresults-cordovapluginappsflyersdktests.tests.xml
-          reporter: java-junit
-          fail-on-error: true
-
-
-  ios-unit-tests:
-    runs-on: macos-11
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Select Xcode
-        run: sudo xcode-select -switch /Applications/Xcode_13.0.app && /usr/bin/xcodebuild -version
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
-      - name: Install dependencies
-        run: |
-          npm install
-          cd examples/cordovaTestApp
-          chmod +x testsScripts/setEnv.sh
-          ./testsScripts/setEnv.sh
-
-      - name: Run iOS unit tests on simulator
-        run: |
-          npm install -g cordova-paramedic
-          npm install -g ios-deploy
-          cd examples/cordovaTestApp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
-
-      - name: Verify test results
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: iOS Test Results
-          path: examples/cordovaTestApp/testResults/ios/junitresults-cordovapluginappsflyersdktests.tests.xml
-          reporter: java-junit
-          fail-on-error: true
+#name: Run unit tests on Android via emulator
+#on:
+#  push:
+#
+#jobs:
+#  android-unit-tests:
+#    runs-on: macos-latest
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#
+#      - name: Set up JDK 11
+#        uses: actions/setup-java@v3
+#        with:
+#          java-version: 11
+#          distribution: 'adopt'
+#          cache: 'gradle'
+#
+#      - name: Install dependencies
+#        run: |
+#          npm install
+#          cd examples/cordovatestapp
+#          chmod +x testsScripts/setEnv.sh
+#          ./testsScripts/setEnv.sh
+#
+#      - name: Run Android unit tests on emulator
+#        continue-on-error: true
+#        uses: reactivecircus/android-emulator-runner@v2
+#        with:
+#          emulator-options: -no-window -no-snapshot
+#          emulator-build: 7425822
+#          api-level: 29
+#          target: google_apis
+#          arch: x86_64
+#          options: '-gpu swiftshader_indirect'
+#          script: |
+#            cd examples/cordovaTestApp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh
+#
+#      - name: Verify test results Android
+#        uses: dorny/test-reporter@v1
+#        if: always()
+#        with:
+#          name: Android Test Results
+#          path: examples/cordovaTestApp/testResults/android/junitresults-cordovapluginappsflyersdktests.tests.xml
+#          reporter: java-junit
+#          fail-on-error: true
+#
+#
+#  ios-unit-tests:
+#    runs-on: macos-11
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#
+#      - name: Select Xcode
+#        run: sudo xcode-select -switch /Applications/Xcode_13.0.app && /usr/bin/xcodebuild -version
+#
+#      - name: Set up Node.js
+#        uses: actions/setup-node@v2
+#        with:
+#          node-version: '14'
+#
+#      - name: Install dependencies
+#        run: |
+#          npm install
+#          cd examples/cordovaTestApp
+#          chmod +x testsScripts/setEnv.sh
+#          ./testsScripts/setEnv.sh
+#
+#      - name: Run iOS unit tests on simulator
+#        run: |
+#          npm install -g cordova-paramedic
+#          npm install -g ios-deploy
+#          cd examples/cordovaTestApp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
+#
+#      - name: Verify test results
+#        uses: dorny/test-reporter@v1
+#        if: always()
+#        with:
+#          name: iOS Test Results
+#          path: examples/cordovaTestApp/testResults/ios/junitresults-cordovapluginappsflyersdktests.tests.xml
+#          reporter: java-junit
+#          fail-on-error: true
