@@ -34,14 +34,14 @@ jobs:
           arch: x86_64
           options: '-gpu swiftshader_indirect'
           script: |
-            cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh
+            cd examples/cordovaTestApp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh
 
       - name: Verify test results Android
         uses: dorny/test-reporter@v1
         if: always()
         with:
           name: Android Test Results
-          path: examples/cordovatestapp/testResults/android/junitresults-cordovapluginappsflyersdktests.tests.xml
+          path: examples/cordovaTestApp/testResults/android/junitresults-cordovapluginappsflyersdktests.tests.xml
           reporter: java-junit
           fail-on-error: true
 
@@ -63,7 +63,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm install
-          cd examples/cordovatestapp
+          cd examples/cordovaTestApp
           chmod +x testsScripts/setEnv.sh
           ./testsScripts/setEnv.sh
 
@@ -71,13 +71,13 @@ jobs:
         run: |
           npm install -g cordova-paramedic
           npm install -g ios-deploy
-          cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
+          cd examples/cordovaTestApp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
 
       - name: Verify test results
         uses: dorny/test-reporter@v1
         if: always()
         with:
           name: iOS Test Results
-          path: examples/cordovatestapp/testResults/ios/junitresults-cordovapluginappsflyersdktests.tests.xml
+          path: examples/cordovaTestApp/testResults/ios/junitresults-cordovapluginappsflyersdktests.tests.xml
           reporter: java-junit
           fail-on-error: true
