@@ -17,15 +17,19 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "cordova-android": "^10.1.2",
+    "cordova-ios": "^6.3.0",
     "jasmine": "^4.5.0",
     "jasmine-reporters": "^2.5.2",
     "jasmine-spec-reporter": "^7.0.0"
   },
   "cordova": {
     "platforms": [
-      "android"
+      "android",
+      "ios"
     ],
-    "plugins": {}
+    "plugins": {
+      "cordova-plugin-test-framework": {}
+    }
   },
   "dependencies": {
     "@material-ui/core": "^4.12.4",
