@@ -26,18 +26,16 @@ document.addEventListener(
 
 
         var options = {
-            devKey: 'xxx1234567',
-            appId: 'id111111111',
+            devKey: 'yD3hPCztAkriFj2qJNZsRG',
+            appId: 'id989523617',
             isDebug: true,
             onInstallConversionDataListener: true,
             // onDeepLinkListener: true, //if true, will override onAppOpenAttribution
             waitForATTUserAuthorization: 0, //--> Here you set the time for the sdk to wait before launch
         };
-        console.log("I'm after the init noa")
         window.plugins.appsFlyer.initSdk(options, function (res) {
             console.log('GCD ~~>' + res);
             alert('GCD ~~>' + res);
-            console.log("I'm after the gcd noa")
 
         }, function (err) {
             console.log(`failed ~~> ${err}`);
