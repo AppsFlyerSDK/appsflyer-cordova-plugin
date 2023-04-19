@@ -26,8 +26,8 @@ document.addEventListener(
 
 
         var options = {
-            devKey: 'yD3hPCztAkriFj2qJNZsRG',
-            appId: 'id989523617',
+            devKey: 'xxx1234567',
+            appId: 'id111111111',
             isDebug: true,
             onInstallConversionDataListener: true,
             // onDeepLinkListener: true, //if true, will override onAppOpenAttribution
