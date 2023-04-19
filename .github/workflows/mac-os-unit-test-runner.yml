@@ -47,7 +47,7 @@ jobs:
 
 
   ios-unit-tests:
-    runs-on: self-hosted
+    runs-on: macos-11
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -71,6 +71,7 @@ jobs:
         run: |
           npm install -g cordova-paramedic
           npm install -g ios-deploy
+          ios-deploy --version
           cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
 
       - name: Verify test results
