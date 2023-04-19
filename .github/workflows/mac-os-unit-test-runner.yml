@@ -47,7 +47,7 @@ jobs:
 
 
   ios-unit-tests:
-    runs-on: macos-11
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v2
