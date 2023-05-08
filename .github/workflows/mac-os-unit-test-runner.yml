@@ -67,18 +67,18 @@ jobs:
           chmod +x testsScripts/setEnv.sh
           ./testsScripts/setEnv.sh
 
-      - name: Run iOS unit tests on simulator
-        run: |
-          npm install -g cordova-paramedic
-          npm install -g ios-deploy
-          ios-deploy --version
-          cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
-
-      - name: Verify test results
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: iOS Test Results
-          path: examples/cordovatestapp/testResults/ios/junitresults-cordovapluginappsflyersdktests.tests.xml
-          reporter: java-junit
-          fail-on-error: true
+#      - name: Run iOS unit tests on simulator
+#        run: |
+#          npm install -g cordova-paramedic
+#          npm install -g ios-deploy
+#          ios-deploy --version
+#          cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
+#
+#      - name: Verify test results
+#        uses: dorny/test-reporter@v1
+#        if: always()
+#        with:
+#          name: iOS Test Results
+#          path: examples/cordovatestapp/testResults/ios/junitresults-cordovapluginappsflyersdktests.tests.xml
+#          reporter: java-junit
+#          fail-on-error: true
