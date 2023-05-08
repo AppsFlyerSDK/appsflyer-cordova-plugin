@@ -1,5 +1,5 @@
 {
-  "name": "com.example.cordovatestapp",
+  "name": "com.appsflyer.cordovatry",
   "displayName": "Hi",
   "version": "1.0.0",
   "description": "A sample Apache Cordova application that responds to the deviceready event.",
@@ -17,9 +17,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "cordova-android": "^10.1.2",
-    "cordova-ios": "^6.2.0",
-    "cordova-plugin-appsflyer-sdk": "file:../..",
-    "cordova-plugin-test-framework": "^1.1.6",
+    "cordova-ios": "^6.3.0",
     "jasmine": "^4.5.0",
     "jasmine-reporters": "^2.5.2",
     "jasmine-spec-reporter": "^7.0.0"

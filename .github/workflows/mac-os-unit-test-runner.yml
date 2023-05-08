@@ -46,38 +46,39 @@ jobs:
           fail-on-error: true
 
 
-#  ios-unit-tests:
-#    runs-on: macos-11
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#
-#      - name: Select Xcode
-#        run: sudo xcode-select -switch /Applications/Xcode_13.0.app && /usr/bin/xcodebuild -version
-#
-#      - name: Set up Node.js
-#        uses: actions/setup-node@v2
-#        with:
-#          node-version: '14'
-#
-#      - name: Install dependencies
-#        run: |
-#          npm install
-#          cd examples/cordovatestapp
-#          chmod +x testsScripts/setEnv.sh
-#          ./testsScripts/setEnv.sh
-#
-#      - name: Run iOS unit tests on simulator
-#        run: |
-#          npm install -g cordova-paramedic
-#          npm install -g ios-deploy
-#          cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
-#
-#      - name: Verify test results
-#        uses: dorny/test-reporter@v1
-#        if: always()
-#        with:
-#          name: iOS Test Results
-#          path: examples/cordovatestapp/testResults/ios/junitresults-cordovapluginappsflyersdktests.tests.xml
-#          reporter: java-junit
-#          fail-on-error: true
+  ios-unit-tests:
+    runs-on: macos-11
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_13.0.app && /usr/bin/xcodebuild -version
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: |
+          npm install
+          cd examples/cordovatestapp
+          chmod +x testsScripts/setEnv.sh
+          ./testsScripts/setEnv.sh
+
+      - name: Run iOS unit tests on simulator
+        run: |
+          npm install -g cordova-paramedic
+          npm install -g ios-deploy
+          ios-deploy --version
+          cd examples/cordovatestapp && chmod +x testsScripts/cordovaParamedicRunUnitTestsOnIos.sh && ./testsScripts/cordovaParamedicRunUnitTestsOnIos.sh
+
+      - name: Verify test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: iOS Test Results
+          path: examples/cordovatestapp/testResults/ios/junitresults-cordovapluginappsflyersdktests.tests.xml
+          reporter: java-junit
+          fail-on-error: true
