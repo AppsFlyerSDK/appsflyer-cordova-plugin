@@ -23,7 +23,8 @@ jobs:
           gradle wrapper
           echo "ls: $(ls)"
           chmod +x ./gradlew
-          ./gradlew assembleRelease
+          ./gradlew wrapper --gradle-version 7.6.1
+          ./gradlew clean assembleRelease
   # Build-RN-ios:
   #   runs-on: macos-latest
   #   steps:
