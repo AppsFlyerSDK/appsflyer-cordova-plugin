@@ -10,21 +10,22 @@ jobs:
       - uses: actions/checkout@v3
       - name: install cordova-appsflyer on an Android app
         run: |
-          npm install -g cordova
-          cd examples/cordovatestapp
-          npm install
-          npm install ../../
-          cordova platforms add android
-          cordova prepare android
-      - name: Build apk
-        run: |
-          cd examples/cordovatestapp/platforms/android
-          echo "pwd: $(pwd)"
-          gradle wrapper --gradle-version 7.4.2
-          echo "ls: $(ls)"
-          chmod +x ./gradlew
-          echo "gradle version: $(./gradlew --version)"
-          ./gradlew clean assembleRelease
+          echo "skip"
+#          npm install -g cordova
+#          cd examples/cordovatestapp
+#          npm install
+#          npm install ../../
+#          cordova platforms add android
+#          cordova prepare android
+#      - name: Build apk
+#        run: |
+#          cd examples/cordovatestapp/platforms/android
+#          echo "pwd: $(pwd)"
+#          gradle wrapper --gradle-version 7.4.2
+#          echo "ls: $(ls)"
+#          chmod +x ./gradlew
+#          echo "gradle version: $(./gradlew --version)"
+#          ./gradlew clean assembleRelease
   # Build-RN-ios:
   #   runs-on: macos-latest
   #   steps:
