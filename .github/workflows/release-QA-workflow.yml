@@ -15,9 +15,9 @@ on:
 
 jobs:
 
-  Build-Sample-Apps:
-    uses: ./.github/workflows/build-apps-workflow.yml
-    secrets: inherit
+#  Build-Sample-Apps:
+#    uses: ./.github/workflows/build-apps-workflow.yml
+#    secrets: inherit
 
   Deploy-To-QA:
     needs: [Build-Sample-Apps]
