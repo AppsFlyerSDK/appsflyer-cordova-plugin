@@ -11,19 +11,20 @@ jobs:
       - name: install cordova-appsflyer on an Android app
         run: |
           npm install -g cordova
-          cd examples/cordova
+          cd examples/cordovatestapp
           npm install
           npm install ../../
           cordova platforms add android
           cordova prepare android
       - name: Build apk
         run: |
-          cd examples/cordova/platforms/android
+          cd examples/cordovatestapp/platforms/android
           echo "pwd: $(pwd)"
           gradle wrapper
           echo "ls: $(ls)"
           chmod +x ./gradlew
-          ./gradlew assembleRelease
+          ./gradlew wrapper --gradle-version 7.6.1
+          ./gradlew clean assembleRelease
   # Build-RN-ios:
   #   runs-on: macos-latest
   #   steps:

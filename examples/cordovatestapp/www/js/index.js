@@ -36,6 +36,7 @@ document.addEventListener(
         window.plugins.appsFlyer.initSdk(options, function (res) {
             console.log('GCD ~~>' + res);
             alert('GCD ~~>' + res);
+
         }, function (err) {
             console.log(`failed ~~> ${err}`);
         });
