@@ -24,7 +24,7 @@ jobs:
           echo "ls: $(ls)"
           chmod +x ./gradlew
           ./gradlew wrapper --gradle-version 7.6.1
-          ./gradlew --version
+          echo "gradle version: $(./gradlew --version)"
           ./gradlew clean assembleRelease
   # Build-RN-ios:
   #   runs-on: macos-latest
