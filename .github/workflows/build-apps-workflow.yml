@@ -20,7 +20,7 @@ jobs:
         run: |
           cd examples/cordovatestapp/platforms/android
           echo "pwd: $(pwd)"
-          gradle wrapper --gradle-version 7.6.1
+          gradle wrapper --gradle-version 7.4.2
           echo "ls: $(ls)"
           chmod +x ./gradlew
           echo "gradle version: $(./gradlew --version)"
