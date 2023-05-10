@@ -49,7 +49,11 @@ jobs:
         env:
           SLACK_TOKEN: ${{ secrets.CI_SLACK_TOKEN }}
         run: |
+          echo "I'm here 1"
           ios_sdk_version=$(cat README.md | grep 'iOS AppsFlyerSDK \*\*v[0-9].[0-9]+.[0-9]+\*\*')
+          echo "I'm here 2"
           android_sdk_version=$(cat README.md | grep 'Android AppsFlyerSDK \*\*v[0-9].[0-9]+.[0-9]+\*\*')
+          echo "I'm here 3"
           CHANGES=$(cat "${{env.JIRA_FIXED_VERSION}}-releasenotes".txt)
+          echo "I'm here 4"
           curl -X POST -H 'Content-type: application/json' --data '{"jira_fixed_version": "'"${{env.JIRA_FIXED_VERSION}}"'", "deploy_type": "QA", "install_tag": "QA", "git_branch": "'"${{github.ref_name}}"'", "changes_and_fixes": "'"$CHANGES"'", "android_dependency": "'"$android_sdk_version"'", "ios_dependency": "'"$ios_sdk_version"'"}' "$SLACK_TOKEN"
