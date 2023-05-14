@@ -347,6 +347,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSString *referrerImageUrl = nil;
     NSString *customerID = nil;
     NSString *baseDeepLink = nil;
+    NSString *brandDomain = nil;
 
     if (![inviteLinkOptions isKindOfClass:[NSNull class]]) {
         channel = (NSString*)[inviteLinkOptions objectForKey: afUiChannel];
