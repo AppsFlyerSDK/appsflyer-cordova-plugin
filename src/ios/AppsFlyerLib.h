@@ -2,16 +2,16 @@
 //  AppsFlyerLib.h
 //  AppsFlyerLib
 //
-//  AppsFlyer iOS SDK 6.4.0 (29)
-//  Copyright (c) 2012-2020 AppsFlyer Ltd. All rights reserved.
+//  AppsFlyer iOS SDK 6.10.1 (109)
+//  Copyright (c) 2012-2023 AppsFlyer Ltd. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 
-#import "AppsFlyerCrossPromotionHelper.h"
-#import "AppsFlyerShareInviteHelper.h"
-#import "AppsFlyerDeepLinkResult.h"
-#import "AppsFlyerDeepLink.h"
+#import <AppsFlyerLib/AppsFlyerCrossPromotionHelper.h>
+#import <AppsFlyerLib/AppsFlyerShareInviteHelper.h>
+#import <AppsFlyerLib/AppsFlyerDeepLinkResult.h>
+#import <AppsFlyerLib/AppsFlyerDeepLink.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -95,6 +95,7 @@ NS_ASSUME_NONNULL_BEGIN
 #define AFEventParam8                      @"af_param_8"
 #define AFEventParam9                      @"af_param_9"
 #define AFEventParam10                     @"af_param_10"
+#define AFEventParamTouch                  @"af_touch_obj"
 
 #define AFEventParamDepartingDepartureDate  @"af_departing_departure_date"
 #define AFEventParamReturningDepartureDate  @"af_returning_departure_date"
@@ -130,17 +131,35 @@ NS_ASSUME_NONNULL_BEGIN
 #define AFEventParamAdRevenueAdSize              @"af_adrev_ad_size"
 #define AFEventParamAdRevenueMediatedNetworkName @"af_adrev_mediated_network_name"
 
+
 /// Mail hashing type
 typedef enum  {
     /// None
     EmailCryptTypeNone = 0,
-    /// SHA1
-    EmailCryptTypeSHA1 = 1,
-    /// MD5
-    EmailCryptTypeMD5 = 2,
     /// SHA256
     EmailCryptTypeSHA256 = 3
 } EmailCryptType;
+
+typedef NS_CLOSED_ENUM (NSInteger ,AFSDKPlugin) {
+    AFSDKPluginIOSNative,
+    AFSDKPluginUnity,
+    AFSDKPluginFlutter,
+    AFSDKPluginReactNative,
+    AFSDKPluginAdobeAir,
+    AFSDKPluginAdobeMobile,
+    AFSDKPluginCocos2dx,
+    AFSDKPluginCordova,
+    AFSDKPluginMparticle,
+    AFSDKPluginNativeScript,
+    AFSDKPluginExpo,
+    AFSDKPluginUnreal,
+    AFSDKPluginXamarin,
+    AFSDKPluginCapacitor,
+    AFSDKPluginSegment,
+    AFSDKPluginAdobeSwiftAEP
+} NS_SWIFT_NAME(Plugin);
+
+@class AFSDKPluginInfo;
 
 NS_SWIFT_NAME(DeepLinkDelegate)
 @protocol AppsFlyerDeepLinkDelegate <NSObject>
@@ -210,6 +229,9 @@ NS_SWIFT_NAME(DeepLinkDelegate)
  @return The singleton instance of AppsFlyerLib.
  */
 + (AppsFlyerLib *)shared;
+
+
+- (void)setUpInteroperabilityObject:(id)object;
 
 /**
  In case you use your own user ID in your app, you can set this property to that ID.
@@ -297,6 +319,9 @@ NS_SWIFT_NAME(waitForATTUserAuthorization(timeoutInterval:));
  */
 @property(atomic) BOOL disableCollectASA;
 
+/**
+ Disable Apple Ads Attribution API +[AAAtribution attributionTokenWithError:]
+ */
 @property(nonatomic) BOOL disableAppleAdsAttribution;
 
 /**
@@ -367,6 +392,11 @@ NS_SWIFT_NAME(waitForATTUserAuthorization(timeoutInterval:));
  */
 @property(nonatomic, nullable) NSString *currentDeviceLanguage;
 
+/**
+ Internal API. Please don't use.
+ */
+- (void)setPluginInfoWith:(AFSDKPlugin)plugin pluginVersion:(NSString *)version additionalParams:(NSDictionary * _Nullable)additionalParams
+NS_SWIFT_NAME(setPluginInfo(plugin:version:additionalParams:));
 /**
  Enable the collection of Facebook Deferred AppLinks
  Requires Facebook SDK and Facebook app on target/client device.
@@ -610,7 +640,7 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
  Block an events from being shared with ad networks and other 3rd party integrations
  Must only include letters/digits or underscore, maximum length: 45
  */
-@property(nonatomic, nullable) NSArray<NSString *> *sharingFilter DEPRECATED_MSG_ATTRIBUTE("starting SDK version 6.4.0, please use `setSharingFilterForAllPartners:`");
+@property(nonatomic, nullable) NSArray<NSString *> *sharingFilter DEPRECATED_MSG_ATTRIBUTE("starting SDK version 6.4.0, please use `setSharingFilterForPartners:`");
 
 @property(nonatomic) NSUInteger deepLinkTimeout;
 
@@ -618,7 +648,7 @@ NS_SWIFT_NAME(logEvent(name:values:completionHandler:));
  Block an events from being shared with any partner
  This method overwrite -[AppsFlyerLib setSharingFilter:]
  */
-- (void)setSharingFilterForAllPartners DEPRECATED_MSG_ATTRIBUTE("starting SDK version 6.4.0, please use `setSharingFilterForAllPartners:`");
+- (void)setSharingFilterForAllPartners DEPRECATED_MSG_ATTRIBUTE("starting SDK version 6.4.0, please use `setSharingFilterForPartners:`");
 
 /**
  Block an events from being shared with ad networks and other 3rd party integrations

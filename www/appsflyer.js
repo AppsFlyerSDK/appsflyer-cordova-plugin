@@ -28,13 +28,17 @@ if (!window.CustomEvent) {
                 errorCB(AppsFlyerError.INVALID_ARGUMENT_ERROR);
             }
         } else {
-            if (args.appId !== undefined && typeof args.appId != 'string') {
+            if (args.appId !== undefined && (typeof args.appId != 'string' || args.appId === "")) {
                 if (errorCB) {
                     errorCB(AppsFlyerError.APPID_NOT_VALID);
                 }
             } else if (args.devKey !== undefined && typeof args.devKey != 'string') {
                 if (errorCB) {
                     errorCB(AppsFlyerError.DEVKEY_NOT_VALID);
+                }
+            } else if (args.devKey === undefined || args.devKey === "") {
+                if (errorCB) {
+                    errorCB(AppsFlyerError.NO_DEVKEY_FOUND);
                 }
             } else {
                 exec(successCB, errorCB, 'AppsFlyerPlugin', 'initSdk', [args]);
@@ -365,6 +369,7 @@ if (!window.CustomEvent) {
 
     /**
      * The setPartnerData API allows sending custom data for partner integration purposes.
+     *
      * Typically it is used to integrate on the SDK level with several external partner platforms
      * @param partnerId - ID of the partner (usually suffixed with "_int")
      * @param data - Customer data, depends on the integration configuration with the specific partner

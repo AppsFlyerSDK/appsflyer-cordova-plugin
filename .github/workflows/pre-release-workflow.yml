@@ -26,12 +26,13 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Update package.json file
         run: |
-          plugin_version=$(echo "${{ steps.vars.outputs.branch }}" | grep -Eo '[0-9].[0-9].[0-9]+')
+          plugin_version=$(echo "${{ steps.vars.outputs.branch }}" | grep -Eo '[0-9].[0-9]+.[0-9]+')
           # we export plugin_version and release branch name as env so we can use them in the next step
           echo "PLUGIN_VERSION=$plugin_version" >> $GITHUB_ENV
           echo "GIT_BRANCH_RELEASE=${{ steps.vars.outputs.branch }}" >> $GITHUB_ENV
           echo "Updating plugin to version $plugin_version"
-          npm version $plugin_version
+          echo "The plugin version is ${plugin_version}"
+          npm version $plugin_version --allow-same-version
           git push origin HEAD:${{ steps.vars.outputs.branch }} --force
 
       - name: Update CHANGELOG.md

@@ -1,19 +1,22 @@
 //Button Functions
-let trackEventBtn = document.getElementById('logEvent');
+let logEventBtn = document.getElementById('logEvent');
+let logCrossPromotionAndOpenStoreBtn = document.getElementById('logCrossPromotionAndOpenStore');
 let setCurrencyBtn = document.getElementById('setCurrency');
 let setUserIdBtn = document.getElementById('setUserId');
-let getUseridBtn = document.getElementById('getUserId');
-let getSdkVersionBtn = document.getElementById('getSdkV');
-let crossPromotionandStore = document.getElementById('logCrossPromotionAndOpenStore');
-let customDomains = document.getElementById('customDomains');
-let enableFB = document.getElementById('enableFB');
-let setUserEmails = document.getElementById('userEmails');
-let setPhone = document.getElementById('phone');
-let setHost = document.getElementById('hosts');
-let setPath = document.getElementById('path');
+let setUserEmailsBtn = document.getElementById('setUserEmails');
+let setPhoneBtn = document.getElementById('setPhone');
+let setHostsBtn = document.getElementById('setHosts');
+let getUserIdBtn = document.getElementById('getUserId');
+let getSdkVBtn = document.getElementById('getSdkV');
+let customDomainsBtn = document.getElementById('customDomains');
+let enableFBBtn = document.getElementById('enableFB');
+let addPushNotificationPathBtn = document.getElementById('addPushNotificationPath');
 
-if (trackEventBtn) {
-    trackEventBtn.addEventListener('click', logEvent, false);
+if (logEventBtn) {
+    logEventBtn.addEventListener('click', logEvent, false);
+}
+if (logCrossPromotionAndOpenStoreBtn) {
+    logCrossPromotionAndOpenStoreBtn.addEventListener('click', logCrossPromotionAndOpenStore, false);
 }
 if (setCurrencyBtn) {
     setCurrencyBtn.addEventListener('click', setCurrency, false);
@@ -21,43 +24,30 @@ if (setCurrencyBtn) {
 if (setUserIdBtn) {
     setUserIdBtn.addEventListener('click', setUserId, false);
 }
-if (getUseridBtn) {
-    getUseridBtn.addEventListener('click', getUserId, false);
+if (setUserEmailsBtn) {
+    setUserEmailsBtn.addEventListener('click', setEmails, false);
 }
-if (getSdkVersionBtn) {
-    getSdkVersionBtn.addEventListener('click', getSdkVersion, false);
+if (setPhoneBtn) {
+    setPhoneBtn.addEventListener('click', setPhoneNumber, false);
 }
-if (crossPromotionandStore) {
-    crossPromotionandStore.addEventListener('click', logCrossPromotionAndOpenStore, false);
+if (setHostsBtn) {
+    setHostsBtn.addEventListener('click', setHosts, false);
 }
-if (customDomains) {
-    customDomains.addEventListener('click', setCustomDomains, false);
+if (getUserIdBtn) {
+    getUserIdBtn.addEventListener('click', getUserId, false);
 }
-if (enableFB) {
-    enableFB.addEventListener('click', setFBEnabled, false);
+if (getSdkVBtn) {
+    getSdkVBtn.addEventListener('click', getSdkVersion, false);
 }
-if (setUserEmails) {
-    setUserEmails.addEventListener('click', setEmails, false);
+if (customDomainsBtn) {
+    customDomainsBtn.addEventListener('click', setCustomDomains, false);
 }
-if (setPhone) {
-    setPhone.addEventListener('click', setPhoneNumber, false);
+if (enableFBBtn) {
+    enableFBBtn.addEventListener('click', setFBEnabled, false);
 }
-if (setHost) {
-    setHost.addEventListener('click', setHosts, false);
+if (addPushNotificationPathBtn) {
+    addPushNotificationPathBtn.addEventListener('click', addPushNotificationDeepLinkPath, false);
 }
-if (setPath) {
-    setPath.addEventListener('click', addPushNotificationDeepLinkPath, false);
-}
-let successTrackEvent = function (success) {
-    alert(success);
-};
-
-let failureTrackEvent = function (failure) {
-    alert(failure);
-};
-let print = function (txt) {
-    console.log(txt);
-};
 
 function callBackFunction(id) {
     alert('received: ' + id);
@@ -69,8 +59,8 @@ function setCurrency(currencyId) {
 }
 
 function setHosts() {
-    let prefix = "foo"
-    let name = "bar"
+    let prefix = "foo";
+    let name = "bar";
     window.plugins.appsFlyer.setHost(prefix, name);
 }
 
@@ -90,7 +80,7 @@ function setEmails() {
 }
 
 function setPhoneNumber() {
-    let phone = "0522565426"
+    let phone = "0522565426";
     window.plugins.appsFlyer.setPhoneNumber(phone, print);
 }
 
@@ -128,4 +118,3 @@ function logCrossPromotionAndOpenStore() {
         custom_param: 'custom_value',
     });
 }
-

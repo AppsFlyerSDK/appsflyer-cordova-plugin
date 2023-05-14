@@ -16,4 +16,6 @@ package-lock.json
 
 
 examples/demoA/node_modules/
+examples/cordova-unit-tests-app/node_modules/
+examples/cordova-unit-tests-app/platforms/
 #/examples/demoA/www/lib/

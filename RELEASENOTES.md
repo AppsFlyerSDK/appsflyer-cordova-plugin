@@ -1,3 +1,18 @@
+## 6.10.3
+ Release date: *2023-05-10*
+
+- Cordova >> Update Plugin to v6.10.3
+
+## 6.10.3
+ Release date: *2023-05-10*
+
+- Cordova >> Update Plugin to v6.10.3
+
+## 6.8.2
+ Release date: *2022-08-30*
+
+- Cordova > update android native SDK to v6.8.2
+
 ## 6.8.0
  Release date: *2022-07-20*
 

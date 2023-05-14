@@ -5,9 +5,10 @@ name: Add comment
 on:
   issues:
     types:
-      - opend
+      - labeled
 jobs:
   add-comment:
+    if: github.event.label.name == 'support'
     runs-on: ubuntu-latest
     permissions:
       issues: write
