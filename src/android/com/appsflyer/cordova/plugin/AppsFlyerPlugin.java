@@ -23,6 +23,7 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_DEEPLINK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_FAIL;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_IMAGEURL;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_REFERRER;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_BRAND_DOMAIN;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_CUSTOMER_ID;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_DEVKEY_FOUND;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_EVENT_NAME_FOUND;

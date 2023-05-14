@@ -42,11 +42,11 @@ public class AppsFlyerConstants {
     final static String INVITE_CHANNEL = "channel";
     final static String INVITE_CAMPAIGN = "campaign";
     final static String INVITE_REFERRER = "referrerName";
-    final static String INVITE_IMAGEURL = "referreImageURL";
+    final static String INVITE_IMAGEURL = "referrerImageURL";
     final static String INVITE_CUSTOMERID = "customerID";
     final static String INVITE_DEEPLINK = "baseDeepLink";
-    final static String PROMOTE_ID = "promotedAppId";
     final static String INVITE_BRAND_DOMAIN = "brandDomain";
+    final static String PROMOTE_ID = "promotedAppId";
 
     //RECEIPT VALIDATION
     final static String PUBLIC_KEY = "publicKey";
