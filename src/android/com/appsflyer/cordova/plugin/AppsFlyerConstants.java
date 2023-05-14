@@ -46,6 +46,7 @@ public class AppsFlyerConstants {
     final static String INVITE_CUSTOMERID = "customerID";
     final static String INVITE_DEEPLINK = "baseDeepLink";
     final static String PROMOTE_ID = "promotedAppId";
+    final static String INVITE_BRAND_DOMAIN = "brandDomain";
 
     //RECEIPT VALIDATION
     final static String PUBLIC_KEY = "publicKey";

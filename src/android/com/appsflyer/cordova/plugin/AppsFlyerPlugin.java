@@ -716,6 +716,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         String referrerImageUrl = null;
         String customerID = null;
         String baseDeepLink = null;
+        String brandDomain = null;
 
         try {
             final JSONObject options = args.getJSONObject(0);
@@ -726,6 +727,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             referrerImageUrl = options.optString(INVITE_IMAGEURL, "");
             customerID = options.optString(INVITE_CUSTOMERID, "");
             baseDeepLink = options.optString(INVITE_DEEPLINK, "");
+            brandDomain = options.optString(INVITE_BRAND_DOMAIN, "");
 
             Context context = this.cordova.getActivity().getApplicationContext();
             LinkGenerator linkGenerator = ShareInviteHelper.generateInviteUrl(context);
@@ -747,6 +749,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
             if (baseDeepLink != null && baseDeepLink != "") {
                 linkGenerator.setBaseDeeplink(baseDeepLink);
+            }
+            if (brandDomain != null && brandDomain != "") {
+                linkGenerator.setBrandDomain(brandDomain);
             }
 
             if (options.length() > 1 && !options.get("userParams").equals("")) {
