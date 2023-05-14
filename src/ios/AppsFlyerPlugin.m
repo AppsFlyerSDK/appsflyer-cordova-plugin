@@ -355,6 +355,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         referrerImageUrl = (NSString*)[inviteLinkOptions objectForKey: afUiImageUrl];
         customerID = (NSString*)[inviteLinkOptions objectForKey: afUiCustomerID];
         baseDeepLink = (NSString*)[inviteLinkOptions objectForKey: afUiBaseDeepLink];
+        brandDomain = (NSString*)[inviteLinkOptions objectForKey: afUiBrandDomain];
 
         [AppsFlyerShareInviteHelper generateInviteUrlWithLinkGenerator:^AppsFlyerLinkGenerator * _Nonnull(AppsFlyerLinkGenerator * _Nonnull generator) {
             if (channel != nil && ![channel isEqualToString:@""]) {
@@ -374,6 +375,9 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             }
             if (baseDeepLink != nil && ![baseDeepLink isEqualToString:@""]) {
                 [generator setDeeplinkPath:baseDeepLink];
+            }
+            if (brandDomain != nil && ![brandDomain isEqualToString:@""]) {
+                [generator setBrandDomain:brandDomain];
             }
 
             if (![customParams isKindOfClass:[NSNull class]]) {
