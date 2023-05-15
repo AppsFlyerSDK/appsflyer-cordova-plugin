@@ -58,12 +58,13 @@ function callBackFunction(id) {
 }
 
 function generateUserInvite(){
+    window.plugins.appsFlyer.setAppInviteOneLinkID("em3J");
     let args = {
         "campaign": "testCampaign",
         "referrerName": "testReferrer",
         "referrerImageURL": "testReferrerImageURL",
         "baseDeepLink": "testBaseDeepLink",
-        "brandDomain": "automationsdk.blaster.afsdktests.com",
+        "brandDomain": "noakogonia.afsdktests.com",
         "userParams": {"a":"b"}
     };
     window.plugins.appsFlyer.generateInviteLink(args, callBackFunction, callBackFunction);
