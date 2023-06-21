@@ -21,7 +21,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="cordova-plugin-appsflyer-sdk"
-        version="6.10.3">
+        version="6.10.31-rc4">
     <name>AppsFlyer</name>
     <description>Cordova Plugin AppsFlyer</description>
     <license>Apache 2.0</license>
@@ -47,7 +47,7 @@
                 <param name="android-package" value="com.appsflyer.cordova.plugin.AppsFlyerPlugin"/>
             </feature>
         </config-file>
-        <config-file target="AndroidManifest.xml" parent="/manifest" mode="merge">
+        <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.INTERNET"/>
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
             <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
@@ -95,4 +95,5 @@
             </pods>
         </podspec>
     </platform>
+
 </plugin>

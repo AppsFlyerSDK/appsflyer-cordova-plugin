@@ -2,6 +2,7 @@
 let logEventBtn = document.getElementById('logEvent');
 let logCrossPromotionAndOpenStoreBtn = document.getElementById('logCrossPromotionAndOpenStore');
 let setCurrencyBtn = document.getElementById('setCurrency');
+let generateUserInviteBtn = document.getElementById('generateUserInvite');
 let setUserIdBtn = document.getElementById('setUserId');
 let setUserEmailsBtn = document.getElementById('setUserEmails');
 let setPhoneBtn = document.getElementById('setPhone');
@@ -12,6 +13,9 @@ let customDomainsBtn = document.getElementById('customDomains');
 let enableFBBtn = document.getElementById('enableFB');
 let addPushNotificationPathBtn = document.getElementById('addPushNotificationPath');
 
+if (generateUserInviteBtn) {
+    generateUserInviteBtn.addEventListener('click', generateUserInvite, false);
+}
 if (logEventBtn) {
     logEventBtn.addEventListener('click', logEvent, false);
 }
@@ -51,6 +55,19 @@ if (addPushNotificationPathBtn) {
 
 function callBackFunction(id) {
     alert('received: ' + id);
+}
+
+function generateUserInvite(){
+    window.plugins.appsFlyer.setAppInviteOneLinkID("em3J");
+    let args = {
+        "campaign": "testCampaign",
+        "referrerName": "testReferrer",
+        "referrerImageURL": "testReferrerImageURL",
+        "baseDeepLink": "testBaseDeepLink",
+        "brandDomain": "noakogonia.afsdktests.com",
+        "userParams": {"a":"b"}
+    };
+    window.plugins.appsFlyer.generateInviteLink(args, callBackFunction, callBackFunction);
 }
 
 function setCurrency(currencyId) {

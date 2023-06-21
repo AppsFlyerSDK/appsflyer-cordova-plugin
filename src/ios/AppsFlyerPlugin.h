@@ -50,6 +50,7 @@
 #define afUiImageUrl                    @"referrerImageUrl"
 #define afUiCustomerID                  @"customerID"
 #define afUiBaseDeepLink                @"baseDeepLink"
+#define afUiBrandDomain                 @"brandDomain"
 
 // Appsflyer native objects
 #define afConversionData                @"onInstallConversionDataListener"

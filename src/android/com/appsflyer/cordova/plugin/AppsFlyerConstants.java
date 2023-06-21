@@ -6,7 +6,7 @@ package com.appsflyer.cordova.plugin;
 
 public class AppsFlyerConstants {
 
-    final static String PLUGIN_VERSION = "6.10.3";
+    final static String PLUGIN_VERSION = "6.10.31";
     final static String NO_DEVKEY_FOUND = "AppsFlyer 'devKey' is missing or empty";
     final static String NO_GCM_PROJECT_NUMBER_PROVIDED = "No GCM Project number provided";
     final static String SUCCESS = "Success";
@@ -42,9 +42,10 @@ public class AppsFlyerConstants {
     final static String INVITE_CHANNEL = "channel";
     final static String INVITE_CAMPAIGN = "campaign";
     final static String INVITE_REFERRER = "referrerName";
-    final static String INVITE_IMAGEURL = "referreImageURL";
+    final static String INVITE_IMAGEURL = "referrerImageURL";
     final static String INVITE_CUSTOMERID = "customerID";
     final static String INVITE_DEEPLINK = "baseDeepLink";
+    final static String INVITE_BRAND_DOMAIN = "brandDomain";
     final static String PROMOTE_ID = "promotedAppId";
 
     //RECEIPT VALIDATION
