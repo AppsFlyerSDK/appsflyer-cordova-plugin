@@ -85,7 +85,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             [AppsFlyerLib shared].deepLinkDelegate = self;
          }
 
-        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.10.3" additionalParams:nil];
+        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.10.31" additionalParams:nil];
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
@@ -347,6 +347,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSString *referrerImageUrl = nil;
     NSString *customerID = nil;
     NSString *baseDeepLink = nil;
+    NSString *brandDomain = nil;
 
     if (![inviteLinkOptions isKindOfClass:[NSNull class]]) {
         channel = (NSString*)[inviteLinkOptions objectForKey: afUiChannel];
@@ -355,6 +356,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         referrerImageUrl = (NSString*)[inviteLinkOptions objectForKey: afUiImageUrl];
         customerID = (NSString*)[inviteLinkOptions objectForKey: afUiCustomerID];
         baseDeepLink = (NSString*)[inviteLinkOptions objectForKey: afUiBaseDeepLink];
+        brandDomain = (NSString*)[inviteLinkOptions objectForKey: afUiBrandDomain];
 
         [AppsFlyerShareInviteHelper generateInviteUrlWithLinkGenerator:^AppsFlyerLinkGenerator * _Nonnull(AppsFlyerLinkGenerator * _Nonnull generator) {
             if (channel != nil && ![channel isEqualToString:@""]) {
@@ -374,6 +376,9 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             }
             if (baseDeepLink != nil && ![baseDeepLink isEqualToString:@""]) {
                 [generator setDeeplinkPath:baseDeepLink];
+            }
+            if (brandDomain != nil && ![brandDomain isEqualToString:@""]) {
+                [generator setBrandDomain:brandDomain];
             }
 
             if (![customParams isKindOfClass:[NSNull class]]) {
