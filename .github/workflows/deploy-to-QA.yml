@@ -50,7 +50,9 @@ jobs:
           SLACK_TOKEN: ${{ secrets.CI_SLACK_TOKEN }}
         run: |
           echo "I'm here 1"
-          ios_sdk_version=$(cat README.md | grep 'iOS AppsFlyerSDK \*\*v[0-9].[0-9]+.[0-9]+\*\*')
+          echo "The path is"
+          ios_sdk_version=$(cat README.md | grep 'iOS AppsFlyerSDK \*\*v[0-9].[0-9]+.[0-9]+\*\*' | awk '{print $3}')
+          echo "The ios sdk version is: $ios_sdk_version" 
           echo "I'm here 2"
           android_sdk_version=$(cat README.md | grep 'Android AppsFlyerSDK \*\*v[0-9].[0-9]+.[0-9]+\*\*')
           echo "I'm here 3"
