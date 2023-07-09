@@ -1,3 +1,10 @@
+## 6.10.31
+ Release date: *2023-06-21*
+
+- Cordova >> Release 6.10.31
+- Cordova Plugin >> Android >> plugin.xml file settings doesn't merge <uses-permission> tag in App's AndroidManifest.xml 
+- Cordova Plugin >> User Invite >> Brand domain setup is not supported
+
 ## 6.10.3
  Release date: *2023-05-10*
 
