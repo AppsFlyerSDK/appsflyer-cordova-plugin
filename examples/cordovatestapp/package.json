@@ -16,7 +16,7 @@
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
   "devDependencies": {
-    "cordova-android": "^11.0.0",
+    "cordova-android": "^10.1.2",
     "cordova-ios": "^6.3.0",
     "jasmine": "^4.5.0",
     "jasmine-reporters": "^2.5.2",
