@@ -1,5 +1,10 @@
+## 6.12.10
+ Release date: *2023-07-17*
+
+- Cordova >> Update Plugin to v6.12.10
+
 ## 6.12.1
- Release date: *2023-07-11*
+ Release date: *2023-07-17*
 
 - Cordova >> Update Plugin to v6.12.1
 
