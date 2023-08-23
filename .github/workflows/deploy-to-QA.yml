@@ -34,7 +34,6 @@ jobs:
           plugin_rc_version=$(echo "${{github.ref_name}}" | grep -Eo '[0-9].[0-9]+.[0-9]+-rc[0-9]+')
           echo "Updating plugin to version $plugin_rc_version"
           sed -i -r -e "s/\"version\": \"[0-9]+.[0-9]+.[0-9]+(-rc[0-9]+)?\"/\"version\": \"$plugin_rc_version\"/gi" package.json
-#          npm version $plugin_rc_version --no-git-tag-version
           echo "Updating plugin.xml to version $plugin_rc_version"
           sed -i -r -e "s/version=\"[0-9].[0-9]+.[0-9]+\"/version=\"$plugin_rc_version\"/gi" plugin.xml
           git add plugin.xml package.json
