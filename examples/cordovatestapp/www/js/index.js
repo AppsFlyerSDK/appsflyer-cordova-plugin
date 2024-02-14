@@ -37,7 +37,7 @@ document.addEventListener(
         });
 
         var options = {
-            devKey: 'yD3hPCztAkriFj2qJNZsRG',
+            devKey: 'fakeone',
             appId: 'id111111111',
             isDebug: true,
             onInstallConversionDataListener: true,
