@@ -168,8 +168,61 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return sendPushNotificationData(args);
         } else if ("setDisableNetworkData".equals(action)) {
             return setDisableNetworkData(args);
+        } else if ("setConsentData".equals(action)) {
+            return setConsentData(args);
+        } else if ("enableTCFDataCollection".equals(action)) {
+            return enableTCFDataCollection(args);
         }
         return false;
+    }
+
+    function AppsflyerConsentData(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization) {
+        this.isUserSubjectToGDPR = isUserSubjectToGDPR;
+        this.hasConsentForDataUsage = hasConsentForDataUsage;
+        this.hasConsentForAdsPersonalization = hasConsentForAdsPersonalization;
+    }
+
+    const AppsFlyerConsentBuilder = {
+      forGDPRUser(hasConsentForDataUsage, hasConsentForAdsPersonalization) {
+        return new AppsflyerConsentData(true, hasConsentForDataUsage, hasConsentForAdsPersonalization);
+      },
+
+      forNonGDPRUser() {
+        return new AppsflyerConsentData(false, null, null);
+      }
+    };
+
+    private boolean setConsentData(JSONArray args) {
+        cordova.getThreadPool().execute(() -> {
+            try {
+                boolean isUserSubjectToGDPR = args.getBoolean(0, false);
+                boolean hasConsentForDataUsage = args.getBoolean(1, false);
+                boolean hasConsentForAdsPersonalization = args.getBoolean(2, false);
+                AppsFlyerConsent consent;
+                if (isUserSubjectToGDPR) {
+                    consent = AppsFlyerConsentBuilder.forGDPRUser(hasConsentForDataUsage, hasConsentForAdsPersonalization);
+                } else {
+                    consent = AppsFlyerConsentBuilder.forNonGDPRUser();
+                }
+                AppsFlyerLib.getInstance().setConsentData(consent);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        });
+        return true;
+    }
+
+    private boolean enableTCFDataCollection(JSONArray args) {
+        cordova.getThreadPool().execute(() -> {
+            try {
+                boolean enable = args.getBoolean(0, false);
+                AppsFlyerLib.getInstance().enableTCFDataCollection(enable);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        });
+        return true;
     }
 
     private boolean setDisableNetworkData(JSONArray args) {
