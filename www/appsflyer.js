@@ -450,6 +450,13 @@ if (!window.CustomEvent) {
         exec(null, null, 'AppsFlyerPlugin', 'setConsentData', [enable]);
     }
 
+    export const AppsFlyerConsent: {
+        forGDPRUser: (hasConsentForDataUsage: boolean, hasConsentForAdsPersonalization: boolean) => void;
+        forNonGDPRUser: () => void;
+    }
+
+    export type AppsFlyerConsentType = typeof AppsFlyerConsent;
+
     let AppsFlyerConsent = (function () {
         // Private constructor
         function AppsFlyerConsent(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization) {
