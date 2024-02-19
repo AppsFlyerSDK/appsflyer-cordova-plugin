@@ -50,6 +50,13 @@ if (!window.CustomEvent) {
     };
 
     /**
+     * starts the SDK.
+     */
+    AppsFlyer.prototype.startSdk = function () {
+        exec(null, null, 'AppsFlyerPlugin', 'startSdk');
+    };
+
+    /**
      * onAppOpenAttributionSuccess: Success callback - called after receiving data on App Open Attribution.
      * onAppOpenAttributionError: Error callback - called when error occurs.
      */
@@ -394,6 +401,75 @@ if (!window.CustomEvent) {
         exec(null, null, 'AppsFlyerPlugin', 'setDisableNetworkData', [disable]);
     };
 
+    /**
+     * Use to manually collecting the consent data from the user.
+     * @param appsFlyerConsent - object of AppsFlyerConsent that holds three values when GDPR is applies to the user, and one value when It's not.
+     * when GDPR applies to the user and your app does not use a CMP compatible with TCF v2.2, use this API to provide the consent data directly to the SDK.<br>
+     * The consent object has 2 properties:
+     *
+     * 1. `hasConsentForDataUsage`: Indicates whether the user has consented to use their data for advertising purposes.
+     * 2. `hasConsentForAdsPersonalization`: indicates whether the user has consented to use their data for personalized advertising.
+     *
+     * | parameter       | type     | description                 |
+     * | ----------      |----------|------------------           |
+     * | consentData  | object  | Consent object of the user      |
+     *
+     * *Example:*
+     *
+     * ```javascript
+     * let consentData = AppsFlyerConsent.forGDPRUser{
+     *       hasConsentForDataUsage: true,
+     *       hasConsentForAdsPersonalization: false
+     *     }
+     * AppsFlyer.setConsentData(consentData);
+     * ```
+     *
+     * ---
+     *
+     * ### setNonGDPRUser
+     * `setNonGDPRUser(): void`
+     *
+     * Use this API if GDPR doesn’t apply to the user.<br>
+     *
+     * *Example:*
+     *
+     * ```javascript
+     * AppsFlyerConsent.setNonGDPRUser();
+     * ```
+     */
+    AppsFlyer.prototype.setConsentData = function (appsFlyerConsent){
+        exec(null, null, 'AppsFlyerPlugin', 'setConsentData', [appsFlyerConsent]);
+    };
+
+    /**
+     * set collect tcf data or not.
+     *
+     * @param enable - boolean value that represent if enables to collect or not.
+     */
+    AppsFlyer.prototype.enableTCFDataCollection = function (enable) {
+        exec(null, null, 'AppsFlyerPlugin', 'setConsentData', [enable]);
+    }
+
+    let AppsFlyerConsent = (function () {
+        // Private constructor
+        function AppsFlyerConsent(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization) {
+            this.isUserSubjectToGDPR = isUserSubjectToGDPR;
+            this.hasConsentForDataUsage = hasConsentForDataUsage;
+            this.hasConsentForAdsPersonalization = hasConsentForAdsPersonalization;
+        }
+
+        return {
+            // Factory method for GDPR user
+            forGDPRUser: function(hasConsentForDataUsage, hasConsentForAdsPersonalization) {
+                return new AppsFlyerConsent(true, hasConsentForDataUsage, hasConsentForAdsPersonalization);
+            },
+
+            // Factory method for non GDPR user
+            forNonGDPRUser: function() {
+                return new AppsFlyerConsent(false, null, null);
+            }
+        };
+    })();
 
     module.exports = new AppsFlyer();
 })(window);

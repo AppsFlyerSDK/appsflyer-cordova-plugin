@@ -166,6 +166,64 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSString* currencyId = [command.arguments objectAtIndex:0];
     [AppsFlyerLib shared].currencyCode = currencyId;
 }
+
+/**
+*   Sets new currency code. currencyId: ISO 4217 Currency Codes.
+*/
+- (void)setConsentData:(CDVInvokedUrlCommand*)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+
+    BOOL isUserSubjectToGDPR = NO;
+    BOOL hasConsentForDataUsage = NO;
+    BOOL hasConsentForAdsPersonalization = NO;
+
+    id isUserSubjectToGDPRValue = nil;
+    id hasConsentForDataUsageValue = nil;
+    id hasConsentForAdsPersonalizationValue = nil;
+
+    isUserSubjectToGDPRValue = [command.arguments objectAtIndex:0];
+    if ([isUserSubjectToGDPRValue isKindOfClass:[NSNumber class]]) {
+       isUserSubjectToGDPR = [(NSNumber*)isUserSubjectToGDPRValue boolValue];
+    }
+
+    hasConsentForDataUsageValue = [command.arguments objectAtIndex:1];
+    if ([hasConsentForDataUsageValue isKindOfClass:[NSNumber class]]) {
+       hasConsentForDataUsage = [(NSNumber*)hasConsentForDataUsageValue boolValue];
+    }
+
+    hasConsentForAdsPersonalizationValue = [command.arguments objectAtIndex:2];
+    if ([hasConsentForAdsPersonalizationValue isKindOfClass:[NSNumber class]]) {
+       hasConsentForAdsPersonalization = [(NSNumber*)hasConsentForAdsPersonalizationValue boolValue];
+    }
+
+    AppsFlyerConsent *consentData = nil;
+    if (isUserSubjectToGDPR) {
+        consentData = [[AppsFlyerConsent alloc] initForGDPRUserWithHasConsentForDataUsage:hasConsentForDataUsage hasConsentForAdsPersonalization:hasConsentForAdsPersonalization];
+    } else {
+        consentData = [[AppsFlyerConsent alloc] initNonGDPRUser];
+    }
+   [[AppsFlyerLib shared] setConsentData:consentData];
+}
+
+/**
+*   Sets new currency code. currencyId: ISO 4217 Currency Codes.
+*/
+- (void)enableTCFDataCollection:(CDVInvokedUrlCommand*)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+    BOOL enable = NO;
+    id enableValue = nil;
+    enableValue = [command.arguments objectAtIndex:0]
+    if ([enableValue isKindOfClass:[NSNumber class]]) {
+       enable = [(NSNumber*)enableValue boolValue];
+    }
+    [[AppsFlyerLib shared] enableTCFDataCollection:enable];
+}
 /**
 *   Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs.
 */

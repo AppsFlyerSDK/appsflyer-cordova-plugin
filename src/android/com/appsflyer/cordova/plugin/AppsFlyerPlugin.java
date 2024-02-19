@@ -60,6 +60,7 @@ import com.appsflyer.share.LinkGenerator;
 import com.appsflyer.share.ShareInviteHelper;
 import com.appsflyer.internal.platform_extension.Plugin;
 import com.appsflyer.internal.platform_extension.PluginInfo;
+import com.appsflyer.AppsFlyerConsent;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -176,33 +177,25 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return false;
     }
 
-    function AppsflyerConsentData(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization) {
-        this.isUserSubjectToGDPR = isUserSubjectToGDPR;
-        this.hasConsentForDataUsage = hasConsentForDataUsage;
-        this.hasConsentForAdsPersonalization = hasConsentForAdsPersonalization;
-    }
-
-    const AppsFlyerConsentBuilder = {
-      forGDPRUser(hasConsentForDataUsage, hasConsentForAdsPersonalization) {
-        return new AppsflyerConsentData(true, hasConsentForDataUsage, hasConsentForAdsPersonalization);
-      },
-
-      forNonGDPRUser() {
-        return new AppsflyerConsentData(false, null, null);
-      }
-    };
-
+    /**
+     * set consent data according to GDPR if applies or not.
+     *
+     * @param args - json object that represents consent data object.
+     * @return true
+     */
     private boolean setConsentData(JSONArray args) {
         cordova.getThreadPool().execute(() -> {
             try {
-                boolean isUserSubjectToGDPR = args.getBoolean(0, false);
-                boolean hasConsentForDataUsage = args.getBoolean(1, false);
-                boolean hasConsentForAdsPersonalization = args.getBoolean(2, false);
+                JSONObject consentData = args.getJSONObject(0);
+                boolean isUserSubjectToGDPR = consentData.optBoolean("isUserSubjectToGDPR", false);
+                boolean hasConsentForDataUsage = consentData.optBoolean("hasConsentForDataUsage", false);
+                boolean hasConsentForAdsPersonalization = consentData.optBoolean("hasConsentForAdsPersonalization", false);
+
                 AppsFlyerConsent consent;
                 if (isUserSubjectToGDPR) {
-                    consent = AppsFlyerConsentBuilder.forGDPRUser(hasConsentForDataUsage, hasConsentForAdsPersonalization);
+                    consent = AppsFlyerConsent.forGDPRUser(hasConsentForDataUsage, hasConsentForAdsPersonalization);
                 } else {
-                    consent = AppsFlyerConsentBuilder.forNonGDPRUser();
+                    consent = AppsFlyerConsent.forNonGDPRUser();
                 }
                 AppsFlyerLib.getInstance().setConsentData(consent);
             } catch (JSONException e) {
@@ -212,10 +205,16 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+    /**
+     * set collect tcf data or not.
+     *
+     * @param args - json object that holds the boolean value.
+     * @return true
+     */
     private boolean enableTCFDataCollection(JSONArray args) {
         cordova.getThreadPool().execute(() -> {
             try {
-                boolean enable = args.getBoolean(0, false);
+                boolean enable = args.getBoolean(0);
                 AppsFlyerLib.getInstance().enableTCFDataCollection(enable);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -1327,5 +1326,4 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         }
         return bundle;
     }
-
 }
