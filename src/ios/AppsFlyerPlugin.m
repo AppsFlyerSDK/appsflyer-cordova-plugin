@@ -175,6 +175,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     if ([command.arguments count] == 0) {
         return;
     }
+    NSDictionary *consentDataMap = (NSDictionary*)[command.arguments objectAtIndex: 0];
 
     BOOL isUserSubjectToGDPR = NO;
     BOOL hasConsentForDataUsage = NO;
@@ -184,17 +185,17 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     id hasConsentForDataUsageValue = nil;
     id hasConsentForAdsPersonalizationValue = nil;
 
-    isUserSubjectToGDPRValue = [command.arguments objectAtIndex:0];
+    isUserSubjectToGDPRValue = [consentDataMap objectForKey:"isUserSubjectToGDPR"];
     if ([isUserSubjectToGDPRValue isKindOfClass:[NSNumber class]]) {
        isUserSubjectToGDPR = [(NSNumber*)isUserSubjectToGDPRValue boolValue];
     }
 
-    hasConsentForDataUsageValue = [command.arguments objectAtIndex:1];
+    hasConsentForDataUsageValue = [consentDataMap objectForKey:"hasConsentForDataUsage"];
     if ([hasConsentForDataUsageValue isKindOfClass:[NSNumber class]]) {
        hasConsentForDataUsage = [(NSNumber*)hasConsentForDataUsageValue boolValue];
     }
 
-    hasConsentForAdsPersonalizationValue = [command.arguments objectAtIndex:2];
+    hasConsentForAdsPersonalizationValue = [consentDataMap objectForKey:"hasConsentForAdsPersonalization"];
     if ([hasConsentForAdsPersonalizationValue isKindOfClass:[NSNumber class]]) {
        hasConsentForAdsPersonalization = [(NSNumber*)hasConsentForAdsPersonalizationValue boolValue];
     }

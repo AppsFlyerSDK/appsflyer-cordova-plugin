@@ -1,4 +1,5 @@
 //Button Functions
+
 let logEventBtn = document.getElementById('logEvent');
 let logCrossPromotionAndOpenStoreBtn = document.getElementById('logCrossPromotionAndOpenStore');
 let setCurrencyBtn = document.getElementById('setCurrency');
@@ -148,11 +149,11 @@ function logCrossPromotionAndOpenStore() {
     });
 }
 function setConsentDataWithGDPR() {
-    window.plugins.appsFlyer.setConsentData(AppsFlyerConsent.forGDPRUser(true, true));
+    window.plugins.appsFlyer.setConsentData( AppsFlyerConsent.forGDPRUser(true, true));
 }
 
 function setConsentDataNonGDPR() {
-    window.plugins.appsFlyer.setConsentData(AppsFlyerConsent.forNonGDPRUser());
+    window.plugins.appsFlyer.setConsentData( AppsFlyerConsent.forNonGDPRUser());
 }
 
 function enableTCFDataCollection() {

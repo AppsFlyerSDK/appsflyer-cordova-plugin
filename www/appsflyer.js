@@ -15,6 +15,28 @@ if (!window.CustomEvent) {
     var AppsFlyer = function () {
     };
 
+    // Expose AppsFlyerConsent to the global scope
+    global.AppsFlyerConsent = (function () {
+        // Private constructor
+        function AppsFlyerConsent(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization) {
+            this.isUserSubjectToGDPR = isUserSubjectToGDPR;
+            this.hasConsentForDataUsage = hasConsentForDataUsage;
+            this.hasConsentForAdsPersonalization = hasConsentForAdsPersonalization;
+        }
+
+        return {
+            // Factory method for GDPR user
+            forGDPRUser: function(hasConsentForDataUsage, hasConsentForAdsPersonalization) {
+                return new AppsFlyerConsent(true, hasConsentForDataUsage, hasConsentForAdsPersonalization);
+            },
+
+            // Factory method for non GDPR user
+            forNonGDPRUser: function() {
+                return new AppsFlyerConsent(false, null, null);
+            }
+        };
+    })();
+
     /**
      * initialize the SDK.
      * args: SDK configuration
@@ -47,13 +69,6 @@ if (!window.CustomEvent) {
                 callbackMap.convErr = errorCB;
             }
         }
-    };
-
-    /**
-     * starts the SDK.
-     */
-    AppsFlyer.prototype.startSdk = function () {
-        exec(null, null, 'AppsFlyerPlugin', 'startSdk');
     };
 
     /**
@@ -450,33 +465,6 @@ if (!window.CustomEvent) {
         exec(null, null, 'AppsFlyerPlugin', 'setConsentData', [enable]);
     }
 
-    export const AppsFlyerConsent: {
-        forGDPRUser: (hasConsentForDataUsage: boolean, hasConsentForAdsPersonalization: boolean) => void;
-        forNonGDPRUser: () => void;
-    }
-
-    export type AppsFlyerConsentType = typeof AppsFlyerConsent;
-
-    let AppsFlyerConsent = (function () {
-        // Private constructor
-        function AppsFlyerConsent(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization) {
-            this.isUserSubjectToGDPR = isUserSubjectToGDPR;
-            this.hasConsentForDataUsage = hasConsentForDataUsage;
-            this.hasConsentForAdsPersonalization = hasConsentForAdsPersonalization;
-        }
-
-        return {
-            // Factory method for GDPR user
-            forGDPRUser: function(hasConsentForDataUsage, hasConsentForAdsPersonalization) {
-                return new AppsFlyerConsent(true, hasConsentForDataUsage, hasConsentForAdsPersonalization);
-            },
-
-            // Factory method for non GDPR user
-            forNonGDPRUser: function() {
-                return new AppsFlyerConsent(false, null, null);
-            }
-        };
-    })();
 
     module.exports = new AppsFlyer();
 })(window);
