@@ -11,6 +11,7 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_IS_DEBUG;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_APP_OPEN_ATTRIBUTION;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_ATTRIBUTION_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_DEEP_LINKING;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SHOULD_START_SDK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_DATA_LOADED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_SUCCESS;
@@ -313,38 +314,34 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      *                        errorCB: Error callback - called when error occurs during initialization.
      */
     private boolean initSdk(final JSONArray args, final CallbackContext callbackContext) {
-        String devKey = null;
-        boolean isConversionData;
-        boolean isDebug = false;
-        boolean isDeepLinking;
-        AppsFlyerConversionListener gcdListener = null;
-
-        AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
-        AppsFlyerLib instance = AppsFlyerLib.getInstance();
 
         try {
             final JSONObject options = args.getJSONObject(0);
 
-            devKey = options.optString(AF_DEV_KEY, "");
-            isConversionData = options.optBoolean(AF_CONVERSION_DATA, false);
+            // assert if AF_DEV_KEY is null/empty string
+            String devKey = validateDevKey(args, callbackContext)
 
-            if (devKey.trim().equals("")) {
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
-            }
-            setPluginInfo();
-            isDebug = options.optBoolean(AF_IS_DEBUG, false);
+            // assign some values
+            AppsFlyerConversionListener gcdListener = null;
+            AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
+            AppsFlyerLib instance = AppsFlyerLib.getInstance();
+            boolean isConversionData = options.optBoolean(AF_CONVERSION_DATA, false);
+            boolean isDebug = options.optBoolean(AF_IS_DEBUG, false);
+            boolean isDeepLinking = options.optBoolean(AF_ON_DEEP_LINKING, false);
+            boolean shouldStartSDK = options.optBoolean(SHOULD_START_SDK, false);
 
+            // trigger some setters
             if (options.has(AF_COLLECT_ANDROID_ID)) {
                 AppsFlyerLib.getInstance().setCollectAndroidID(options.optBoolean(AF_COLLECT_ANDROID_ID, true));
             }
             if (options.has(AF_COLLECT_IMEI)) {
                 AppsFlyerLib.getInstance().setCollectIMEI(options.optBoolean(AF_COLLECT_IMEI, true));
             }
-            isDeepLinking = options.optBoolean(AF_ON_DEEP_LINKING, false);
             if (isDeepLinking) {
                 instance.subscribeForDeepLink(registerDeepLinkListener());
             }
 
+            setPluginInfo();
             instance.setDebugLog(isDebug);
 
             if (isDebug == true) {
@@ -358,40 +355,72 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 }
 
                 gcdListener = registerConversionListener(instance);
-            } else {
-                //callbackContext.success(SUCCESS);
+
             }
+            // init appsflyerSDK
             instance.init(devKey, gcdListener, cordova.getActivity());
 
-            if (mConversionListener == null) {
-                instance.start(cordova.getActivity(), devKey, new AppsFlyerRequestListener() {
-                    @Override
-                    public void onSuccess() {
-                        callbackContext.success(SUCCESS);
-                    }
-
-                    @Override
-                    public void onError(int i, String s) {
-                        callbackContext.error(FAILURE);
-                    }
-                });
-            } else {
-                instance.start(cordova.getActivity());
+            if(shouldStartSDK == true){
+                startSdk(args, callbackContext);
             }
 
-            instance.start(cordova.getActivity());
-
-            if (gcdListener != null) {
-                sendPluginNoResult(callbackContext);
-            } else {
-                callbackContext.success(SUCCESS);
-            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
         return true;
     }
+
+    /**
+     * start the SDK.
+     *
+     * @param args            SDK configuration
+     * @param callbackContext Success callback - called after successful SDK initialization.
+     *                        errorCB: Error callback - called when error occurs during initialization.
+     */
+    private boolean startSdk(final JSONArray args, final CallbackContext callbackContext) {
+        // assert if AF_DEV_KEY is null/empty string
+        String devKey = validateDevKey(args, callbackContext)
+
+        if (mConversionListener == null) {
+            instance.start(cordova.getActivity(), devKey, new AppsFlyerRequestListener() {
+                @Override
+                public void onSuccess() {
+                    callbackContext.success(SUCCESS);
+                }
+
+                @Override
+                public void onError(int i, String s) {
+                    callbackContext.error(FAILURE);
+                }
+            });
+
+        } else {
+            instance.start(cordova.getActivity());
+        }
+        if (gcdListener != null) {
+            sendPluginNoResult(callbackContext);
+        } else {
+            callbackContext.success(SUCCESS);
+        }
+        return true;
+    }
+
+    /**
+     * An Internal helper method in order to verify the devKey value
+     * extracts the devKey from the args JsonArray, uses the callbackContext for the exception if needed.
+     * throws an exception if the devKey is null or empty and returns also a null value.
+     * if the dev key is valid the method returns It's string.
+     */
+    private String validateDevKey(final JSONArray args, final CallbackContext callbackContext){
+        final JSONObject options = args.getJSONObject(0);
+        String devKey = options.optString(AF_DEV_KEY, "");
+        if (devKey.trim().equals("")) {
+            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
+            return null;
+        }
+        return devkey;
+    }
+
 
     /**
      * register unified deep link listener

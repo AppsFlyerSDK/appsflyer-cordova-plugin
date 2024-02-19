@@ -5,6 +5,7 @@
 
 @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate, AppsFlyerDeepLinkDelegate>
 - (void)initSdk:(CDVInvokedUrlCommand*)command;
+- (void)startSdk:(CDVInvokedUrlCommand*)command;
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command;
 - (void)setCurrencyCode:(CDVInvokedUrlCommand*)command;
 - (void)setAppUserId:(CDVInvokedUrlCommand*)command;

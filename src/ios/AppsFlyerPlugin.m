@@ -35,21 +35,21 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSString* devKey = nil;
     NSString* appId = nil;
     NSNumber* waitForATTUserAuthorization;
+    id isDebugValue = nil;
+    id isConversionDataValue = nil;
+    id sandboxValue = nil;
+    id isDeepLinkingValue = nil;
     BOOL isDebug = NO;
     BOOL useUninstallSandbox = NO;
 
 
     if (![initSdkOptions isKindOfClass:[NSNull class]]) {
-
-        id value = nil;
-        id isConversionDataValue = nil;
-        id sandboxValue = nil;
-        id isDeepLinkingValue = nil;
+    // assign values to variables
         devKey = (NSString*)[initSdkOptions objectForKey: afDevKey];
         appId = (NSString*)[initSdkOptions objectForKey: afAppId];
         waitForATTUserAuthorization = (NSNumber*)[initSdkOptions objectForKey: afwaitForATTUserAuthorization];
-        value = [initSdkOptions objectForKey: afIsDebug];
-        if ([value isKindOfClass:[NSNumber class]]) {
+        isDebugValue = [initSdkOptions objectForKey: afIsDebug];
+        if ([isDebugValue isKindOfClass:[NSNumber class]]) {
             isDebug = [(NSNumber*)value boolValue];
         }
         isConversionDataValue = [initSdkOptions objectForKey: afConversionData];
@@ -68,13 +68,14 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
     NSString* error = nil;
 
+    // verify dev key is not null/empty
     if (!devKey || [devKey isEqualToString:@""]) {
         error = NO_DEVKEY_FOUND;
     }
     if (!appId || [appId isEqualToString:@""]) {
         error = NO_APPID_FOUND;
     }
-
+    // throw an error if the error obj is not nil
     if(error != nil){
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: error];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -85,7 +86,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             [AppsFlyerLib shared].deepLinkDelegate = self;
          }
 
-        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.12.2" additionalParams:nil];
+        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.13.0" additionalParams:nil];
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
@@ -96,7 +97,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         if (@available(iOS 14, *)) {
             if (waitForATTUserAuthorization != 0 && waitForATTUserAuthorization != nil){
                 [[AppsFlyerLib shared] waitForATTUserAuthorizationWithTimeoutInterval:waitForATTUserAuthorization.intValue];
-                   }
+            }
         }
 #endif
         [[AppsFlyerLib shared] start];
