@@ -12,7 +12,19 @@ let getSdkVBtn = document.getElementById('getSdkV');
 let customDomainsBtn = document.getElementById('customDomains');
 let enableFBBtn = document.getElementById('enableFB');
 let addPushNotificationPathBtn = document.getElementById('addPushNotificationPath');
+let setConsentDataNonGDPRBtn = document.getElementById('setConsentDataNonGDPR');
+let setConsentDataWithGDPRBtn = document.getElementById('setConsentDataWithGDPR');
+let enableTCFDataCollectionBtn = document.getElementById('enableTCFDataCollection');
 
+if(enableTCFDataCollectionBtn){
+    enableTCFDataCollectionBtn.addEventListener('click', enableTCFDataCollection, false);
+}
+if(setConsentDataWithGDPRBtn){
+    setConsentDataWithGDPRBtn.addEventListener('click', setConsentDataWithGDPR, false);
+}
+if(setConsentDataNonGDPRBtn){
+    setConsentDataNonGDPRBtn.addEventListener('click', setConsentDataNonGDPR, false);
+}
 if (generateUserInviteBtn) {
     generateUserInviteBtn.addEventListener('click', generateUserInvite, false);
 }
@@ -134,4 +146,15 @@ function logCrossPromotionAndOpenStore() {
     window.plugins.appsFlyer.logCrossPromotionAndOpenStore('1528937655', 'test', {
         custom_param: 'custom_value',
     });
+}
+function setConsentDataWithGDPR() {
+    window.plugins.appsFlyer.setConsentData(AppsFlyerConsent.forGDPRUser(true, true));
+}
+
+function setConsentDataNonGDPR() {
+    window.plugins.appsFlyer.setConsentData(AppsFlyerConsent.forNonGDPRUser());
+}
+
+function enableTCFDataCollection() {
+    window.plugins.appsFlyer.enableTCFDataCollection(true);
 }
