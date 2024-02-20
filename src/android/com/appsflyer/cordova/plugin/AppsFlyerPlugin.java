@@ -350,7 +350,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
             if (isConversionData) {
 
-                if (mConversionListener) {
+                if (mConversionListener == null) {
                     mConversionListener = callbackContext;
                 }
 
@@ -378,14 +378,15 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                      startSdk();
                 }
             }
+            if (gcdListener != null) {
+                sendPluginNoResult(callbackContext);
+            } else {
+                callbackContext.success(SUCCESS);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        if (gcdListener != null) {
-            sendPluginNoResult(callbackContext);
-        } else {
-            callbackContext.success(SUCCESS);
-        }
+
         return true;
     }
 
@@ -397,6 +398,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      *                        errorCB: Error callback - called when error occurs during initialization.
      */
     private boolean startSdk() {
+        AppsFlyerLib instance = AppsFlyerLib.getInstance();
         instance.start(cordova.getActivity());
         return true;
     }
@@ -414,7 +416,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
             return null;
         }
-        return devkey;
+        return devKey;
     }
 
 
