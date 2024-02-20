@@ -319,7 +319,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             final JSONObject options = args.getJSONObject(0);
 
             // assert if AF_DEV_KEY is null/empty string
-            String devKey = validateDevKey(args, callbackContext);
+            String devKey = options.optString(AF_DEV_KEY, "");
+            if (devKey.trim().equals("")) {
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
+                return;
+            }
 
             // assign some values
             AppsFlyerConversionListener gcdListener = null;
@@ -402,23 +406,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         instance.start(cordova.getActivity());
         return true;
     }
-
-    /**
-     * An Internal helper method in order to verify the devKey value
-     * extracts the devKey from the args JsonArray, uses the callbackContext for the exception if needed.
-     * throws an exception if the devKey is null or empty and returns also a null value.
-     * if the dev key is valid the method returns It's string.
-     */
-    private String validateDevKey(final JSONArray args, final CallbackContext callbackContext){
-        final JSONObject options = args.getJSONObject(0);
-        String devKey = options.optString(AF_DEV_KEY, "");
-        if (devKey.trim().equals("")) {
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
-            return null;
-        }
-        return devKey;
-    }
-
 
     /**
      * register unified deep link listener
