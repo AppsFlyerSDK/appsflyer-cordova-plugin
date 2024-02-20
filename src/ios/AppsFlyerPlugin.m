@@ -213,17 +213,17 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     id hasConsentForDataUsageValue = nil;
     id hasConsentForAdsPersonalizationValue = nil;
 
-    isUserSubjectToGDPRValue = [consentDataMap objectForKey:"isUserSubjectToGDPR"];
+    isUserSubjectToGDPRValue = [consentDataMap objectForKey:@"isUserSubjectToGDPR"];
     if ([isUserSubjectToGDPRValue isKindOfClass:[NSNumber class]]) {
        isUserSubjectToGDPR = [(NSNumber*)isUserSubjectToGDPRValue boolValue];
     }
 
-    hasConsentForDataUsageValue = [consentDataMap objectForKey:"hasConsentForDataUsage"];
+    hasConsentForDataUsageValue = [consentDataMap objectForKey:@"hasConsentForDataUsage"];
     if ([hasConsentForDataUsageValue isKindOfClass:[NSNumber class]]) {
        hasConsentForDataUsage = [(NSNumber*)hasConsentForDataUsageValue boolValue];
     }
 
-    hasConsentForAdsPersonalizationValue = [consentDataMap objectForKey:"hasConsentForAdsPersonalization"];
+    hasConsentForAdsPersonalizationValue = [consentDataMap objectForKey:@"hasConsentForAdsPersonalization"];
     if ([hasConsentForAdsPersonalizationValue isKindOfClass:[NSNumber class]]) {
        hasConsentForAdsPersonalization = [(NSNumber*)hasConsentForAdsPersonalizationValue boolValue];
     }
@@ -247,7 +247,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     }
     BOOL enable = NO;
     id enableValue = nil;
-    enableValue = [command.arguments objectAtIndex:0]
+    enableValue = [command.arguments objectAtIndex:0];
     if ([enableValue isKindOfClass:[NSNumber class]]) {
        enable = [(NSNumber*)enableValue boolValue];
     }
