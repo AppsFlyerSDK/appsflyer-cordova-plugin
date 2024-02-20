@@ -158,4 +158,5 @@ function setConsentDataNonGDPR() {
 
 function enableTCFDataCollection() {
     window.plugins.appsFlyer.enableTCFDataCollection(true);
+    window.plugins.appsFlyer.startSdk();
 }
