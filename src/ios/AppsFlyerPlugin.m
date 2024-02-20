@@ -110,9 +110,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
     }
 #endif
-
-    NSDictionary* initSdkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
-
     if (![initSdkOptions isKindOfClass:[NSNull class]]) {
 
         id isConversionDataValue = nil;
