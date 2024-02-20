@@ -72,6 +72,40 @@ if (!window.CustomEvent) {
     };
 
     /**
+     * starts the SDK.
+     * args: SDK configuration
+     * successCB: Success callback - called after successful SDK initialization.
+     * errorCB: Error callback - called when error occurs during initialization.
+     */
+    AppsFlyer.prototype.startSdk = function (args, successCB, errorCB) {
+        argscheck.checkArgs('O', 'AppsFlyer.startSdk', arguments);
+        if (!args) {
+            if (errorCB) {
+                errorCB(AppsFlyerError.INVALID_ARGUMENT_ERROR);
+            }
+        } else {
+            if (args.appId !== undefined && (typeof args.appId != 'string' || args.appId === "")) {
+                if (errorCB) {
+                    errorCB(AppsFlyerError.APPID_NOT_VALID);
+                }
+            } else if (args.devKey !== undefined && typeof args.devKey != 'string') {
+                if (errorCB) {
+                    errorCB(AppsFlyerError.DEVKEY_NOT_VALID);
+                }
+            } else if (args.devKey === undefined || args.devKey === "") {
+                if (errorCB) {
+                    errorCB(AppsFlyerError.NO_DEVKEY_FOUND);
+                }
+            } else {
+                exec(successCB, errorCB, 'AppsFlyerPlugin', 'startSdk', [args]);
+
+                callbackMap.convSuc = successCB;
+                callbackMap.convErr = errorCB;
+            }
+        }
+    };
+
+    /**
      * onAppOpenAttributionSuccess: Success callback - called after receiving data on App Open Attribution.
      * onAppOpenAttributionError: Error callback - called when error occurs.
      */
