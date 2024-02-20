@@ -76,7 +76,7 @@ if (!window.CustomEvent) {
      *
      */
     AppsFlyer.prototype.startSdk = function () {
-        argscheck.checkArgs('O', 'AppsFlyer.startSdk', null);
+        exec(null, null, 'AppsFlyerPlugin', 'startSdk', []);
     };
 
     /**
@@ -470,7 +470,7 @@ if (!window.CustomEvent) {
      * @param enable - boolean value that represent if enables to collect or not.
      */
     AppsFlyer.prototype.enableTCFDataCollection = function (enable) {
-        exec(null, null, 'AppsFlyerPlugin', 'setConsentData', [enable]);
+        exec(null, null, 'AppsFlyerPlugin', 'enableTCFDataCollection', [enable]);
     }
 
 
