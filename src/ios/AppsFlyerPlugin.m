@@ -50,7 +50,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         appId = (NSString*)[initSdkOptions objectForKey:afAppId];
         waitForATTUserAuthorization = (NSNumber*)[initSdkOptions objectForKey:afwaitForATTUserAuthorization];
         isDebugValue = [initSdkOptions objectForKey:afIsDebug];
-        shouldStartSdkValue = [initSdkOptions objectForKey:shouldStartSdk];
+        shouldStartSdkValue = [initSdkOptions objectForKey:afShouldStartSdk];
 
         if ([shouldStartSdkValue isKindOfClass:[NSNumber class]]) {
             shouldStartSdk = [(NSNumber*)shouldStartSdkValue boolValue];
@@ -112,18 +112,24 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 #endif
 
     if (shouldStartSdk == true) {
-        startSdk(command);
+        [self startSdk:command];
     }
 }
 
 
 -(void)startSdk:(CDVInvokedUrlCommand *)command {
-    id isConversionDataValue = nil;
-    isConversionDataValue = [initSdkOptions objectForKey:afConversionData];
+    NSDictionary* initSdkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
 
-    if ([isConversionDataValue isKindOfClass:[NSNumber class]]) {
-        isConversionData = [(NSNumber*)isConversionDataValue boolValue];
+    if (![initSdkOptions isKindOfClass:[NSNull class]]) {
+
+        id isConversionDataValue = nil;
+        isConversionDataValue = [initSdkOptions objectForKey:afConversionData];
+
+        if ([isConversionDataValue isKindOfClass:[NSNumber class]]) {
+            isConversionData = [(NSNumber*)isConversionDataValue boolValue];
+        }
     }
+
     [[AppsFlyerLib shared] start];
     //post notification for the deep link object that the bridge is set and he can handle deep link
     [AppsFlyerAttribution shared].isBridgeReady = YES;
