@@ -322,9 +322,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             String devKey = options.optString(AF_DEV_KEY, "");
             if (devKey.trim().equals("")) {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
-                return;
             }
-
+            
             // assign some values
             AppsFlyerConversionListener gcdListener = null;
             AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
