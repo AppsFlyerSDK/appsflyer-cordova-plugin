@@ -124,6 +124,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return stop(args);
         } else if ("initSdk".equals(action)) {
             return initSdk(args, callbackContext);
+        } else if ("startSdk".equals(action)) {
+            return startSdk();
         } else if ("logEvent".equals(action)) {
             return logEvent(args, callbackContext);
         } else if ("updateServerUninstallToken".equals(action)) {
@@ -323,7 +325,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             if (devKey.trim().equals("")) {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
             }
-            
+
             // assign some values
             AppsFlyerConversionListener gcdListener = null;
             AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
@@ -395,10 +397,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     /**
      * start the SDK.
-     *
-     * @param args            SDK configuration
-     * @param callbackContext Success callback - called after successful SDK initialization.
-     *                        errorCB: Error callback - called when error occurs during initialization.
      */
     private boolean startSdk() {
         AppsFlyerLib instance = AppsFlyerLib.getInstance();
