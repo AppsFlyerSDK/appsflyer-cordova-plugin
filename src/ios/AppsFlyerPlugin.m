@@ -41,7 +41,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     id isDeepLinkingValue = nil;
     BOOL isDebug = NO;
     BOOL useUninstallSandbox = NO;
-    BOOL shouldStartSdk = NO;
+    BOOL shouldStartSdk = YES;
 
 
     if (![initSdkOptions isKindOfClass:[NSNull class]]) {
@@ -111,13 +111,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     }
 #endif
 
-    if (shouldStartSdk == true) {
-        [self startSdk:command];
-    }
-}
-
-
--(void)startSdk:(CDVInvokedUrlCommand *)command {
     NSDictionary* initSdkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
 
     if (![initSdkOptions isKindOfClass:[NSNull class]]) {
@@ -130,28 +123,35 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
     }
 
-    [[AppsFlyerLib shared] start];
+    if (shouldStartSdk == true) {
+        [self startSdk:command];
+    }
+
     //post notification for the deep link object that the bridge is set and he can handle deep link
-    [AppsFlyerAttribution shared].isBridgeReady = YES;
-    [[NSNotificationCenter defaultCenter] postNotificationName:AF_BRIDGE_SET object:self];
-    // Register for background-foreground transitions natively instead of doing this in JavaScript
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(sendLaunch:)
-                                                 name:UIApplicationDidBecomeActiveNotification
-                                               object:nil];
-    if(isConversionData == YES){
-      CDVPluginResult* pluginResult = nil;
-      mConversionListener = command.callbackId;
+        [AppsFlyerAttribution shared].isBridgeReady = YES;
+        [[NSNotificationCenter defaultCenter] postNotificationName:AF_BRIDGE_SET object:self];
+        // Register for background-foreground transitions natively instead of doing this in JavaScript
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(sendLaunch:)
+                                                     name:UIApplicationDidBecomeActiveNotification
+                                                   object:nil];
+        if(isConversionData == YES){
+          CDVPluginResult* pluginResult = nil;
+          mConversionListener = command.callbackId;
 
-      [AppsFlyerLib shared].delegate = self;
+          [AppsFlyerLib shared].delegate = self;
 
-      pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-      [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-    }
-    else{
-        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:SUCCESS];
-        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-    }
+          pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+          [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+        }
+        else{
+            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:SUCCESS];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        }
+}
+
+-(void)startSdk:(CDVInvokedUrlCommand *)command {
+    [[AppsFlyerLib shared] start];
 }
 
 -(void)sendLaunch:(UIApplication *)application {

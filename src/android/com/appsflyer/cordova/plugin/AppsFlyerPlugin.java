@@ -319,7 +319,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             final JSONObject options = args.getJSONObject(0);
 
             // assert if AF_DEV_KEY is null/empty string
-            String devKey = validateDevKey(args, callbackContext)
+            String devKey = validateDevKey(args, callbackContext);
 
             // assign some values
             AppsFlyerConversionListener gcdListener = null;
@@ -328,7 +328,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             boolean isConversionData = options.optBoolean(AF_CONVERSION_DATA, false);
             boolean isDebug = options.optBoolean(AF_IS_DEBUG, false);
             boolean isDeepLinking = options.optBoolean(AF_ON_DEEP_LINKING, false);
-            boolean shouldStartSDK = options.optBoolean(SHOULD_START_SDK, false);
+            boolean shouldStartSDK = options.optBoolean(SHOULD_START_SDK, true);
 
             // trigger some setters
             if (options.has(AF_COLLECT_ANDROID_ID)) {
@@ -344,13 +344,13 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             setPluginInfo();
             instance.setDebugLog(isDebug);
 
-            if (isDebug == true) {
+            if (isDebug) {
                 Log.d("AppsFlyer", "Starting Tracking");
             }
 
-            if (isConversionData == true) {
+            if (isConversionData) {
 
-                if (mConversionListener == null) {
+                if (mConversionListener) {
                     mConversionListener = callbackContext;
                 }
 
@@ -361,11 +361,30 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             instance.init(devKey, gcdListener, cordova.getActivity());
 
             if(shouldStartSDK == true){
-                startSdk(args, callbackContext);
-            }
+                if (mConversionListener == null) {
+                    instance.start(cordova.getActivity(), devKey, new AppsFlyerRequestListener() {
+                        @Override
+                        public void onSuccess() {
+                            callbackContext.success(SUCCESS);
+                        }
 
+                        @Override
+                        public void onError(int i, String s) {
+                            callbackContext.error(FAILURE);
+                        }
+                    });
+                }
+                else{
+                     startSdk();
+                }
+            }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+        if (gcdListener != null) {
+            sendPluginNoResult(callbackContext);
+        } else {
+            callbackContext.success(SUCCESS);
         }
         return true;
     }
@@ -377,31 +396,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @param callbackContext Success callback - called after successful SDK initialization.
      *                        errorCB: Error callback - called when error occurs during initialization.
      */
-    private boolean startSdk(final JSONArray args, final CallbackContext callbackContext) {
-        // assert if AF_DEV_KEY is null/empty string
-        String devKey = validateDevKey(args, callbackContext)
-
-        if (mConversionListener == null) {
-            instance.start(cordova.getActivity(), devKey, new AppsFlyerRequestListener() {
-                @Override
-                public void onSuccess() {
-                    callbackContext.success(SUCCESS);
-                }
-
-                @Override
-                public void onError(int i, String s) {
-                    callbackContext.error(FAILURE);
-                }
-            });
-
-        } else {
-            instance.start(cordova.getActivity());
-        }
-        if (gcdListener != null) {
-            sendPluginNoResult(callbackContext);
-        } else {
-            callbackContext.success(SUCCESS);
-        }
+    private boolean startSdk() {
+        instance.start(cordova.getActivity());
         return true;
     }
 
