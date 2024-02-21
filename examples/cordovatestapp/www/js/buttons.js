@@ -15,11 +15,7 @@ let enableFBBtn = document.getElementById('enableFB');
 let addPushNotificationPathBtn = document.getElementById('addPushNotificationPath');
 let setConsentDataNonGDPRBtn = document.getElementById('setConsentDataNonGDPR');
 let setConsentDataWithGDPRBtn = document.getElementById('setConsentDataWithGDPR');
-let enableTCFDataCollectionBtn = document.getElementById('enableTCFDataCollection');
 
-if(enableTCFDataCollectionBtn){
-    enableTCFDataCollectionBtn.addEventListener('click', enableTCFDataCollection, false);
-}
 if(setConsentDataWithGDPRBtn){
     setConsentDataWithGDPRBtn.addEventListener('click', setConsentDataWithGDPR, false);
 }
@@ -154,9 +150,4 @@ function setConsentDataWithGDPR() {
 
 function setConsentDataNonGDPR() {
     window.plugins.appsFlyer.setConsentData( AppsFlyerConsent.forNonGDPRUser());
-}
-
-function enableTCFDataCollection() {
-    window.plugins.appsFlyer.enableTCFDataCollection(true);
-    window.plugins.appsFlyer.startSdk();
 }

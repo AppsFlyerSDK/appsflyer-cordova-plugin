@@ -147,7 +147,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
 }
 
--(void)startSdk {
+-(void)startSdk:(CDVInvokedUrlCommand*)command {
     [[AppsFlyerLib shared] start];
 }
 

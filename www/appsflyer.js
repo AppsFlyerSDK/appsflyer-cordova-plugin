@@ -471,8 +471,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.enableTCFDataCollection = function (enable) {
         exec(null, null, 'AppsFlyerPlugin', 'enableTCFDataCollection', [enable]);
-    }
-
+    };
 
     module.exports = new AppsFlyer();
 })(window);

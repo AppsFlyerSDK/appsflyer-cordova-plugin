@@ -30,6 +30,7 @@ document.addEventListener(
             appId: 'id111111111',
             isDebug: true,
             onInstallConversionDataListener: true,
+            shouldStartSdk: false,
             // onDeepLinkListener: true, //if true, will override onAppOpenAttribution
             waitForATTUserAuthorization: 0, //--> Here you set the time for the sdk to wait before launch
         };
@@ -40,6 +41,8 @@ document.addEventListener(
         }, function (err) {
             console.log(`failed ~~> ${err}`);
         });
+        window.plugins.appsFlyer.enableTCFDataCollection(true);
+        window.plugins.appsFlyer.startSdk();
     },
     false
 );
