@@ -116,7 +116,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         isConversionDataValue = [initSdkOptions objectForKey:afConversionData];
 
         if ([isConversionDataValue isKindOfClass:[NSNumber class]]) {
-            isConversionData = [(NSNumber*)isConversionDataValue boolValue];
+            isConversionData = [isConversionDataValue boolValue];
         }
     }
 
@@ -212,7 +212,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
     isUserSubjectToGDPRValue = [consentDataMap objectForKey:@"isUserSubjectToGDPR"];
     if ([isUserSubjectToGDPRValue isKindOfClass:[NSNumber class]]) {
-       isUserSubjectToGDPR = [(NSNumber*)isUserSubjectToGDPRValue boolValue];
+       isUserSubjectToGDPR = [isUserSubjectToGDPRValue boolValue];
     }
 
     hasConsentForDataUsageValue = [consentDataMap objectForKey:@"hasConsentForDataUsage"];

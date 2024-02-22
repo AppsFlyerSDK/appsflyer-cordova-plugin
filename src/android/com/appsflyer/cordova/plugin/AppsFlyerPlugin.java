@@ -365,7 +365,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             // init appsflyerSDK
             instance.init(devKey, gcdListener, cordova.getActivity());
 
-            if(shouldStartSDK == true){
+            if(shouldStartSDK){
                 if (mConversionListener == null) {
                     instance.start(cordova.getActivity(), devKey, new AppsFlyerRequestListener() {
                         @Override
