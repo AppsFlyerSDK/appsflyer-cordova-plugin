@@ -50,11 +50,8 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         appId = (NSString*)[initSdkOptions objectForKey:afAppId];
         waitForATTUserAuthorization = (NSNumber*)[initSdkOptions objectForKey:afwaitForATTUserAuthorization];
         isDebugValue = [initSdkOptions objectForKey:afIsDebug];
-        shouldStartSdkValue = [initSdkOptions objectForKey:afShouldStartSdk];
-
-        if ([shouldStartSdkValue isKindOfClass:[NSNumber class]]) {
-            shouldStartSdk = [(NSNumber*)shouldStartSdkValue boolValue];
-        }
+        shouldStartSdk = [[initSdkOptions objectForKey:@"shouldStartSdk"] boolValue];
+        [self setShouldStartSdk:shouldStartSdk];
 
         if ([isDebugValue isKindOfClass:[NSNumber class]]) {
             isDebug = [(NSNumber*)isDebugValue boolValue];
@@ -120,7 +117,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
     }
 
-    if (shouldStartSdk == true) {
+    if (shouldStartSdk) {
         [self startSdk:command];
     }
 
@@ -132,7 +129,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                                  selector:@selector(sendLaunch:)
                                                      name:UIApplicationDidBecomeActiveNotification
                                                    object:nil];
-        if(isConversionData == YES){
+        if(isConversionData){
           CDVPluginResult* pluginResult = nil;
           mConversionListener = command.callbackId;
 
@@ -148,12 +145,15 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 }
 
 -(void)startSdk:(CDVInvokedUrlCommand*)command {
+    [self setShouldStartSdk:YES];
     [[AppsFlyerLib shared] start];
 }
 
 -(void)sendLaunch:(UIApplication *)application {
     [[NSNotificationCenter defaultCenter] postNotificationName:AF_BRIDGE_SET object:self];
-    [[AppsFlyerLib shared] start];
+    if ([self shouldStartSdk]) {
+        [[AppsFlyerLib shared] start];
+    }
 }
 
 /**

@@ -4,6 +4,7 @@
 #import <objc/message.h>
 
 @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate, AppsFlyerDeepLinkDelegate>
+@property (readwrite, nonatomic) BOOL shouldStartSdk;
 - (void)initSdk:(CDVInvokedUrlCommand*)command;
 - (void)startSdk:(CDVInvokedUrlCommand*)command;
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command;
@@ -40,7 +41,6 @@
 
 // Appsflyer JS objects
 #define afDevKey                        @"devKey"
-#define afShouldStartSdk                @"shouldStartSdk"
 #define afAppId                         @"appId"
 #define afwaitForATTUserAuthorization   @"waitForATTUserAuthorization"
 #define afIsDebug						@"isDebug"
