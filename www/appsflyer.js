@@ -428,37 +428,6 @@ if (!window.CustomEvent) {
      * Use to manually collecting the consent data from the user.
      * @param appsFlyerConsent - object of AppsFlyerConsent that holds three values when GDPR is applies to the user, and one value when It's not.
      * when GDPR applies to the user and your app does not use a CMP compatible with TCF v2.2, use this API to provide the consent data directly to the SDK.<br>
-     * The consent object has 2 properties:
-     *
-     * 1. `hasConsentForDataUsage`: Indicates whether the user has consented to use their data for advertising purposes.
-     * 2. `hasConsentForAdsPersonalization`: indicates whether the user has consented to use their data for personalized advertising.
-     *
-     * | parameter       | type     | description                 |
-     * | ----------      |----------|------------------           |
-     * | consentData  | object  | Consent object of the user      |
-     *
-     * *Example:*
-     *
-     * ```javascript
-     * let consentData = AppsFlyerConsent.forGDPRUser{
-     *       hasConsentForDataUsage: true,
-     *       hasConsentForAdsPersonalization: false
-     *     }
-     * AppsFlyer.setConsentData(consentData);
-     * ```
-     *
-     * ---
-     *
-     * ### setNonGDPRUser
-     * `setNonGDPRUser(): void`
-     *
-     * Use this API if GDPR doesn’t apply to the user.<br>
-     *
-     * *Example:*
-     *
-     * ```javascript
-     * AppsFlyerConsent.setNonGDPRUser();
-     * ```
      */
     AppsFlyer.prototype.setConsentData = function (appsFlyerConsent){
         exec(null, null, 'AppsFlyerPlugin', 'setConsentData', [appsFlyerConsent]);
