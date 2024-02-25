@@ -233,9 +233,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @return
      */
     private boolean registerDeepLink(CallbackContext callbackContext) {
-        if (mDeepLinkListener == null) {
-            mDeepLinkListener = callbackContext;
-        }
+        mDeepLinkListener = callbackContext;
         return true;
     }
 
@@ -247,9 +245,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @return
      */
     private boolean registerOnAppOpenAttribution(final CallbackContext callbackContext) {
-        if (mAttributionDataListener == null) {
-            mAttributionDataListener = callbackContext;
-        }
+        mAttributionDataListener = callbackContext;
         return true;
     }
 
