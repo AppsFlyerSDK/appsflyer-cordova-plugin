@@ -35,32 +35,40 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSString* devKey = nil;
     NSString* appId = nil;
     NSNumber* waitForATTUserAuthorization;
+    id shouldStartSdkValue = nil;
+    id isDebugValue = nil;
+    id sandboxValue = nil;
+    id isDeepLinkingValue = nil;
     BOOL isDebug = NO;
     BOOL useUninstallSandbox = NO;
+    BOOL shouldStartSdk = YES;
 
 
     if (![initSdkOptions isKindOfClass:[NSNull class]]) {
+        // Assign values to variables
+        devKey = (NSString*)[initSdkOptions objectForKey:afDevKey];
+        appId = (NSString*)[initSdkOptions objectForKey:afAppId];
+        waitForATTUserAuthorization = (NSNumber*)[initSdkOptions objectForKey:afwaitForATTUserAuthorization];
+        isDebugValue = [initSdkOptions objectForKey:afIsDebug];
+        shouldStartSdkValue = [initSdkOptions objectForKey:@"shouldStartSdk"];
 
-        id value = nil;
-        id isConversionDataValue = nil;
-        id sandboxValue = nil;
-        id isDeepLinkingValue = nil;
-        devKey = (NSString*)[initSdkOptions objectForKey: afDevKey];
-        appId = (NSString*)[initSdkOptions objectForKey: afAppId];
-        waitForATTUserAuthorization = (NSNumber*)[initSdkOptions objectForKey: afwaitForATTUserAuthorization];
-        value = [initSdkOptions objectForKey: afIsDebug];
-        if ([value isKindOfClass:[NSNumber class]]) {
-            isDebug = [(NSNumber*)value boolValue];
+        if ([isDebugValue isKindOfClass:[NSNumber class]]) {
+            isDebug = [(NSNumber*)isDebugValue boolValue];
         }
-        isConversionDataValue = [initSdkOptions objectForKey: afConversionData];
-        if ([isConversionDataValue isKindOfClass:[NSNumber class]]) {
-            isConversionData = [(NSNumber*)isConversionDataValue boolValue];
+
+        if ([shouldStartSdkValue isKindOfClass:[NSNumber class]]) {
+            shouldStartSdk = [(NSNumber*)shouldStartSdkValue boolValue];
         }
-        sandboxValue = [initSdkOptions objectForKey: afSanboxUninstall];
+
+        [self setShouldStartSdk:shouldStartSdk];
+        sandboxValue = [initSdkOptions objectForKey:afSanboxUninstall];
+
         if ([sandboxValue isKindOfClass:[NSNumber class]]) {
             useUninstallSandbox = [(NSNumber*)sandboxValue boolValue];
         }
-        isDeepLinkingValue = [initSdkOptions objectForKey: afOnDeepLinking];
+
+        isDeepLinkingValue = [initSdkOptions objectForKey:afOnDeepLinking];
+
         if ([isDeepLinkingValue isKindOfClass:[NSNumber class]]) {
             isDeepLinking = [(NSNumber*)isDeepLinkingValue boolValue];
         }
@@ -68,40 +76,56 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
     NSString* error = nil;
 
+    // Verify dev key is not null/empty
     if (!devKey || [devKey isEqualToString:@""]) {
         error = NO_DEVKEY_FOUND;
     }
+
     if (!appId || [appId isEqualToString:@""]) {
         error = NO_APPID_FOUND;
     }
 
-    if(error != nil){
-        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: error];
+    // Throw an exception if the error object is not nil
+    if (error != nil){
+        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:error];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         return;
-    }
-    else{
-        if(isDeepLinking == YES){
+    } else {
+        if (isDeepLinking == YES) {
             [AppsFlyerLib shared].deepLinkDelegate = self;
-         }
+        }
 
-        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.12.2" additionalParams:nil];
+        // Initialize the SDK
+        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.13.0" additionalParams:nil];
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
         [AppsFlyerLib shared].useUninstallSandbox = useUninstallSandbox;
+    }
 
 #ifndef AFSDK_NO_IDFA
-        //Here we set the time that the sdk will wait before he starts the launch. we take the time from the 'option' object in the app's index.js
-        if (@available(iOS 14, *)) {
-            if (waitForATTUserAuthorization != 0 && waitForATTUserAuthorization != nil){
-                [[AppsFlyerLib shared] waitForATTUserAuthorizationWithTimeoutInterval:waitForATTUserAuthorization.intValue];
-                   }
+    // Here we set the time that the SDK will wait before it starts the launch. We take the time from the 'option' object in the app's index.js
+    if (@available(iOS 14, *)) {
+        if (waitForATTUserAuthorization != 0 && waitForATTUserAuthorization != nil) {
+            [[AppsFlyerLib shared] waitForATTUserAuthorizationWithTimeoutInterval:waitForATTUserAuthorization.intValue];
         }
+    }
 #endif
-        [[AppsFlyerLib shared] start];
+    if (![initSdkOptions isKindOfClass:[NSNull class]]) {
 
-        //post notification for the deep link object that the bridge is set and he can handle deep link
+        id isConversionDataValue = nil;
+        isConversionDataValue = [initSdkOptions objectForKey:afConversionData];
+
+        if ([isConversionDataValue isKindOfClass:[NSNumber class]]) {
+            isConversionData = [isConversionDataValue boolValue];
+        }
+    }
+
+    if (shouldStartSdk) {
+        [self startSdk:command];
+    }
+
+    //post notification for the deep link object that the bridge is set and he can handle deep link
         [AppsFlyerAttribution shared].isBridgeReady = YES;
         [[NSNotificationCenter defaultCenter] postNotificationName:AF_BRIDGE_SET object:self];
         // Register for background-foreground transitions natively instead of doing this in JavaScript
@@ -109,8 +133,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                                  selector:@selector(sendLaunch:)
                                                      name:UIApplicationDidBecomeActiveNotification
                                                    object:nil];
-
-        if(isConversionData == YES){
+        if(isConversionData){
           CDVPluginResult* pluginResult = nil;
           mConversionListener = command.callbackId;
 
@@ -123,12 +146,18 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:SUCCESS];
             [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         }
-    }
-  }
+}
+
+-(void)startSdk:(CDVInvokedUrlCommand*)command {
+    [self setShouldStartSdk:YES];
+    [[AppsFlyerLib shared] start];
+}
 
 -(void)sendLaunch:(UIApplication *)application {
     [[NSNotificationCenter defaultCenter] postNotificationName:AF_BRIDGE_SET object:self];
-    [[AppsFlyerLib shared] start];
+    if ([self shouldStartSdk]) {
+        [[AppsFlyerLib shared] start];
+    }
 }
 
 /**
@@ -165,6 +194,65 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
     NSString* currencyId = [command.arguments objectAtIndex:0];
     [AppsFlyerLib shared].currencyCode = currencyId;
+}
+
+/**
+*   Sets new currency code. currencyId: ISO 4217 Currency Codes.
+*/
+- (void)setConsentData:(CDVInvokedUrlCommand*)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+    NSDictionary *consentDataMap = (NSDictionary*)[command.arguments objectAtIndex: 0];
+
+    BOOL isUserSubjectToGDPR = NO;
+    BOOL hasConsentForDataUsage = NO;
+    BOOL hasConsentForAdsPersonalization = NO;
+
+    id isUserSubjectToGDPRValue = nil;
+    id hasConsentForDataUsageValue = nil;
+    id hasConsentForAdsPersonalizationValue = nil;
+
+    isUserSubjectToGDPRValue = [consentDataMap objectForKey:@"isUserSubjectToGDPR"];
+    if ([isUserSubjectToGDPRValue isKindOfClass:[NSNumber class]]) {
+       isUserSubjectToGDPR = [isUserSubjectToGDPRValue boolValue];
+    }
+
+    hasConsentForDataUsageValue = [consentDataMap objectForKey:@"hasConsentForDataUsage"];
+    if ([hasConsentForDataUsageValue isKindOfClass:[NSNumber class]]) {
+       hasConsentForDataUsage = [(NSNumber*)hasConsentForDataUsageValue boolValue];
+    }
+
+    hasConsentForAdsPersonalizationValue = [consentDataMap objectForKey:@"hasConsentForAdsPersonalization"];
+    if ([hasConsentForAdsPersonalizationValue isKindOfClass:[NSNumber class]]) {
+       hasConsentForAdsPersonalization = [(NSNumber*)hasConsentForAdsPersonalizationValue boolValue];
+    }
+
+    AppsFlyerConsent *consentData = nil;
+    if (isUserSubjectToGDPR) {
+        consentData = [[AppsFlyerConsent alloc] initForGDPRUserWithHasConsentForDataUsage:hasConsentForDataUsage hasConsentForAdsPersonalization:hasConsentForAdsPersonalization];
+    } else {
+        consentData = [[AppsFlyerConsent alloc] initNonGDPRUser];
+    }
+   [[AppsFlyerLib shared] setConsentData:consentData];
+}
+
+/**
+*   Sets new currency code. currencyId: ISO 4217 Currency Codes.
+*/
+- (void)enableTCFDataCollection:(CDVInvokedUrlCommand*)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+    BOOL enable = NO;
+    id enableValue = nil;
+    enableValue = [command.arguments objectAtIndex:0];
+    if ([enableValue isKindOfClass:[NSNumber class]]) {
+       enable = [(NSNumber*)enableValue boolValue];
+    }
+    [[AppsFlyerLib shared] enableTCFDataCollection:enable];
 }
 /**
 *   Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs.
