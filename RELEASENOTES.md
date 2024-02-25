@@ -1,3 +1,9 @@
+## 6.13.0
+ Release date: *2024-02-25*
+
+- Cordova >> Update Plugin to v6.13.0 (DMA)
+- Cordova > Android > registerDeepLink API works only once on MFE architecture due to null check
+
 ## 6.12.2
  Release date: *2023-08-23*
 
