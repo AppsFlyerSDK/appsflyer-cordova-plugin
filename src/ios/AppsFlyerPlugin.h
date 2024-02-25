@@ -4,7 +4,9 @@
 #import <objc/message.h>
 
 @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate, AppsFlyerDeepLinkDelegate>
+@property (readwrite, nonatomic) BOOL shouldStartSdk;
 - (void)initSdk:(CDVInvokedUrlCommand*)command;
+- (void)startSdk:(CDVInvokedUrlCommand*)command;
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command;
 - (void)setCurrencyCode:(CDVInvokedUrlCommand*)command;
 - (void)setAppUserId:(CDVInvokedUrlCommand*)command;
@@ -30,6 +32,8 @@
 - (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand *)command;
 - (void)setCurrentDeviceLanguage:(CDVInvokedUrlCommand*)command;
 - (void)setAdditionalData:(CDVInvokedUrlCommand*)command;
+- (void)setConsentData:(CDVInvokedUrlCommand*)command;
+- (void)enableTCFDataCollection:(CDVInvokedUrlCommand*)command;
 - (void)setSharingFilter:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
 - (void)setSharingFilterForAllPartners:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
 
@@ -38,7 +42,7 @@
 // Appsflyer JS objects
 #define afDevKey                        @"devKey"
 #define afAppId                         @"appId"
-#define afwaitForATTUserAuthorization     @"waitForATTUserAuthorization"
+#define afwaitForATTUserAuthorization   @"waitForATTUserAuthorization"
 #define afIsDebug						@"isDebug"
 #define afSanboxUninstall				@"useUninstallSandbox"
 
@@ -65,13 +69,13 @@
 #define afOnDeepLinking                 @"onDeepLinkListener"
 
 //RECEIPT VALIDATION
-#define afProductIdentifier                       @"productIdentifier"
-#define afTransactionId                     @"transactionId"
-#define afPrice                    @"price"
-#define afCurrency                    @"currency"
+#define afProductIdentifier                     @"productIdentifier"
+#define afTransactionId                         @"transactionId"
+#define afPrice                                 @"price"
+#define afCurrency                              @"currency"
 #define afAdditionalParameters                  @"additionalParameters"
-static NSString *const NO_PARAMETERS_ERROR                  = @"No purchase parameters found";
-static NSString *const VALIDATE_SUCCESS                  = @"In-App Purchase Validation success";
+static NSString *const NO_PARAMETERS_ERROR    = @"No purchase parameters found";
+static NSString *const VALIDATE_SUCCESS       = @"In-App Purchase Validation success";
 
 //Set custom domains
 #define afNoDomains @"no domains in the domains array"

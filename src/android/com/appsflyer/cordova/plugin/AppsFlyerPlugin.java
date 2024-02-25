@@ -11,6 +11,7 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_IS_DEBUG;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_APP_OPEN_ATTRIBUTION;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_ATTRIBUTION_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_DEEP_LINKING;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SHOULD_START_SDK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_DATA_LOADED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_SUCCESS;
@@ -60,6 +61,7 @@ import com.appsflyer.share.LinkGenerator;
 import com.appsflyer.share.ShareInviteHelper;
 import com.appsflyer.internal.platform_extension.Plugin;
 import com.appsflyer.internal.platform_extension.PluginInfo;
+import com.appsflyer.AppsFlyerConsent;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -122,6 +124,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return stop(args);
         } else if ("initSdk".equals(action)) {
             return initSdk(args, callbackContext);
+        } else if ("startSdk".equals(action)) {
+            return startSdk();
         } else if ("logEvent".equals(action)) {
             return logEvent(args, callbackContext);
         } else if ("updateServerUninstallToken".equals(action)) {
@@ -168,8 +172,59 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return sendPushNotificationData(args);
         } else if ("setDisableNetworkData".equals(action)) {
             return setDisableNetworkData(args);
+        } else if ("setConsentData".equals(action)) {
+            return setConsentData(args);
+        } else if ("enableTCFDataCollection".equals(action)) {
+            return enableTCFDataCollection(args);
         }
         return false;
+    }
+
+    /**
+     * set consent data according to GDPR if applies or not.
+     *
+     * @param args - json object that represents consent data object.
+     * @return true
+     */
+    private boolean setConsentData(JSONArray args) {
+        cordova.getThreadPool().execute(() -> {
+            try {
+                JSONObject consentData = args.getJSONObject(0);
+                boolean isUserSubjectToGDPR = consentData.optBoolean("isUserSubjectToGDPR", false);
+                boolean hasConsentForDataUsage = consentData.optBoolean("hasConsentForDataUsage", false);
+                boolean hasConsentForAdsPersonalization = consentData.optBoolean("hasConsentForAdsPersonalization", false);
+
+                AppsFlyerConsent consent;
+                if (isUserSubjectToGDPR) {
+                    consent = AppsFlyerConsent.forGDPRUser(hasConsentForDataUsage, hasConsentForAdsPersonalization);
+                } else {
+                    consent = AppsFlyerConsent.forNonGDPRUser();
+                }
+                AppsFlyerLib.getInstance().setConsentData(consent);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        });
+        return true;
+    }
+
+    /**
+     * set collect tcf data or not.
+     *
+     * @param args - json object that holds the boolean value.
+     * @return true
+     */
+    private boolean enableTCFDataCollection(JSONArray args) {
+        cordova.getThreadPool().execute(() -> {
+            try {
+                boolean enable = args.getBoolean(0);
+                AppsFlyerLib.getInstance().enableTCFDataCollection(enable);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        });
+        return true;
     }
 
     private boolean setDisableNetworkData(JSONArray args) {
@@ -257,74 +312,73 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      *                        errorCB: Error callback - called when error occurs during initialization.
      */
     private boolean initSdk(final JSONArray args, final CallbackContext callbackContext) {
-        String devKey = null;
-        boolean isConversionData;
-        boolean isDebug = false;
-        boolean isDeepLinking;
-        AppsFlyerConversionListener gcdListener = null;
-
-        AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
-        AppsFlyerLib instance = AppsFlyerLib.getInstance();
 
         try {
             final JSONObject options = args.getJSONObject(0);
 
-            devKey = options.optString(AF_DEV_KEY, "");
-            isConversionData = options.optBoolean(AF_CONVERSION_DATA, false);
-
+            // assert if AF_DEV_KEY is null/empty string
+            String devKey = options.optString(AF_DEV_KEY, "");
             if (devKey.trim().equals("")) {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
             }
-            setPluginInfo();
-            isDebug = options.optBoolean(AF_IS_DEBUG, false);
 
+            // assign some values
+            AppsFlyerConversionListener gcdListener = null;
+            AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
+            AppsFlyerLib instance = AppsFlyerLib.getInstance();
+            boolean isConversionData = options.optBoolean(AF_CONVERSION_DATA, false);
+            boolean isDebug = options.optBoolean(AF_IS_DEBUG, false);
+            boolean isDeepLinking = options.optBoolean(AF_ON_DEEP_LINKING, false);
+            boolean shouldStartSDK = options.optBoolean(SHOULD_START_SDK, true);
+
+            // trigger some setters
             if (options.has(AF_COLLECT_ANDROID_ID)) {
                 AppsFlyerLib.getInstance().setCollectAndroidID(options.optBoolean(AF_COLLECT_ANDROID_ID, true));
             }
             if (options.has(AF_COLLECT_IMEI)) {
                 AppsFlyerLib.getInstance().setCollectIMEI(options.optBoolean(AF_COLLECT_IMEI, true));
             }
-            isDeepLinking = options.optBoolean(AF_ON_DEEP_LINKING, false);
             if (isDeepLinking) {
                 instance.subscribeForDeepLink(registerDeepLinkListener());
             }
 
+            setPluginInfo();
             instance.setDebugLog(isDebug);
 
-            if (isDebug == true) {
+            if (isDebug) {
                 Log.d("AppsFlyer", "Starting Tracking");
             }
 
-            if (isConversionData == true) {
+            if (isConversionData) {
 
                 if (mConversionListener == null) {
                     mConversionListener = callbackContext;
                 }
 
                 gcdListener = registerConversionListener(instance);
-            } else {
-                //callbackContext.success(SUCCESS);
+
             }
+            // init appsflyerSDK
             instance.init(devKey, gcdListener, cordova.getActivity());
 
-            if (mConversionListener == null) {
-                instance.start(cordova.getActivity(), devKey, new AppsFlyerRequestListener() {
-                    @Override
-                    public void onSuccess() {
-                        callbackContext.success(SUCCESS);
-                    }
+            if(shouldStartSDK){
+                if (mConversionListener == null) {
+                    instance.start(cordova.getActivity(), devKey, new AppsFlyerRequestListener() {
+                        @Override
+                        public void onSuccess() {
+                            callbackContext.success(SUCCESS);
+                        }
 
-                    @Override
-                    public void onError(int i, String s) {
-                        callbackContext.error(FAILURE);
-                    }
-                });
-            } else {
-                instance.start(cordova.getActivity());
+                        @Override
+                        public void onError(int i, String s) {
+                            callbackContext.error(FAILURE);
+                        }
+                    });
+                }
+                else{
+                     startSdk();
+                }
             }
-
-            instance.start(cordova.getActivity());
-
             if (gcdListener != null) {
                 sendPluginNoResult(callbackContext);
             } else {
@@ -334,6 +388,15 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             e.printStackTrace();
         }
 
+        return true;
+    }
+
+    /**
+     * start the SDK.
+     */
+    private boolean startSdk() {
+        AppsFlyerLib instance = AppsFlyerLib.getInstance();
+        instance.start(cordova.getActivity());
         return true;
     }
 
@@ -1270,5 +1333,4 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         }
         return bundle;
     }
-
 }

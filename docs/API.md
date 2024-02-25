@@ -10,46 +10,49 @@
 
 The list of available methods for this plugin is described below.
 
-| method name| params| description|
-| ----------- |-----------------------------|--------------|
-| [`initSdk`](#initSdk) | `(Object args, function success, function error)` | Initialize the SDK|
-| [`logEvent`](#trackEvent) | `(String eventName, Object eventValue, function success, function error)` | Track rich in-app events |
-| [`registerOnAppOpenAttribution`](#registerOnAppOpenAttribution) | `(function success, function error)` | Get the deeplink data |
-| [`registerDeepLink`](#registerDeepLink) | `(function callBack)` | Get unified deep link data |
-| [`setCurrencyCode`](#setCurrencyCode) | `(String currencyId)` | Set currency code |
-| [`setAppUserId`](#setAppUserId) | `(String customerUserId)` | Set custom_user_id |
-| [`setGCMProjectNumber`](#initSdk) | `(String gcmProjectNumber)` | |
-| [`getAppsFlyerUID`](#getAppsFlyerUID) | `(function success)` | Get AppsFlyer’s proprietary Device ID |
-| [`anonymizeUser`](#deviceTrackingDisabled) | `(Boolean isDisabled)` | Anonymize user data |
-| [`Stop`](#stopTracking)| `(Boolean isStopTracking)` | Shut down all SDK tracking |
-| [`updateServerUninstallToken`](#updateServerUninstallToken) | `(String token)` | (Android) Pass GCM/FCM Tokens |
-| [`registerUninstall`](#registerUninstall) | `(String token)` | (iOS) Pass APNs Tokens |
-| [`setAppInviteOneLinkID`](#setAppInviteOneLinkID) | `(Object args)` | Set AppsFlyer’s OneLink ID |
-| [`generateInviteLink`](#generateInviteLink) | `(Object args, function success, function error)` | Error callback |
-| [`logCrossPromotionImpression`](#trackCrossPromotionImpression) | `(String appId, String campaign)` | Track cross promotion impression |
-| [`logCrossPromotionAndOpenStore`](#trackAndOpenStore) | `(String appId, String campaign, Object params)` | Launch the app store's app page (via Browser) |
-| [`handleOpenUrl`](#deep-linking-tracking) | `(String url)` | |
-| [`getSdkVersion`](#getSdkVersion) | `((function success)` | Get the current SDK version |
-| [`setSharingFilterForAllPartners`](#setSharingFilterForAllPartners) | | Used by advertisers to exclude all networks/integrated partners from getting data |
-| [`setSharingFilter`](#setSharingFilter) | `(partners)` | Used by advertisers to exclude specified networks/integrated partners from getting data |
-| [`setSharingFilterForPartners`](#setSharingFilterForPartners) | `(partners)` | Used by advertisers to exclude specified networks/integrated partners from getting data |
-| [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase) | `(Object purchaseInfo, function success, function error)` | API for server verification of in-app purchases |
-| [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox) | `(boolean isSandbox, function success, function error)` | In app purchase receipt validation Apple environment |
-| [`disableCollectASA`](#disableCollectASA) | `(boolean collectASA, function success)` | **iOS**  - set the SDK to load OR not to load iAd.framework dynamically|
-| [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)` | Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID). |
-| [`setOneLinkCustomDomains`](#setOneLinkCustomDomains) | `(domains, function success, function error)` | Set Onelink custom/branded domains |
-| [`enableFacebookDeferredApplinks`](#enableFacebookDeferredApplinks) | `(boolean isEnabled)` | support deferred deep linking from Facebook Ads |
-| [`setUserEmails`](#setUserEmails) | `(emails, function success)` | Set user emails for FB Advanced Matching |
-| [`setPhoneNumber`](#setPhoneNumber) | `(String phoneNumber, function success)` | Set phone number for FB Advanced Matching |
-| [`setHost`](#setHost) | `(String hostPrefix, String hostName)` | Set custom host prefix and host name |
-| [`addPushNotificationDeepLinkPath`](#addPushNotificationDeepLinkPath) | `(path)` | configure push notification deep link resolution |
-| [`setResolveDeepLinkURLs`](#setResolveDeepLinkURLs) | `(urls)` | get the OneLink from click domains |
-| [`disableSKAD`](#disableSKAD) | `(boolean disableSkad)` | disable or enable SKAD |
-| [`setCurrentDeviceLanguage`](#setCurrentDeviceLanguage) | `(string language)` | Set the language of the device. |
-| [`setAdditionalData`](#setAdditionalData) | `(Object additionalData)` | Allows you to add custom data to events sent from the SDK. |
-| [`setPartnerData`](#setPartnerData) | `(partnerId, data)` | Allows sending custom data for partner integration purposes. |
-| [`sendPushNotificationData`](#sendPushNotificationData) | `(Object data)` | Measure and get data from push-notification campaigns.|
-| [`setDisableNetworkData`](#setDisableNetworkData) | `(boolean disable)` | Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device.|
+| method name                                                           | params                                                                    | description                                                                                            |
+|-----------------------------------------------------------------------|---------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| [`initSdk`](#initSdk)                                                 | `(Object args, function success, function error)`                         | Initialize the SDK                                                                                     |
+| [`startSdk`](#startSdk)                                               | `()`                                                                      | Starts the SDK - Must call initSdk first in order to make this work                                    |
+| [`logEvent`](#trackEvent)                                             | `(String eventName, Object eventValue, function success, function error)` | Track rich in-app events                                                                               |
+| [`registerOnAppOpenAttribution`](#registerOnAppOpenAttribution)       | `(function success, function error)`                                      | Get the deeplink data                                                                                  |
+| [`registerDeepLink`](#registerDeepLink)                               | `(function callBack)`                                                     | Get unified deep link data                                                                             |
+| [`setCurrencyCode`](#setCurrencyCode)                                 | `(String currencyId)`                                                     | Set currency code                                                                                      |
+| [`setAppUserId`](#setAppUserId)                                       | `(String customerUserId)`                                                 | Set custom_user_id                                                                                     |
+| [`setGCMProjectNumber`](#initSdk)                                     | `(String gcmProjectNumber)`                                               |                                                                                                        |
+| [`getAppsFlyerUID`](#getAppsFlyerUID)                                 | `(function success)`                                                      | Get AppsFlyer’s proprietary Device ID                                                                  |
+| [`anonymizeUser`](#deviceTrackingDisabled)                            | `(Boolean isDisabled)`                                                    | Anonymize user data                                                                                    |
+| [`Stop`](#stopTracking)                                               | `(Boolean isStopTracking)`                                                | Shut down all SDK tracking                                                                             |
+| [`updateServerUninstallToken`](#updateServerUninstallToken)           | `(String token)`                                                          | (Android) Pass GCM/FCM Tokens                                                                          |
+| [`registerUninstall`](#registerUninstall)                             | `(String token)`                                                          | (iOS) Pass APNs Tokens                                                                                 |
+| [`setAppInviteOneLinkID`](#setAppInviteOneLinkID)                     | `(Object args)`                                                           | Set AppsFlyer’s OneLink ID                                                                             |
+| [`generateInviteLink`](#generateInviteLink)                           | `(Object args, function success, function error)`                         | Error callback                                                                                         |
+| [`logCrossPromotionImpression`](#trackCrossPromotionImpression)       | `(String appId, String campaign)`                                         | Track cross promotion impression                                                                       |
+| [`logCrossPromotionAndOpenStore`](#trackAndOpenStore)                 | `(String appId, String campaign, Object params)`                          | Launch the app store's app page (via Browser)                                                          |
+| [`handleOpenUrl`](#deep-linking-tracking)                             | `(String url)`                                                            |                                                                                                        |
+| [`getSdkVersion`](#getSdkVersion)                                     | `((function success)`                                                     | Get the current SDK version                                                                            |
+| [`setSharingFilterForAllPartners`](#setSharingFilterForAllPartners)   |                                                                           | Used by advertisers to exclude all networks/integrated partners from getting data                      |
+| [`setSharingFilter`](#setSharingFilter)                               | `(partners)`                                                              | Used by advertisers to exclude specified networks/integrated partners from getting data                |
+| [`setSharingFilterForPartners`](#setSharingFilterForPartners)         | `(partners)`                                                              | Used by advertisers to exclude specified networks/integrated partners from getting data                |
+| [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase)         | `(Object purchaseInfo, function success, function error)`                 | API for server verification of in-app purchases                                                        |
+| [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox)   | `(boolean isSandbox, function success, function error)`                   | In app purchase receipt validation Apple environment                                                   |
+| [`disableCollectASA`](#disableCollectASA)                             | `(boolean collectASA, function success)`                                  | **iOS**  - set the SDK to load OR not to load iAd.framework dynamically                                |
+| [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)`                | Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).         |
+| [`setOneLinkCustomDomains`](#setOneLinkCustomDomains)                 | `(domains, function success, function error)`                             | Set Onelink custom/branded domains                                                                     |
+| [`enableFacebookDeferredApplinks`](#enableFacebookDeferredApplinks)   | `(boolean isEnabled)`                                                     | support deferred deep linking from Facebook Ads                                                        |
+| [`setUserEmails`](#setUserEmails)                                     | `(emails, function success)`                                              | Set user emails for FB Advanced Matching                                                               |
+| [`setPhoneNumber`](#setPhoneNumber)                                   | `(String phoneNumber, function success)`                                  | Set phone number for FB Advanced Matching                                                              |
+| [`setHost`](#setHost)                                                 | `(String hostPrefix, String hostName)`                                    | Set custom host prefix and host name                                                                   |
+| [`addPushNotificationDeepLinkPath`](#addPushNotificationDeepLinkPath) | `(path)`                                                                  | configure push notification deep link resolution                                                       |
+| [`setResolveDeepLinkURLs`](#setResolveDeepLinkURLs)                   | `(urls)`                                                                  | get the OneLink from click domains                                                                     |
+| [`disableSKAD`](#disableSKAD)                                         | `(boolean disableSkad)`                                                   | disable or enable SKAD                                                                                 |
+| [`setCurrentDeviceLanguage`](#setCurrentDeviceLanguage)               | `(string language)`                                                       | Set the language of the device.                                                                        |
+| [`setAdditionalData`](#setAdditionalData)                             | `(Object additionalData)`                                                 | Allows you to add custom data to events sent from the SDK.                                             |
+| [`setPartnerData`](#setPartnerData)                                   | `(partnerId, data)`                                                       | Allows sending custom data for partner integration purposes.                                           |
+| [`sendPushNotificationData`](#sendPushNotificationData)               | `(Object data)`                                                           | Measure and get data from push-notification campaigns.                                                 |
+| [`setDisableNetworkData`](#setDisableNetworkData)                     | `(boolean disable)`                                                       | Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device. |
+| [`setConsentData`](#setConsentData)                                   | `(boolean disable)`                                                       | Use to manually collecting the consent data from the user.                                             |                                           
+| [`enableTCFDataCollection`](#enableTCFDataCollection)                                   | `(boolean enable)`                                                        | instruct the SDK to collect the TCF data from the device. |                                           
 
   
 ---
@@ -66,15 +69,17 @@ initialize the SDK.
 
 **`options`**
 
-| name | type | default | description |
-| -----------|---------|---------|------------------------|
-| `devKey` |`string` | | [Appsflyer Dev key](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android) |
-| `appId` |`string` | | [Apple Application ID](https://support.appsflyer.com/hc/en-us/articles/207032066-AppsFlyer-SDK-Integration-iOS) (for iOS only) |
-| `isDebug` |`boolean`| `false` | debug mode (optional)|
-| `useUninstallSandbox` |`boolean`| `false` | For iOS only, to test uninstall in Sandbox environment (optional)|
-| `collectIMEI` | `boolean` | `false` |opt-out of collection of IMEI |
-| `collectAndroidID` | `boolean` | `false` |opt-out of collection of collectAndroidID |
-| `onInstallConversionDataListener` |`boolean`| `false` | Accessing AppsFlyer Attribution / Conversion Data from the SDK (Deferred Deeplinking). Read more: [Android](http://support.appsflyer.com/entries/69796693-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deep-linking-), [iOS](http://support.appsflyer.com/entries/22904293-Testing-AppsFlyer-iOS-SDK-Integration-Before-Submitting-to-the-App-Store-). AppsFlyer plugin will return attribution data in `onSuccess` callback.
+| name                              | type | default | description |
+|-----------------------------------|---------|---------|------------------------|
+| `devKey`                          |`string` |         | [Appsflyer Dev key](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android) |
+| `appId`                           |`string` |         | [Apple Application ID](https://support.appsflyer.com/hc/en-us/articles/207032066-AppsFlyer-SDK-Integration-iOS) (for iOS only) |
+| `isDebug`                         |`boolean`| `false` | debug mode (optional)|
+| `useUninstallSandbox`             |`boolean`| `false` | For iOS only, to test uninstall in Sandbox environment (optional)|
+| `collectIMEI`                     | `boolean` | `false` |opt-out of collection of IMEI |
+| `collectAndroidID`                | `boolean` | `false` |opt-out of collection of collectAndroidID |
+| `onInstallConversionDataListener` |`boolean`| `false` | Accessing AppsFlyer Attribution / Conversion Data from the SDK (Deferred Deeplinking). Read more: [Android](http://support.appsflyer.com/entries/69796693-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deep-linking-), [iOS](http://support.appsflyer.com/entries/22904293-Testing-AppsFlyer-iOS-SDK-Integration-Before-Submitting-to-the-App-Store-). AppsFlyer plugin will return attribution data in `onSuccess` callback. |
+| `shouldStartSdk`                  |`boolean`| `true`  | Prevents from the SDK from sending the launch request after using appsFlyer.initSdk(...). When using this property, the apps needs to manually trigger the appsFlyer.startSdk() API to report the app launch. read more here. (Optional, default=true)|
+.
 
 *Example:*
 
@@ -99,6 +104,17 @@ window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
 
 ---
 
+##### <a id="startSdk"> **`startSdk(): void`**
+
+Starts the SDK
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
+window.plugins.appsFlyer.startSdk();
+```
+---
 ##### <a id="trackEvent"> **`logEvent(eventName, eventValues, onSuccess, onError): void`** (optional)
 
 - These in-app events help you track how loyal users discover your app, and attribute them to specific
@@ -740,6 +756,47 @@ appsFlyer.setDisableNetworkData(true);
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
 | `disable` |  `boolean` | If should opt out, default to false|
+
+---
+
+##### <a id="setConsentData"> **`setConsentData(appsFlyerConsent): void`**
+When GDPR applies to the user and your app does not use a CMP compatible with TCF v2.2, use this API to provide the consent data directly to the SDK.
+The AppsFlyerConsent object has 2 methods:
+
+AppsFlyerConsent.forNonGDPRUser: Indicates that GDPR doesn’t apply to the user and generates nonGDPR consent object. This method doesn’t accept any parameters.
+AppsFlyerConsent.forGDPRUser: create an AppsFlyerConsent object with 2 parameters:
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `hasConsentForDataUsage` |  `boolean` | Indicates whether the user has consented to use their data for advertising purposes |
+| `hasConsentForAdsPersonalization` |  `boolean` | Indicates whether the user has consented to use their data for personalized advertising |
+
+*Example:*
+
+```javascript
+
+window.plugins.appsFlyer.setConsentData(AppsFlyerConsent.forGDPRUser(true, true));
+// OR
+window.plugins.appsFlyer.setConsentData(AppsFlyerConsent.forNonGDPRUser());
+
+```
+
+---
+
+##### <a id="enableTCFDataCollection"> **`enableTCFDataCollection(enable): void`**
+instruct the SDK to collect the TCF data from the device.
+
+| parameter | type | description                                                                            |
+| ---------- |-----------------------------|----------------------------------------------------------------------------------------|
+| `enable` |  `boolean` | enable/disable TCF data collection                                                     |
+
+*Example:*
+
+```javascript
+
+window.plugins.appsFlyer.enableTCFDataCollection(true);
+
+```
 
 ---
 ### <a id="deep-linking-tracking"> Deep linking Tracking
