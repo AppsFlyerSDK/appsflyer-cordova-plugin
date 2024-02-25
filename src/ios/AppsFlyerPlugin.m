@@ -50,13 +50,17 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         appId = (NSString*)[initSdkOptions objectForKey:afAppId];
         waitForATTUserAuthorization = (NSNumber*)[initSdkOptions objectForKey:afwaitForATTUserAuthorization];
         isDebugValue = [initSdkOptions objectForKey:afIsDebug];
-        shouldStartSdk = [[initSdkOptions objectForKey:@"shouldStartSdk"] boolValue];
-        [self setShouldStartSdk:shouldStartSdk];
+        shouldStartSdkValue = [initSdkOptions objectForKey:@"shouldStartSdk"];
 
         if ([isDebugValue isKindOfClass:[NSNumber class]]) {
             isDebug = [(NSNumber*)isDebugValue boolValue];
         }
 
+        if ([shouldStartSdkValue isKindOfClass:[NSNumber class]]) {
+            shouldStartSdk = [(NSNumber*)shouldStartSdkValue boolValue];
+        }
+
+        [self setShouldStartSdk:shouldStartSdk];
         sandboxValue = [initSdkOptions objectForKey:afSanboxUninstall];
 
         if ([sandboxValue isKindOfClass:[NSNumber class]]) {
