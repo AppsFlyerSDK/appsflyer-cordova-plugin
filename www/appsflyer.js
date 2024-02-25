@@ -15,6 +15,28 @@ if (!window.CustomEvent) {
     var AppsFlyer = function () {
     };
 
+    // Expose AppsFlyerConsent to the global scope
+    global.AppsFlyerConsent = (function () {
+        // Private constructor
+        function AppsFlyerConsent(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization) {
+            this.isUserSubjectToGDPR = isUserSubjectToGDPR;
+            this.hasConsentForDataUsage = hasConsentForDataUsage;
+            this.hasConsentForAdsPersonalization = hasConsentForAdsPersonalization;
+        }
+
+        return {
+            // Factory method for GDPR user
+            forGDPRUser: function(hasConsentForDataUsage, hasConsentForAdsPersonalization) {
+                return new AppsFlyerConsent(true, hasConsentForDataUsage, hasConsentForAdsPersonalization);
+            },
+
+            // Factory method for non GDPR user
+            forNonGDPRUser: function() {
+                return new AppsFlyerConsent(false, null, null);
+            }
+        };
+    })();
+
     /**
      * initialize the SDK.
      * args: SDK configuration
@@ -47,6 +69,14 @@ if (!window.CustomEvent) {
                 callbackMap.convErr = errorCB;
             }
         }
+    };
+
+    /**
+     * starts the SDK.
+     *
+     */
+    AppsFlyer.prototype.startSdk = function () {
+        exec(null, null, 'AppsFlyerPlugin', 'startSdk', []);
     };
 
     /**
@@ -394,6 +424,23 @@ if (!window.CustomEvent) {
         exec(null, null, 'AppsFlyerPlugin', 'setDisableNetworkData', [disable]);
     };
 
+    /**
+     * Use to manually collecting the consent data from the user.
+     * @param appsFlyerConsent - object of AppsFlyerConsent that holds three values when GDPR is applies to the user, and one value when It's not.
+     * when GDPR applies to the user and your app does not use a CMP compatible with TCF v2.2, use this API to provide the consent data directly to the SDK.<br>
+     */
+    AppsFlyer.prototype.setConsentData = function (appsFlyerConsent){
+        exec(null, null, 'AppsFlyerPlugin', 'setConsentData', [appsFlyerConsent]);
+    };
+
+    /**
+     * set collect tcf data or not.
+     *
+     * @param enable - boolean value that represent if enables to collect or not.
+     */
+    AppsFlyer.prototype.enableTCFDataCollection = function (enable) {
+        exec(null, null, 'AppsFlyerPlugin', 'enableTCFDataCollection', [enable]);
+    };
 
     module.exports = new AppsFlyer();
 })(window);
