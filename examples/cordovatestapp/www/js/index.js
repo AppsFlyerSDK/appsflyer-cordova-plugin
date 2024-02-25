@@ -11,22 +11,33 @@ document.addEventListener(
     'deviceready',
     function () {
         window.plugins.appsFlyer.registerOnAppOpenAttribution(function (res) {
-                console.log('onAppOpenAttribution ~~>' + res);
-                alert('onAppOpenAttribution ~~> ' + res);
+                console.log('onAppOpenAttribution 1 ~~>' + res);
+                alert('onAppOpenAttribution 1 ~~> ' + res);
             },
             function (err) {
                 console.log(err);
             });
 
+        window.plugins.appsFlyer.registerOnAppOpenAttribution(function (res) {
+                console.log('onAppOpenAttribution 2 ~~>' + res);
+                alert('onAppOpenAttribution 2 ~~> ' + res);
+            },
+            function (err) {
+                console.log(err);
+            });
         // if onDeepLinkListener: false or undefined, sdk will ignore registerOnDeepLink
-        // window.plugins.appsFlyer.registerOnDeepLink(function (res) {
-        //     console.log("DDL ~~>" + res);
-        //     alert('DDL ~~>' + res);
-        // });
+        window.plugins.appsFlyer.registerDeepLink(function (res) {
+            console.log("DDL 1~~>" + res);
+            alert('DDL 1~~>' + res);
+        });
 
+        window.plugins.appsFlyer.registerDeepLink(function (res) {
+            console.log("DDL 2~~>" + res);
+            alert('DDL 2~~>' + res);
+        });
 
         var options = {
-            devKey: 'xxx1234567',
+            devKey: 'fakeone',
             appId: 'id111111111',
             isDebug: true,
             onInstallConversionDataListener: true,
