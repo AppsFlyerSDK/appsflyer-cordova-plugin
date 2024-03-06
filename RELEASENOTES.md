@@ -1,3 +1,8 @@
+## 6.13.1
+ Release date: *2024-03-06*
+
+- Release Cordova 6.13.1-rc1
+
 ## 6.13.0
  Release date: *2024-02-25*
 
