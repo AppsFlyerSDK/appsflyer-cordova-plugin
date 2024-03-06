@@ -1332,5 +1332,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
         }
         return bundle;
+        
     }
 }
