@@ -96,7 +96,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
 
         // Initialize the SDK
-        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.13.1" additionalParams:nil];
+        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.14.3" additionalParams:nil];
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
