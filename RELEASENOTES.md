@@ -1,3 +1,8 @@
+## 6.14.3
+ Release date: *2024-04-30*
+
+- Cordova >> Update Plugin to v6.14.1
+
 ## 6.13.1
  Release date: *2024-03-06*
 
