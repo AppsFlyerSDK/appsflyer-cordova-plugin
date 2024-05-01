@@ -42,9 +42,17 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
   
 ### <a id="plugin-build-for"> This plugin is built for  
   
-- iOS AppsFlyerSDK **v6.13.1**  
-- Android AppsFlyerSDK **v6.13.0**
+- iOS AppsFlyerSDK **v6.14.3**  
+- Android AppsFlyerSDK **v6.14.0**
   
+### <a id="breakingChanges"> ❗v6.14.3 Breaking Changes  
+
+Android platform: 
+In order to receive data regarding install-referrer from AppGallery now, there is a need to add implementation to the gradle file. <br>
+following the instructions in [this](https://dev.appsflyer.com/hc/docs/install-android-sdk#huawei-install-referrer) link. <br>
+please follow also these Cordova doc guidlines [here](https://cordova.apache.org/docs/en/11.x/guide/platforms/android/#extending-buildgradle).
+
+
 ### <a id="breakingChanges"> ❗v6 Breaking Changes  
   
 We have renamed the following APIs:  
