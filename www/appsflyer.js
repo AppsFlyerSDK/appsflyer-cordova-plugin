@@ -3,6 +3,8 @@ var exec = require('cordova/exec'),
     AppsFlyerError = require('./AppsFlyerError');
 var callbackMap = {};
 
+let AFAdRevenueData;
+
 if (!window.CustomEvent) {
     window.CustomEvent = function (type, config) {
         var e = document.createEvent('CustomEvent');
@@ -36,6 +38,45 @@ if (!window.CustomEvent) {
             }
         };
     })();
+
+    // AFAdRevenueData object with MediationNetwork enum
+    global.AFAdRevenueData = (function() {
+        const MediationNetwork = {
+            IRONSOURCE:"ironsource",
+            APPLOVIN_MAX:"applovinmax",
+            GOOGLE_ADMOB:"googleadmob",
+            FYBER:"fyber",
+            APPODEAL:"appodeal",
+            ADMOST:"Admost",
+            TOPON:"Topon",
+            TRADPLUS:"Tradplus",
+            YANDEX:"Yandex",
+            CHARTBOOST:"chartboost",
+            UNITY:"Unity",
+            TOPON_PTE:"toponpte",
+            CUSTOM_MEDIATION:"customMediation",
+            DIRECT_MONETIZATION_NETWORK:"directMonetizationNetwork"
+        };
+
+        function AFAdRevenueData(monetizationNetwork, mediationNetwork, currencyIso4217Code, revenue) {
+            if (!Object.values(MediationNetwork).includes(mediationNetwork)) {
+                throw new Error("Invalid enum value for 'mediationNetwork'.");
+            }
+            this.monetizationNetwork = monetizationNetwork;
+            this.mediationNetwork = mediationNetwork;
+            this.currencyIso4217Code = currencyIso4217Code;
+            this.revenue = revenue;
+        }
+
+        return AFAdRevenueData; // Expose the constructor directly
+    })();
+
+    function validateAFAdRevenueData(afAdRevenueData) {
+        if (!(afAdRevenueData instanceof AFAdRevenueData)) {
+            throw new Error("Invalid AFAdRevenueData object.");
+        }
+        return afAdRevenueData;
+    }
 
     /**
      * initialize the SDK.
@@ -107,6 +148,19 @@ if (!window.CustomEvent) {
     AppsFlyer.prototype.setCurrencyCode = function (currencyId) {
         argscheck.checkArgs('S', 'AppsFlyer.setCurrencyCode', arguments);
         exec(null, null, 'AppsFlyerPlugin', 'setCurrencyCode', [currencyId]);
+    };
+
+    /**
+     * Public API - logAdRevenue function
+     */
+    AppsFlyer.prototype.logAdRevenue = function(afAdRevenueData, additionalParameters) {
+        argscheck.checkArgs('S', 'AppsFlyer.logAdRevenue', arguments);
+
+        // Validate AFAdRevenueData before logging
+        const validatedAfAdRevenueData = validateAFAdRevenueData(afAdRevenueData);
+
+        // Call the 'logAdRevenue' API method with the validated data
+        exec(null, null, 'AppsFlyerPlugin', 'logAdRevenue', [validatedAfAdRevenueData, additionalParameters]);
     };
 
     /**

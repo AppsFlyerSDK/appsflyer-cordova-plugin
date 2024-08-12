@@ -176,9 +176,53 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setConsentData(args);
         } else if ("enableTCFDataCollection".equals(action)) {
             return enableTCFDataCollection(args);
+        } else if ("logAdRevenue".equals(action)) {
+            return logAdRevenue(args);
         }
         return false;
     }
+
+        /**
+         * log AdRevenue event
+         *
+         * @param args - event params
+         * @return true
+         */
+        private boolean logAdRevenue(JSONArray args) {
+            cordova.getThreadPool().execute(() -> {
+            Map<String, Object> additionalParameters = null;
+                try {
+                    JSONObject afAdRevenueDataJsonObj = args.getJSONObject(0);
+                    String monetizationNetwork = afAdRevenueDataJsonObj.optString("monetizationNetwork", null);
+                    String mediationNetwork = afAdRevenueDataJsonObj.optString("mediationNetwork", null);
+                    String currencyIso4217Code = afAdRevenueDataJsonObj.optString("currencyIso4217Code", null);
+                    double revenue = afAdRevenueDataJsonObj.optDouble("revenue", -1);
+
+                    if(args.get(1) != null){
+                        JSONObject additionalParametersJson = args.getJSONObject(1);
+                        additionalParameters = toObjectMap(additionalParametersJson);
+                    }
+
+                    if(mediationNetwork != null){
+                        MediationNetwork mediationNetworkEnumVal = null;
+                        for(MediationNetwork mediationNetworkEnum: MediationNetwork.values()){
+                            if(mediationNetworkEnum.name().equals(mediationNetwork)){
+                                mediationNetworkEnumVal = MediationNetwork.valueOf(mediationNetwork);
+                            }
+                        }
+                        if(mediationNetworkEnumVal != null){
+                            AFAdRevenueData afAdRevenueData = new AFAdRevenueData(monetizationNetwork, mediationNetworkEnumVal, currencyIso4217Code, revenue);
+                            AppsFlyerLib.getInstance().logAdRevenue(afAdRevenueData, additionalParameters);
+                        }
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            });
+            return true;
+        }
+
 
     /**
      * set consent data according to GDPR if applies or not.

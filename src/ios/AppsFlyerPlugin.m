@@ -96,7 +96,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
 
         // Initialize the SDK
-        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.14.3" additionalParams:nil];
+        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.15.0" additionalParams:nil];
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
@@ -194,6 +194,50 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
     NSString* currencyId = [command.arguments objectAtIndex:0];
     [AppsFlyerLib shared].currencyCode = currencyId;
+}
+
+/**
+*    log AdRevenue event
+*/
+- (void)logAdRevenue:(CDVInvokedUrlCommand*)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+    NSDictionary *afAdRevenueDataMap = (NSDictionary*)[command.arguments objectAtIndex: 0];
+
+    id monetizationNetwork = nil;
+    id mediationNetwork = nil;
+    id currencyIso4217Code = nil;
+    id revenue = -1;
+
+    id monetizationNetworkValue = nil;
+    id mediationNetworkValue = nil;
+    id currencyIso4217CodeValue = nil;
+    id revenueValue = -1;
+
+    monetizationNetworkValue = [afAdRevenueDataMap objectForKey:@"monetizationNetwork"];
+    if ([monetizationNetworkValue isKindOfClass:[NSString class]]) {
+       monetizationNetwork = monetizationNetworkValue;
+    }
+
+    mediationNetworkValue = [afAdRevenueDataMap objectForKey:@"mediationNetwork"];
+    if ([mediationNetworkValue isKindOfClass:[NSString class]]) {
+       hasConsentForDataUsage = [(NSNumber*)hasConsentForDataUsageValue boolValue];
+    }
+
+    hasConsentForAdsPersonalizationValue = [consentDataMap objectForKey:@"hasConsentForAdsPersonalization"];
+    if ([hasConsentForAdsPersonalizationValue isKindOfClass:[NSNumber class]]) {
+       hasConsentForAdsPersonalization = [(NSNumber*)hasConsentForAdsPersonalizationValue boolValue];
+    }
+
+    AppsFlyerConsent *consentData = nil;
+    if (isUserSubjectToGDPR) {
+        consentData = [[AppsFlyerConsent alloc] initForGDPRUserWithHasConsentForDataUsage:hasConsentForDataUsage hasConsentForAdsPersonalization:hasConsentForAdsPersonalization];
+    } else {
+        consentData = [[AppsFlyerConsent alloc] initNonGDPRUser];
+    }
+   [[AppsFlyerLib shared] setConsentData:consentData];
 }
 
 /**
