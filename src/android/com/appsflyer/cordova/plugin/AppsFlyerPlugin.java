@@ -62,6 +62,8 @@ import com.appsflyer.share.ShareInviteHelper;
 import com.appsflyer.internal.platform_extension.Plugin;
 import com.appsflyer.internal.platform_extension.PluginInfo;
 import com.appsflyer.AppsFlyerConsent;
+import com.appsflyer.MediationNetwork;
+import com.appsflyer.AFAdRevenueData;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -190,38 +192,42 @@ public class AppsFlyerPlugin extends CordovaPlugin {
          */
         private boolean logAdRevenue(JSONArray args) {
             cordova.getThreadPool().execute(() -> {
-            Map<String, Object> additionalParameters = null;
+                Map<String, Object> additionalParameters = null;
                 try {
-                    JSONObject afAdRevenueDataJsonObj = args.getJSONObject(0);
-                    String monetizationNetwork = afAdRevenueDataJsonObj.optString("monetizationNetwork", null);
-                    String mediationNetwork = afAdRevenueDataJsonObj.optString("mediationNetwork", null);
-                    String currencyIso4217Code = afAdRevenueDataJsonObj.optString("currencyIso4217Code", null);
-                    double revenue = afAdRevenueDataJsonObj.optDouble("revenue", -1);
-
-                    if(args.get(1) != null){
-                        JSONObject additionalParametersJson = args.getJSONObject(1);
-                        additionalParameters = toObjectMap(additionalParametersJson);
-                    }
-
-                    if(mediationNetwork != null){
+                    if(args.get(0) != null){
+                        JSONObject afAdRevenueDataJsonObj = args.getJSONObject(0);
+                        String monetizationNetwork = afAdRevenueDataJsonObj.optString("monetizationNetwork", null);
+                        String mediationNetwork = afAdRevenueDataJsonObj.optString("mediationNetwork", null);
+                        String currencyIso4217Code = afAdRevenueDataJsonObj.optString("currencyIso4217Code", null);
+                        double revenue = afAdRevenueDataJsonObj.optDouble("revenue", -1);
                         MediationNetwork mediationNetworkEnumVal = null;
-                        for(MediationNetwork mediationNetworkEnum: MediationNetwork.values()){
-                            if(mediationNetworkEnum.name().equals(mediationNetwork)){
-                                mediationNetworkEnumVal = MediationNetwork.valueOf(mediationNetwork);
+
+                        if(mediationNetwork != null){
+                            for(MediationNetwork mediationNetworkEnum: MediationNetwork.values()){
+                                if(mediationNetworkEnum.name().equals(mediationNetwork)){
+                                    mediationNetworkEnumVal = MediationNetwork.valueOf(mediationNetwork);
+                                    continue;
+                                }
                             }
                         }
+
+                        if(args.get(1) != null){
+                            JSONObject additionalParametersJson = args.getJSONObject(1);
+                            additionalParameters = toObjectMap(additionalParametersJson);
+                        }
+
                         if(mediationNetworkEnumVal != null){
                             AFAdRevenueData afAdRevenueData = new AFAdRevenueData(monetizationNetwork, mediationNetworkEnumVal, currencyIso4217Code, revenue);
                             AppsFlyerLib.getInstance().logAdRevenue(afAdRevenueData, additionalParameters);
                         }
                     }
-
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             });
             return true;
         }
+    }
 
 
     /**

@@ -196,6 +196,33 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     [AppsFlyerLib shared].currencyCode = currencyId;
 }
 
+
+- (AppsFlyerAdRevenueMediationNetworkType)getEnumValueFromString:(NSString *)mediationNetworkString {
+    NSDictionary<NSString *, NSNumber *> *stringToEnumMap = @{
+        @"googleadmob": @(AppsFlyerAdRevenueMediationNetworkTypeGoogleAdMob),
+        @"ironsource": @(AppsFlyerAdRevenueMediationNetworkTypeIronSource),
+        @"applovinmax": @(AppsFlyerAdRevenueMediationNetworkTypeApplovinMax),
+        @"fyber": @(AppsFlyerAdRevenueMediationNetworkTypeFyber),
+        @"appodeal": @(AppsFlyerAdRevenueMediationNetworkTypeAppodeal),
+        @"Admost": @(AppsFlyerAdRevenueMediationNetworkTypeAdmost),
+        @"Topon": @(AppsFlyerAdRevenueMediationNetworkTypeTopon),
+        @"Tradplus": @(AppsFlyerAdRevenueMediationNetworkTypeTradplus),
+        @"Yandex": @(AppsFlyerAdRevenueMediationNetworkTypeYandex),
+        @"Saturchartboostday": @(AppsFlyerAdRevenueMediationNetworkTypeChartBoost),
+        @"Unity": @(AppsFlyerAdRevenueMediationNetworkTypeUnity),
+        @"toponpte": @(AppsFlyerAdRevenueMediationNetworkTypeToponPte),
+        @"customMediation": @(AppsFlyerAdRevenueMediationNetworkTypeCustom),
+        @"directMonetizationNetwork": @(AppsFlyerAdRevenueMediationNetworkTypeDirectMonetization)
+    };
+    
+    NSNumber *enumValueNumber = stringToEnumMap[mediationNetworkString];
+    if (enumValueNumber) {
+        return (AppsFlyerAdRevenueMediationNetworkType)[enumValueNumber integerValue];
+    } else {
+        return -1; 
+    }
+}
+
 /**
 *    log AdRevenue event
 */
@@ -204,7 +231,9 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     if ([command.arguments count] == 0) {
         return;
     }
+
     NSDictionary *afAdRevenueDataMap = (NSDictionary*)[command.arguments objectAtIndex: 0];
+    NSDictionary *additionalParametersMap = (NSDictionary*)[command.arguments objectAtIndex: 1];
 
     id monetizationNetwork = nil;
     id mediationNetwork = nil;
@@ -223,21 +252,23 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
     mediationNetworkValue = [afAdRevenueDataMap objectForKey:@"mediationNetwork"];
     if ([mediationNetworkValue isKindOfClass:[NSString class]]) {
-       hasConsentForDataUsage = [(NSNumber*)hasConsentForDataUsageValue boolValue];
+        mediationNetworkValue = [self getEnumValueFromString: mediationNetworkValue];
+        if(mediationNetworkValue != -1){
+            mediationNetwork = mediationNetworkValue;
+        }
     }
 
-    hasConsentForAdsPersonalizationValue = [consentDataMap objectForKey:@"hasConsentForAdsPersonalization"];
-    if ([hasConsentForAdsPersonalizationValue isKindOfClass:[NSNumber class]]) {
-       hasConsentForAdsPersonalization = [(NSNumber*)hasConsentForAdsPersonalizationValue boolValue];
+    currencyIso4217CodeValue = [afAdRevenueDataMap objectForKey:@"currencyIso4217Code"];
+    if ([currencyIso4217CodeValue isKindOfClass:[NSString class]]) {
+       currencyIso4217Code = currencyIso4217CodeValue;
     }
 
-    AppsFlyerConsent *consentData = nil;
-    if (isUserSubjectToGDPR) {
-        consentData = [[AppsFlyerConsent alloc] initForGDPRUserWithHasConsentForDataUsage:hasConsentForDataUsage hasConsentForAdsPersonalization:hasConsentForAdsPersonalization];
-    } else {
-        consentData = [[AppsFlyerConsent alloc] initNonGDPRUser];
+    revenueValue = [afAdRevenueDataMap objectForKey:@"revenue"];
+    if ([revenueValue isKindOfClass:[NSNumber class]]) {
+       revenue = revenueValue;
     }
-   [[AppsFlyerLib shared] setConsentData:consentData];
+    AFAdRevenueData *adRevenueData = [[AFAdRevenueData alloc] initWithMonetizationNetwork:monetizationNetwork mediationNetwork:mediationNetwork currencyIso4217Code:currencyIso4217Code eventRevenue:revenue];
+    [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:additionalParametersMap];
 }
 
 /**
