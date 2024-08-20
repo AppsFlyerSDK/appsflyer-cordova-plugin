@@ -238,12 +238,12 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     id monetizationNetwork = nil;
     id mediationNetwork = nil;
     id currencyIso4217Code = nil;
-    id revenue = -1;
+    int revenue = -1;
 
     id monetizationNetworkValue = nil;
     id mediationNetworkValue = nil;
     id currencyIso4217CodeValue = nil;
-    id revenueValue = -1;
+    int revenueValue = -1;
 
     monetizationNetworkValue = [afAdRevenueDataMap objectForKey:@"monetizationNetwork"];
     if ([monetizationNetworkValue isKindOfClass:[NSString class]]) {
