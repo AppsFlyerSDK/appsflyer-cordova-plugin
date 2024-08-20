@@ -1,5 +1,3 @@
-
-
 module.exports = Object.freeze({
     INVALID_ARGUMENT_ERROR: "INVALID ARGUMENT ERROR",
     NO_DEVKEY_FOUND: "AppsFlyer 'devKey' is missing or empty",
