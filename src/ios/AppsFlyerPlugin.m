@@ -243,7 +243,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     id monetizationNetworkValue = nil;
     id mediationNetworkValue = nil;
     id currencyIso4217CodeValue = nil;
-    NSNumber *revenueValue = 0;
+    id revenueValue = nil;
 
     monetizationNetworkValue = [afAdRevenueDataMap objectForKey:@"monetizationNetwork"];
     if ([monetizationNetworkValue isKindOfClass:[NSString class]]) {
@@ -251,8 +251,13 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     }
 
     mediationNetworkValue = [afAdRevenueDataMap objectForKey:@"mediationNetwork"];
-    {
-        mediationNetwork = [self getEnumValueFromString: mediationNetworkValue];
+    if ([mediationNetworkValue isKindOfClass:[NSString class]]) {
+        if([self getEnumValueFromString: mediationNetworkValue] != -1){
+            mediationNetwork = [self getEnumValueFromString: mediationNetworkValue];
+        }
+        else{
+            return;
+        }
     }
 
     currencyIso4217CodeValue = [afAdRevenueDataMap objectForKey:@"currencyIso4217Code"];
@@ -264,9 +269,12 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     if ([revenueValue isKindOfClass:[NSNumber class]]) {
         revenue = revenueValue;
     }
-    AFAdRevenueData *adRevenueData = [[AFAdRevenueData alloc] initWithMonetizationNetwork:monetizationNetwork mediationNetwork:mediationNetwork currencyIso4217Code:currencyIso4217Code eventRevenue:revenue];
-    [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:additionalParametersMap];
+    if(monetizationNetwork != nil && currencyIso4217Code != nil && revenue != nil){
+        AFAdRevenueData *adRevenueData = [[AFAdRevenueData alloc] initWithMonetizationNetwork:monetizationNetwork mediationNetwork:mediationNetwork currencyIso4217Code:currencyIso4217Code eventRevenue:revenue];
+        [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:additionalParametersMap];
+    }
 }
+
 
 /**
 *   Sets new currency code. currencyId: ISO 4217 Currency Codes.
