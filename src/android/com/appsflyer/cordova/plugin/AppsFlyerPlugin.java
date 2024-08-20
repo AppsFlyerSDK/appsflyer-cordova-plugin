@@ -194,7 +194,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             cordova.getThreadPool().execute(() -> {
                 Map<String, Object> additionalParameters = null;
                 try {
-                    if(args.get(0) != null){
+                    if(!args.get(0).equals(null)){
                         JSONObject afAdRevenueDataJsonObj = args.getJSONObject(0);
                         String monetizationNetwork = afAdRevenueDataJsonObj.optString("monetizationNetwork", null);
                         String mediationNetwork = afAdRevenueDataJsonObj.optString("mediationNetwork", null);
@@ -205,13 +205,13 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                         if(mediationNetwork != null){
                             for(MediationNetwork mediationNetworkEnum: MediationNetwork.values()){
                                 if(mediationNetworkEnum.getValue().equals(mediationNetwork)){
-                                    mediationNetworkEnumVal = MediationNetwork.valueOf(mediationNetwork);
+                                    mediationNetworkEnumVal = mediationNetworkEnum;
                                     continue;
                                 }
                             }
                         }
 
-                        if(args.get(1) != null){
+                        if(!args.get(1).equals(null)){
                             JSONObject additionalParametersJson = args.getJSONObject(1);
                             additionalParameters = toObjectMap(additionalParametersJson);
                         }
