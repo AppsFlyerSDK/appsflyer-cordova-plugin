@@ -245,33 +245,40 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     id currencyIso4217CodeValue = nil;
     id revenueValue = nil;
 
-    monetizationNetworkValue = [afAdRevenueDataMap objectForKey:@"monetizationNetwork"];
-    if ([monetizationNetworkValue isKindOfClass:[NSString class]]) {
-       monetizationNetwork = monetizationNetworkValue;
-    }
-
-    mediationNetworkValue = [afAdRevenueDataMap objectForKey:@"mediationNetwork"];
-    if ([mediationNetworkValue isKindOfClass:[NSString class]]) {
-        if([self getEnumValueFromString: mediationNetworkValue] != -1){
-            mediationNetwork = [self getEnumValueFromString: mediationNetworkValue];
+    if(![afAdRevenueDataMap isKindOfClass:[NSNull class]]){
+        monetizationNetworkValue = [afAdRevenueDataMap objectForKey:@"monetizationNetwork"];
+        if ([monetizationNetworkValue isKindOfClass:[NSString class]]) {
+           monetizationNetwork = monetizationNetworkValue;
         }
-        else{
-            return;
+
+        mediationNetworkValue = [afAdRevenueDataMap objectForKey:@"mediationNetwork"];
+        if ([mediationNetworkValue isKindOfClass:[NSString class]]) {
+            if([self getEnumValueFromString: mediationNetworkValue] != -1){
+                mediationNetwork = [self getEnumValueFromString: mediationNetworkValue];
+            }
+            else{
+                return;
+            }
         }
-    }
 
-    currencyIso4217CodeValue = [afAdRevenueDataMap objectForKey:@"currencyIso4217Code"];
-    if ([currencyIso4217CodeValue isKindOfClass:[NSString class]]) {
-       currencyIso4217Code = currencyIso4217CodeValue;
-    }
+        currencyIso4217CodeValue = [afAdRevenueDataMap objectForKey:@"currencyIso4217Code"];
+        if ([currencyIso4217CodeValue isKindOfClass:[NSString class]]) {
+           currencyIso4217Code = currencyIso4217CodeValue;
+        }
 
-    revenueValue = [afAdRevenueDataMap objectForKey:@"revenue"];
-    if ([revenueValue isKindOfClass:[NSNumber class]]) {
-        revenue = revenueValue;
-    }
-    if(monetizationNetwork != nil && currencyIso4217Code != nil && revenue != nil){
-        AFAdRevenueData *adRevenueData = [[AFAdRevenueData alloc] initWithMonetizationNetwork:monetizationNetwork mediationNetwork:mediationNetwork currencyIso4217Code:currencyIso4217Code eventRevenue:revenue];
-        [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:additionalParametersMap];
+        revenueValue = [afAdRevenueDataMap objectForKey:@"revenue"];
+        if ([revenueValue isKindOfClass:[NSNumber class]]) {
+            revenue = revenueValue;
+        }
+        if(monetizationNetwork != nil && currencyIso4217Code != nil && revenue != nil){
+            AFAdRevenueData *adRevenueData = [[AFAdRevenueData alloc] initWithMonetizationNetwork:monetizationNetwork mediationNetwork:mediationNetwork currencyIso4217Code:currencyIso4217Code eventRevenue:revenue];
+            if([additionalParametersMap isKindOfClass:[NSNull class]]){
+                [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:nil];
+            }
+            else{
+                [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:additionalParametersMap];
+            }
+        }
     }
 }
 
