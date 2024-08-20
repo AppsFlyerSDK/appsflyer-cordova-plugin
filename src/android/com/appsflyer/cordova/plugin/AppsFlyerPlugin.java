@@ -204,7 +204,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
                         if(mediationNetwork != null){
                             for(MediationNetwork mediationNetworkEnum: MediationNetwork.values()){
-                                if(mediationNetworkEnum.name().equals(mediationNetwork)){
+                                if(mediationNetworkEnum.getValue().equals(mediationNetwork)){
                                     mediationNetworkEnumVal = MediationNetwork.valueOf(mediationNetwork);
                                     continue;
                                 }
