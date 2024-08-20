@@ -236,14 +236,14 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSDictionary *additionalParametersMap = (NSDictionary*)[command.arguments objectAtIndex: 1];
 
     id monetizationNetwork = nil;
-    id mediationNetwork = nil;
+    AppsFlyerAdRevenueMediationNetworkType mediationNetwork;
     id currencyIso4217Code = nil;
-    int revenue = -1;
+    NSNumber *revenue = 0;
 
     id monetizationNetworkValue = nil;
     id mediationNetworkValue = nil;
     id currencyIso4217CodeValue = nil;
-    int revenueValue = -1;
+    NSNumber *revenueValue = 0;
 
     monetizationNetworkValue = [afAdRevenueDataMap objectForKey:@"monetizationNetwork"];
     if ([monetizationNetworkValue isKindOfClass:[NSString class]]) {
@@ -251,11 +251,8 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     }
 
     mediationNetworkValue = [afAdRevenueDataMap objectForKey:@"mediationNetwork"];
-    if ([mediationNetworkValue isKindOfClass:[NSString class]]) {
-        mediationNetworkValue = [self getEnumValueFromString: mediationNetworkValue];
-        if(mediationNetworkValue != -1){
-            mediationNetwork = mediationNetworkValue;
-        }
+    {
+        mediationNetwork = [self getEnumValueFromString: mediationNetworkValue];
     }
 
     currencyIso4217CodeValue = [afAdRevenueDataMap objectForKey:@"currencyIso4217Code"];
@@ -265,7 +262,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
     revenueValue = [afAdRevenueDataMap objectForKey:@"revenue"];
     if ([revenueValue isKindOfClass:[NSNumber class]]) {
-       revenue = revenueValue;
+        revenue = revenueValue;
     }
     AFAdRevenueData *adRevenueData = [[AFAdRevenueData alloc] initWithMonetizationNetwork:monetizationNetwork mediationNetwork:mediationNetwork currencyIso4217Code:currencyIso4217Code eventRevenue:revenue];
     [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:additionalParametersMap];
