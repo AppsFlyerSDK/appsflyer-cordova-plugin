@@ -227,8 +227,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             });
             return true;
         }
-    }
-
 
     /**
      * set consent data according to GDPR if applies or not.

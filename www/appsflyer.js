@@ -11,7 +11,29 @@ if (!window.CustomEvent) {
     };
 }
 
+
+
 (function (global) {
+
+    // Enum definition for MediationNetwork
+    global.MediationNetwork = Object.freeze({
+        IRONSOURCE: "ironsource",
+        APPLOVIN_MAX: "applovinmax",
+        GOOGLE_ADMOB: "googleadmob",
+        FYBER: "fyber",
+        APPODEAL: "appodeal",
+        ADMOST: "Admost",
+        TOPON: "Topon",
+        TRADPLUS: "Tradplus",
+        YANDEX: "Yandex",
+        CHARTBOOST: "chartboost",
+        UNITY: "Unity",
+        TOPON_PTE: "toponpte",
+        CUSTOM_MEDIATION: "customMediation",
+        DIRECT_MONETIZATION_NETWORK: "directMonetizationNetwork"
+    });
+
+
     var AppsFlyer = function () {
     };
 
@@ -114,7 +136,7 @@ if (!window.CustomEvent) {
      * Public API - logAdRevenue function
      */
     AppsFlyer.prototype.logAdRevenue = function(afAdRevenueData, additionalParameters) {
-        argscheck.checkArgs('S', 'AppsFlyer.logAdRevenue', arguments);
+        argscheck.checkArgs('OO', 'AppsFlyer.logAdRevenue', arguments);
         exec(null, null, 'AppsFlyerPlugin', 'logAdRevenue', [afAdRevenueData, additionalParameters]);
     };
 
