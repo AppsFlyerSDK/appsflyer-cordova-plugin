@@ -33,6 +33,7 @@
 - (void)setCurrentDeviceLanguage:(CDVInvokedUrlCommand*)command;
 - (void)setAdditionalData:(CDVInvokedUrlCommand*)command;
 - (void)setConsentData:(CDVInvokedUrlCommand*)command;
+- (void)logAdRevenue:(CDVInvokedUrlCommand*)command;
 - (void)enableTCFDataCollection:(CDVInvokedUrlCommand*)command;
 - (void)setSharingFilter:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
 - (void)setSharingFilterForAllPartners:(CDVInvokedUrlCommand*)command __attribute__((deprecated));

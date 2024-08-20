@@ -96,7 +96,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
 
         // Initialize the SDK
-        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.14.3" additionalParams:nil];
+        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.15.1" additionalParams:nil];
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
@@ -195,6 +195,93 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSString* currencyId = [command.arguments objectAtIndex:0];
     [AppsFlyerLib shared].currencyCode = currencyId;
 }
+
+
+- (AppsFlyerAdRevenueMediationNetworkType)getEnumValueFromString:(NSString *)mediationNetworkString {
+    NSDictionary<NSString *, NSNumber *> *stringToEnumMap = @{
+        @"googleadmob": @(AppsFlyerAdRevenueMediationNetworkTypeGoogleAdMob),
+        @"ironsource": @(AppsFlyerAdRevenueMediationNetworkTypeIronSource),
+        @"applovinmax": @(AppsFlyerAdRevenueMediationNetworkTypeApplovinMax),
+        @"fyber": @(AppsFlyerAdRevenueMediationNetworkTypeFyber),
+        @"appodeal": @(AppsFlyerAdRevenueMediationNetworkTypeAppodeal),
+        @"Admost": @(AppsFlyerAdRevenueMediationNetworkTypeAdmost),
+        @"Topon": @(AppsFlyerAdRevenueMediationNetworkTypeTopon),
+        @"Tradplus": @(AppsFlyerAdRevenueMediationNetworkTypeTradplus),
+        @"Yandex": @(AppsFlyerAdRevenueMediationNetworkTypeYandex),
+        @"Saturchartboostday": @(AppsFlyerAdRevenueMediationNetworkTypeChartBoost),
+        @"Unity": @(AppsFlyerAdRevenueMediationNetworkTypeUnity),
+        @"toponpte": @(AppsFlyerAdRevenueMediationNetworkTypeToponPte),
+        @"customMediation": @(AppsFlyerAdRevenueMediationNetworkTypeCustom),
+        @"directMonetizationNetwork": @(AppsFlyerAdRevenueMediationNetworkTypeDirectMonetization)
+    };
+    
+    NSNumber *enumValueNumber = stringToEnumMap[mediationNetworkString];
+    if (enumValueNumber) {
+        return (AppsFlyerAdRevenueMediationNetworkType)[enumValueNumber integerValue];
+    } else {
+        return -1; 
+    }
+}
+
+/**
+*    log AdRevenue event
+*/
+- (void)logAdRevenue:(CDVInvokedUrlCommand*)command
+{
+    if ([command.arguments count] == 0) {
+        return;
+    }
+
+    NSDictionary *afAdRevenueDataMap = (NSDictionary*)[command.arguments objectAtIndex: 0];
+    NSDictionary *additionalParametersMap = (NSDictionary*)[command.arguments objectAtIndex: 1];
+
+    id monetizationNetwork = nil;
+    AppsFlyerAdRevenueMediationNetworkType mediationNetwork;
+    id currencyIso4217Code = nil;
+    NSNumber *revenue = 0;
+
+    id monetizationNetworkValue = nil;
+    id mediationNetworkValue = nil;
+    id currencyIso4217CodeValue = nil;
+    id revenueValue = nil;
+
+    if(![afAdRevenueDataMap isKindOfClass:[NSNull class]]){
+        monetizationNetworkValue = [afAdRevenueDataMap objectForKey:@"monetizationNetwork"];
+        if ([monetizationNetworkValue isKindOfClass:[NSString class]]) {
+           monetizationNetwork = monetizationNetworkValue;
+        }
+
+        mediationNetworkValue = [afAdRevenueDataMap objectForKey:@"mediationNetwork"];
+        if ([mediationNetworkValue isKindOfClass:[NSString class]]) {
+            if([self getEnumValueFromString: mediationNetworkValue] != -1){
+                mediationNetwork = [self getEnumValueFromString: mediationNetworkValue];
+            }
+            else{
+                return;
+            }
+        }
+
+        currencyIso4217CodeValue = [afAdRevenueDataMap objectForKey:@"currencyIso4217Code"];
+        if ([currencyIso4217CodeValue isKindOfClass:[NSString class]]) {
+           currencyIso4217Code = currencyIso4217CodeValue;
+        }
+
+        revenueValue = [afAdRevenueDataMap objectForKey:@"revenue"];
+        if ([revenueValue isKindOfClass:[NSNumber class]]) {
+            revenue = revenueValue;
+        }
+        if(monetizationNetwork != nil && currencyIso4217Code != nil && revenue != nil){
+            AFAdRevenueData *adRevenueData = [[AFAdRevenueData alloc] initWithMonetizationNetwork:monetizationNetwork mediationNetwork:mediationNetwork currencyIso4217Code:currencyIso4217Code eventRevenue:revenue];
+            if([additionalParametersMap isKindOfClass:[NSNull class]]){
+                [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:nil];
+            }
+            else{
+                [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:additionalParametersMap];
+            }
+        }
+    }
+}
+
 
 /**
 *   Sets new currency code. currencyId: ISO 4217 Currency Codes.
