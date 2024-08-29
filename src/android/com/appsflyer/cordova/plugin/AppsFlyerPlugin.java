@@ -215,10 +215,12 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                             JSONObject additionalParametersJson = args.getJSONObject(1);
                             additionalParameters = toObjectMap(additionalParametersJson);
                         }
-
                         if(mediationNetworkEnumVal != null){
                             AFAdRevenueData afAdRevenueData = new AFAdRevenueData(monetizationNetwork, mediationNetworkEnumVal, currencyIso4217Code, revenue);
                             AppsFlyerLib.getInstance().logAdRevenue(afAdRevenueData, additionalParameters);
+                        }
+                        else{
+                           Log.d("AppsFlyer", "Could not log Ad-Revenue event, bad inputs");
                         }
                     }
                 } catch (JSONException e) {
