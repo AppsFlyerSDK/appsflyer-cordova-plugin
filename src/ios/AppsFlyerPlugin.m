@@ -247,12 +247,12 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 
     if(![afAdRevenueDataMap isKindOfClass:[NSNull class]]){
         monetizationNetworkValue = [afAdRevenueDataMap objectForKey:@"monetizationNetwork"];
-        if ([monetizationNetworkValue isKindOfClass:[NSString class]]) {
+        if (monetizationNetworkValue != nil && [monetizationNetworkValue isKindOfClass:[NSString class]]) {
            monetizationNetwork = monetizationNetworkValue;
         }
 
         mediationNetworkValue = [afAdRevenueDataMap objectForKey:@"mediationNetwork"];
-        if ([mediationNetworkValue isKindOfClass:[NSString class]]) {
+        if (mediationNetworkValue != nil && [mediationNetworkValue isKindOfClass:[NSString class]]) {
             if([self getEnumValueFromString: mediationNetworkValue] != -1){
                 mediationNetwork = [self getEnumValueFromString: mediationNetworkValue];
             }
@@ -262,12 +262,12 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
 
         currencyIso4217CodeValue = [afAdRevenueDataMap objectForKey:@"currencyIso4217Code"];
-        if ([currencyIso4217CodeValue isKindOfClass:[NSString class]]) {
+        if (currencyIso4217CodeValue != nil && [currencyIso4217CodeValue isKindOfClass:[NSString class]]) {
            currencyIso4217Code = currencyIso4217CodeValue;
         }
 
         revenueValue = [afAdRevenueDataMap objectForKey:@"revenue"];
-        if ([revenueValue isKindOfClass:[NSNumber class]]) {
+        if (revenueValue != nil && [revenueValue isKindOfClass:[NSNumber class]]) {
             revenue = revenueValue;
         }
         if(monetizationNetwork != nil && currencyIso4217Code != nil && revenue != nil){
