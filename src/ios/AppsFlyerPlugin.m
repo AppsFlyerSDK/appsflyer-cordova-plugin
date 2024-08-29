@@ -232,7 +232,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         return;
     }
 
-    NSDictionary *afAdRevenueDataMap = (NSDictionary*)[command.arguments objectAtIndex: 0];
+    NSDictionary *afAdRevenueDataMap = (NSDictionary*)[command.arguments objectAtIndex: 0 withDefault:[NSNull null]];
     NSDictionary *additionalParametersMap = (NSDictionary*)[command.arguments objectAtIndex: 1];
 
     id monetizationNetwork = nil;
