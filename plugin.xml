@@ -91,10 +91,9 @@
             <config>
             </config>
             <pods use-frameworks="true">
-               <pod name="AppsFlyerFramework" spec="6.14.3"/>
+               <pod name="AppsFlyerFramework" spec="6.15.1"/>
             </pods>
         </podspec>
     </platform>
-
     
 </plugin>
