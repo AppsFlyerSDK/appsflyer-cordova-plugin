@@ -125,11 +125,11 @@ NS_ASSUME_NONNULL_BEGIN
 #define AFEventParamPreferredNeighborhoods  @"af_preferred_neighborhoods" //array of string
 #define AFEventParamPreferredNumStops       @"af_preferred_num_stops"
 
-#define AFEventParamAdRevenueAdType              @"af_adrev_ad_type"
-#define AFEventParamAdRevenueNetworkName         @"af_adrev_network_name"
-#define AFEventParamAdRevenuePlacementId         @"af_adrev_placement_id"
-#define AFEventParamAdRevenueAdSize              @"af_adrev_ad_size"
-#define AFEventParamAdRevenueMediatedNetworkName @"af_adrev_mediated_network_name"
+// #define AFEventParamAdRevenueAdType              @"af_adrev_ad_type"
+// #define AFEventParamAdRevenueNetworkName         @"af_adrev_network_name"
+// #define AFEventParamAdRevenuePlacementId         @"af_adrev_placement_id"
+// #define AFEventParamAdRevenueAdSize              @"af_adrev_ad_size"
+// #define AFEventParamAdRevenueMediatedNetworkName @"af_adrev_mediated_network_name"
 
 
 /// Mail hashing type

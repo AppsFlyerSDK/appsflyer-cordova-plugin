@@ -62,8 +62,8 @@ import com.appsflyer.share.ShareInviteHelper;
 import com.appsflyer.internal.platform_extension.Plugin;
 import com.appsflyer.internal.platform_extension.PluginInfo;
 import com.appsflyer.AppsFlyerConsent;
-import com.appsflyer.MediationNetwork;
-import com.appsflyer.AFAdRevenueData;
+// import com.appsflyer.MediationNetwork;
+// import com.appsflyer.AFAdRevenueData;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -178,57 +178,58 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setConsentData(args);
         } else if ("enableTCFDataCollection".equals(action)) {
             return enableTCFDataCollection(args);
-        } else if ("logAdRevenue".equals(action)) {
-            return logAdRevenue(args);
         }
+//          else if ("logAdRevenue".equals(action)) {
+//             return logAdRevenue(args);
+//         }
         return false;
     }
 
-        /**
-         * log AdRevenue event
-         *
-         * @param args - event params
-         * @return true
-         */
-        private boolean logAdRevenue(JSONArray args) {
-            cordova.getThreadPool().execute(() -> {
-                Map<String, Object> additionalParameters = null;
-                try {
-                    if(!args.get(0).equals(null)){
-                        JSONObject afAdRevenueDataJsonObj = args.getJSONObject(0);
-                        String monetizationNetwork = afAdRevenueDataJsonObj.optString("monetizationNetwork", null);
-                        String mediationNetwork = afAdRevenueDataJsonObj.optString("mediationNetwork", null);
-                        String currencyIso4217Code = afAdRevenueDataJsonObj.optString("currencyIso4217Code", null);
-                        double revenue = afAdRevenueDataJsonObj.optDouble("revenue", -1);
-                        MediationNetwork mediationNetworkEnumVal = null;
-
-                        if(mediationNetwork != null){
-                            for(MediationNetwork mediationNetworkEnum: MediationNetwork.values()){
-                                if(mediationNetworkEnum.getValue().equals(mediationNetwork)){
-                                    mediationNetworkEnumVal = mediationNetworkEnum;
-                                    continue;
-                                }
-                            }
-                        }
-
-                        if(!args.get(1).equals(null)){
-                            JSONObject additionalParametersJson = args.getJSONObject(1);
-                            additionalParameters = toObjectMap(additionalParametersJson);
-                        }
-                        if(mediationNetworkEnumVal != null){
-                            AFAdRevenueData afAdRevenueData = new AFAdRevenueData(monetizationNetwork, mediationNetworkEnumVal, currencyIso4217Code, revenue);
-                            AppsFlyerLib.getInstance().logAdRevenue(afAdRevenueData, additionalParameters);
-                        }
-                        else{
-                           Log.d("AppsFlyer", "Could not log Ad-Revenue event, bad inputs");
-                        }
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            });
-            return true;
-        }
+//         /**
+//          * log AdRevenue event
+//          *
+//          * @param args - event params
+//          * @return true
+//          */
+//         private boolean logAdRevenue(JSONArray args) {
+//             cordova.getThreadPool().execute(() -> {
+//                 Map<String, Object> additionalParameters = null;
+//                 try {
+//                     if(!args.get(0).equals(null)){
+//                         JSONObject afAdRevenueDataJsonObj = args.getJSONObject(0);
+//                         String monetizationNetwork = afAdRevenueDataJsonObj.optString("monetizationNetwork", null);
+//                         String mediationNetwork = afAdRevenueDataJsonObj.optString("mediationNetwork", null);
+//                         String currencyIso4217Code = afAdRevenueDataJsonObj.optString("currencyIso4217Code", null);
+//                         double revenue = afAdRevenueDataJsonObj.optDouble("revenue", -1);
+//                         MediationNetwork mediationNetworkEnumVal = null;
+//
+//                         if(mediationNetwork != null){
+//                             for(MediationNetwork mediationNetworkEnum: MediationNetwork.values()){
+//                                 if(mediationNetworkEnum.getValue().equals(mediationNetwork)){
+//                                     mediationNetworkEnumVal = mediationNetworkEnum;
+//                                     continue;
+//                                 }
+//                             }
+//                         }
+//
+//                         if(!args.get(1).equals(null)){
+//                             JSONObject additionalParametersJson = args.getJSONObject(1);
+//                             additionalParameters = toObjectMap(additionalParametersJson);
+//                         }
+//                         if(mediationNetworkEnumVal != null){
+//                             AFAdRevenueData afAdRevenueData = new AFAdRevenueData(monetizationNetwork, mediationNetworkEnumVal, currencyIso4217Code, revenue);
+//                             AppsFlyerLib.getInstance().logAdRevenue(afAdRevenueData, additionalParameters);
+//                         }
+//                         else{
+//                            Log.d("AppsFlyer", "Could not log Ad-Revenue event, bad inputs");
+//                         }
+//                     }
+//                 } catch (JSONException e) {
+//                     e.printStackTrace();
+//                 }
+//             });
+//             return true;
+//         }
 
     /**
      * set consent data according to GDPR if applies or not.
