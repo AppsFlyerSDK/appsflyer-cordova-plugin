@@ -257,6 +257,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                 mediationNetwork = [self getEnumValueFromString: mediationNetworkValue];
             }
             else{
+                NSLog(@"mediationNetwork param is not according to the Enum format");
                 return;
             }
         }
@@ -280,8 +281,11 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
             }
         }
         else{
-            NSLog(@"one or more arguments are invalid");
+            NSLog(@"one or more arguments are invalid or nil");
         }
+    }
+    else{
+        NSLog(@"afAdRevenueDataMap is invalid or null");
     }
 }
 
