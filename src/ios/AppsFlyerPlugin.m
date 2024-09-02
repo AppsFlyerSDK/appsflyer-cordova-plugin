@@ -279,6 +279,9 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                 [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:additionalParametersMap];
             }
         }
+        else{
+            NSLog(@"one or more arguments are invalid");
+        }
     }
 }
 
