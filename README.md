@@ -24,6 +24,8 @@ For lower versions of cordova-android please use plugin version 4.3.3 available 
 - From version **6.1.10** the plugin uses cocoapods(NOT StaticLib) in order to support iOS app-kids Strict mode. <br>  
 You can read more [here](https://support.appsflyer.com/hc/en-us/articles/207032066#integration-strict-mode-sdk)
 - From version **6.10.2** the plugin requires using the implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.20' in Android.
+- From version **6.14.3** the plugin requires Target version 12 and higher in iOS.
+- From version **6.15.1** the plugin requires adding the value '/usr/lib/swift' to Build Settings 'RunPath Search Paths' key in iOS.
 ----------  
 
   
@@ -42,8 +44,13 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
   
 ### <a id="plugin-build-for"> This plugin is built for  
   
-- iOS AppsFlyerSDK **v6.14.3**  
-- Android AppsFlyerSDK **v6.14.0**
+- iOS AppsFlyerSDK **v6.15.1**  
+- Android AppsFlyerSDK **v6.15.0**
+
+### <a id="breakingChanges"> ❗v6.15.1 Breaking Changes
+
+iOS platform:
+The plugin requires adding the value '/usr/lib/swift' to Build Settings 'RunPath Search Paths' key in iOS, Otherwise there might be some compilation errors.
   
 ### <a id="breakingChanges"> ❗v6.14.3 Breaking Changes  
 
