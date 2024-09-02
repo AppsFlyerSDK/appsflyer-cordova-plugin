@@ -52,7 +52,8 @@ The list of available methods for this plugin is described below.
 | [`sendPushNotificationData`](#sendPushNotificationData)               | `(Object data)`                                                           | Measure and get data from push-notification campaigns.                                                 |
 | [`setDisableNetworkData`](#setDisableNetworkData)                     | `(boolean disable)`                                                       | Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device. |
 | [`setConsentData`](#setConsentData)                                   | `(boolean disable)`                                                       | Use to manually collecting the consent data from the user.                                             |                                           
-| [`enableTCFDataCollection`](#enableTCFDataCollection)                                   | `(boolean enable)`                                                        | instruct the SDK to collect the TCF data from the device. |                                           
+| [`enableTCFDataCollection`](#enableTCFDataCollection)                                   | `(boolean enable)`                                                        | instruct the SDK to collect the TCF data from the device.                                              |                                           
+| [`logAdRevenue`](#logAdRevenue)                                   | `(Object adRevenueData, Object additionalParams)`                         | Log ad revenue event.                                                                                  |                                           
 
   
 ---
@@ -799,6 +800,37 @@ window.plugins.appsFlyer.enableTCFDataCollection(true);
 ```
 
 ---
+
+##### <a id="logAdRevenue"> **`logAdRevenue(adRevenueData, additionalParams): void`**
+log ad-revenue event.
+
+| parameter        | type     | description                                                                                                                                                                                                                                                |
+|------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `adRevenueData`  | `Object` | the object must contain the following fields:<br/>monetizationNetwork: String testMonetizationNetwork<br/> mediationNetwork: MediationNetwork testMediationNetwork<br/>currencyIso4217Code: String currencyByIso4217CodeFormat <br/>revenue:double revenue |
+| `additionalData` | `Object` | additional Params Data map, @Nullable                                                                                                                                                                                                                      |
+
+
+*Example:*
+
+```javascript
+
+let mediationNetwork = MediationNetwork.TOPON;
+let adRevenueData = {
+    'monetizationNetwork': 'testMonetizationNetwork',
+    'mediationNetwork': mediationNetwork,
+    'currencyIso4217Code': 'USD',
+    'revenue': 15.0
+};
+let additionalParams = {
+    'additionalKey1':'additionalValue1',
+    'additionalKey2':'additionalValue2'
+}
+window.plugins.appsFlyer.logAdRevenue(adRevenueData, additionalParams);
+```
+
+---
+
+
 ### <a id="deep-linking-tracking"> Deep linking Tracking
 
   
