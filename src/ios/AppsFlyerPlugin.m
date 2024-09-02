@@ -285,7 +285,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
     }
     else{
-        NSLog(@"afAdRevenueDataMap is invalid or null");
+        NSLog(@"afAdRevenueDataMap is invalid or nil");
     }
 }
 
