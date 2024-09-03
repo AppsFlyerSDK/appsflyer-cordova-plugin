@@ -208,7 +208,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         @"Topon": @(AppsFlyerAdRevenueMediationNetworkTypeTopon),
         @"Tradplus": @(AppsFlyerAdRevenueMediationNetworkTypeTradplus),
         @"Yandex": @(AppsFlyerAdRevenueMediationNetworkTypeYandex),
-        @"Saturchartboostday": @(AppsFlyerAdRevenueMediationNetworkTypeChartBoost),
+        @"chartboost": @(AppsFlyerAdRevenueMediationNetworkTypeChartBoost),
         @"Unity": @(AppsFlyerAdRevenueMediationNetworkTypeUnity),
         @"toponpte": @(AppsFlyerAdRevenueMediationNetworkTypeToponPte),
         @"customMediation": @(AppsFlyerAdRevenueMediationNetworkTypeCustom),
