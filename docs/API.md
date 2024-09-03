@@ -52,7 +52,8 @@ The list of available methods for this plugin is described below.
 | [`sendPushNotificationData`](#sendPushNotificationData)               | `(Object data)`                                                           | Measure and get data from push-notification campaigns.                                                 |
 | [`setDisableNetworkData`](#setDisableNetworkData)                     | `(boolean disable)`                                                       | Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device. |
 | [`setConsentData`](#setConsentData)                                   | `(boolean disable)`                                                       | Use to manually collecting the consent data from the user.                                             |                                           
-| [`enableTCFDataCollection`](#enableTCFDataCollection)                                   | `(boolean enable)`                                                        | instruct the SDK to collect the TCF data from the device. |                                           
+| [`enableTCFDataCollection`](#enableTCFDataCollection)                                   | `(boolean enable)`                                                        | instruct the SDK to collect the TCF data from the device.                                              |                                           
+| [`logAdRevenue`](#logAdRevenue)                                   | `(Object adRevenueData, Object additionalParams)`                         | Log ad revenue event.                                                                                  |                                           
 
   
 ---
@@ -799,6 +800,47 @@ window.plugins.appsFlyer.enableTCFDataCollection(true);
 ```
 
 ---
+
+##### <a id="logAdRevenue"> **`logAdRevenue(adRevenueData, additionalParams): void`**
+log ad-revenue event.
+
+| parameter        | type     | description                                                                                                                                                                                                                                                |
+|------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `adRevenueData`  | `Object` | the object must contain the following fields:<br/>monetizationNetwork: String testMonetizationNetwork<br/> mediationNetwork: MediationNetwork testMediationNetwork<br/>currencyIso4217Code: String currencyByIso4217CodeFormat <br/>revenue:double revenue |
+| `additionalData` | `Object` | additional Params Data map, @Nullable                                                                                                                                                                                                                      |
+
+
+*Example:*
+
+```javascript
+
+let mediationNetwork = MediationNetwork.TOPON;
+let adRevenueData = {
+    'monetizationNetwork': 'testMonetizationNetwork',
+    'mediationNetwork': mediationNetwork,
+    'currencyIso4217Code': 'USD',
+    'revenue': 15.0
+};
+let additionalParams = {
+    'additionalKey1':'additionalValue1',
+    'additionalKey2':'additionalValue2'
+}
+window.plugins.appsFlyer.logAdRevenue(adRevenueData, additionalParams);
+
+
+```
+Here's how you use `appsFlyer.logAdRevenue` within a Cordova app:
+
+1. Prepare the `adRevenueData` object as shown, including any additional parameters you wish to track along with the ad revenue event.
+2. Call the `appsFlyer.logAdRevenue` method with the `adRevenueData` object.
+
+By passing all the required fields in `AFAdRevenueData`, you help ensure accurate tracking within the AppsFlyer platform. This enables you to analyze your ad revenue alongside other user acquisition data to optimize your app's overall monetization strategy.
+
+**Note:** 
+The `additionalParameters` object is optional. You can add any additional data you want to log with the ad revenue event in this object. This can be useful for detailed analytics or specific event tracking later on. Make sure that the custom parameters follow the data types and structures specified by AppsFlyer in their documentation.
+---
+
+
 ### <a id="deep-linking-tracking"> Deep linking Tracking
 
   
