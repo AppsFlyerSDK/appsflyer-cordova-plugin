@@ -47,7 +47,7 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
 - iOS AppsFlyerSDK **v6.15.1**  
 - Android AppsFlyerSDK **v6.15.0**
 
-### <a id="breakingChanges"> ❗v6.15.1 Breaking Changes
+### <a id="breakingChanges"> ❗v6.15.11 Breaking Changes
 
 iOS platform:
 The plugin requires adding the value '/usr/lib/swift' to Build Settings 'RunPath Search Paths' key in iOS, Otherwise there might be some compilation errors.
