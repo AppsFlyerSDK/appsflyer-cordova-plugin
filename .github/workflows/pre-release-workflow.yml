@@ -28,7 +28,10 @@ jobs:
           git config --global credential.helper 'cache --timeout=300'
           git config --global --add "credential.https://github.com.username" "x-access-token"
           echo "https://x-access-token:$MY_PERSONAL_ACCESS_TOKEN@github.com" > ~/.git-credentials
-
+      - uses: mdecoleman/pr-branch-name@1.2.0
+        id: vars
+        with:
+          repo-token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
       - name: Update package.json file
         run: |
           plugin_version=$(echo "${{ steps.vars.outputs.branch }}" | grep -Eo '[0-9].[0-9]+.[0-9]+')
