@@ -21,6 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          persist-credentials: true
+
       - name: Login to Github
         env:
           COMMIT_AUTHOR: ${{ secrets.CI_COMMIT_AUTHOR }}
@@ -48,7 +52,7 @@ jobs:
           TAG: ${{env.PLUGIN_VERSION}}
         uses: "actions/github-script@v5"
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          github-token: "${{ secrets.CI_DEV_GITHUB_TOKEN }}"
           script: |
             try {
               await github.rest.repos.createRelease({
