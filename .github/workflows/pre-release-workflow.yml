@@ -14,6 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Login to Github
+        with:
+          token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          persist-credentials: true
         env:
           COMMIT_AUTHOR: ${{ secrets.CI_COMMIT_AUTHOR }}
           COMMIT_EMAIL: ${{ secrets.CI_COMMIT_EMAIL }}
@@ -24,6 +27,7 @@ jobs:
           git config --global credential.helper 'cache --timeout=300'
           git config --global --add "credential.https://github.com.username" "x-access-token"
           echo "https://x-access-token:$MY_PERSONAL_ACCESS_TOKEN@github.com" > ~/.git-credentials
+          
       - uses: mdecoleman/pr-branch-name@1.2.0
         id: vars
         with:
