@@ -1,4 +1,24 @@
 ## 6.15.11
+ Release date: *2025-01-30*
+
+
+
+## 6.15.3
+ Release date: *2024-12-02*
+
+- Cordova >> Update Plugin to v6.15.3
+
+## 6.15.3
+ Release date: *2024-12-02*
+
+- Cordova >> Update Plugin to v6.15.3
+
+## 6.15.3
+ Release date: *2024-12-02*
+
+- Cordova >> Update Plugin to v6.15.3
+
+## 6.15.11
  Release date: *2024-09-03*
 - Cordova >> Fix chartboost adrevenue enum typo in ios side
 
