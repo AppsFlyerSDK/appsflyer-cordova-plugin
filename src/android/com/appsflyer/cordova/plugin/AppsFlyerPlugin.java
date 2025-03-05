@@ -240,22 +240,25 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         cordova.getThreadPool().execute(() -> {
             try {
                 JSONObject consentData = args.getJSONObject(0);
-                boolean isUserSubjectToGDPR = consentData.optBoolean("isUserSubjectToGDPR", false);
-                boolean hasConsentForDataUsage = consentData.optBoolean("hasConsentForDataUsage", false);
-                boolean hasConsentForAdsPersonalization = consentData.optBoolean("hasConsentForAdsPersonalization", false);
+                Boolean isUserSubjectToGDPR = getBooleanOrNull(consentData, "isUserSubjectToGDPR");
+                Boolean hasConsentForDataUsage = getBooleanOrNull(consentData, "hasConsentForDataUsage");;
+                Boolean hasConsentForAdsPersonalization = getBooleanOrNull(consentData, "hasConsentForAdsPersonalization");;
+                Boolean hasConsentForAdStorage = getBooleanOrNull(consentData, "hasConsentForAdStorage");;
 
-                AppsFlyerConsent consent;
-                if (isUserSubjectToGDPR) {
-                    consent = AppsFlyerConsent.forGDPRUser(hasConsentForDataUsage, hasConsentForAdsPersonalization);
-                } else {
-                    consent = AppsFlyerConsent.forNonGDPRUser();
-                }
+                AppsFlyerConsent consent = new AppsFlyerConsent(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization, hasConsentForAdStorage);
                 AppsFlyerLib.getInstance().setConsentData(consent);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         });
         return true;
+    }
+
+    private Boolean getBooleanOrNull(JSONObject consentData, String key) {
+        try {
+            return consentData.getBoolean(key);
+        } catch (Throwable ignore) {}
+        return null;
     }
 
     /**
