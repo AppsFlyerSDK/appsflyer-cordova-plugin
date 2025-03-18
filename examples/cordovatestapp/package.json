@@ -16,8 +16,11 @@
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
   "devDependencies": {
-    "cordova-android": "^11.0.0",
-    "cordova-ios": "^6.3.0",
+    "cordova-android": "^13.0.0",
+    "cordova-ios": "^7.1.1",
+    "cordova-plugin-idfa": "^3.0.0",
+    "cordova-plugin-test-framework": "^1.1.6",
+    "cordova-support-android-plugin": "~2.0.4",
     "jasmine": "^4.5.0",
     "jasmine-reporters": "^2.5.2",
     "jasmine-spec-reporter": "^7.0.0"
@@ -28,7 +31,10 @@
       "ios"
     ],
     "plugins": {
-      "cordova-plugin-test-framework": {}
+      "cordova-plugin-test-framework": {},
+      "cordova-plugin-idfa": {
+        "ANDROID_PLAY_ADID_VERSION": "17.0.+"
+      }
     }
   },
   "dependencies": {

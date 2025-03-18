@@ -38,26 +38,41 @@ if (!window.CustomEvent) {
     };
 
     // Expose AppsFlyerConsent to the global scope
-    global.AppsFlyerConsent = (function () {
-        // Private constructor
-        function AppsFlyerConsent(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization) {
-            this.isUserSubjectToGDPR = isUserSubjectToGDPR;
-            this.hasConsentForDataUsage = hasConsentForDataUsage;
-            this.hasConsentForAdsPersonalization = hasConsentForAdsPersonalization;
-        }
+    /**
+     * @class AppsFlyerConsent
+     * @constructor
+     * @param {boolean|null} isUserSubjectToGDPR - Indicates if the user is subject to GDPR.
+     * @param {boolean|null} hasConsentForDataUsage - User's consent for data usage.
+     * @param {boolean|null} hasConsentForAdsPersonalization - User's consent for ads personalization.
+     * @param {boolean|null} hasConsentForAdStorage - User's consent for ad storage.
+     */
+    function AppsFlyerConsent(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization, hasConsentForAdStorage) {
+        this.isUserSubjectToGDPR = isUserSubjectToGDPR;
+        this.hasConsentForDataUsage = hasConsentForDataUsage;
+        this.hasConsentForAdsPersonalization = hasConsentForAdsPersonalization;
+        this.hasConsentForAdStorage = hasConsentForAdStorage;
+    }
 
-        return {
-            // Factory method for GDPR user
-            forGDPRUser: function(hasConsentForDataUsage, hasConsentForAdsPersonalization) {
-                return new AppsFlyerConsent(true, hasConsentForDataUsage, hasConsentForAdsPersonalization);
-            },
+    /**
+     * @deprecated Use the constructor directly with four parameters instead.
+     * Factory method for GDPR user.
+     */
+    AppsFlyerConsent.forGDPRUser = function (hasConsentForDataUsage, hasConsentForAdsPersonalization) {
+        window.console.warn("[DEPRECATED] 'forGDPRUser' is deprecated. Use 'new AppsFlyerConsent' instead.");
+        return new AppsFlyerConsent(true, hasConsentForDataUsage, hasConsentForAdsPersonalization, null);
+    };
 
-            // Factory method for non GDPR user
-            forNonGDPRUser: function() {
-                return new AppsFlyerConsent(false, null, null);
-            }
-        };
-    })();
+    /**
+     * @deprecated Use the constructor directly with four parameters instead.
+     * Factory method for non-GDPR user.
+     */
+    AppsFlyerConsent.forNonGDPRUser = function () {
+        window.console.warn("[DEPRECATED] 'forNonGDPRUser' is deprecated. Use 'new AppsFlyerConsent' instead.");
+        return new AppsFlyerConsent(false, null, null, null);
+    };
+
+    // Expose AppsFlyerConsent to the global scope
+    global.AppsFlyerConsent = AppsFlyerConsent;
 
 
     /**
