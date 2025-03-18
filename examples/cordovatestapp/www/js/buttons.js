@@ -1,5 +1,4 @@
-//Button Functions
-
+let startSdkBtn = document.getElementById('startSdk');
 let logEventBtn = document.getElementById('logEvent');
 let logCrossPromotionAndOpenStoreBtn = document.getElementById('logCrossPromotionAndOpenStore');
 let setCurrencyBtn = document.getElementById('setCurrency');
@@ -13,14 +12,24 @@ let getSdkVBtn = document.getElementById('getSdkV');
 let customDomainsBtn = document.getElementById('customDomains');
 let enableFBBtn = document.getElementById('enableFB');
 let addPushNotificationPathBtn = document.getElementById('addPushNotificationPath');
-let setConsentDataNonGDPRBtn = document.getElementById('setConsentDataNonGDPR');
-let setConsentDataWithGDPRBtn = document.getElementById('setConsentDataWithGDPR');
+let logAdRevenueBtn = document.getElementById('logAdRevenue');
 
-if(setConsentDataWithGDPRBtn){
-    setConsentDataWithGDPRBtn.addEventListener('click', setConsentDataWithGDPR, false);
+// Consent
+let setConsentBtn = document.getElementById('testSetConsent');
+let isUserSubjectToGDPRSwitch = document.getElementById('isUserSubjectToGDPR');
+let hasConsentForDataUsageSwitch = document.getElementById('hasConsentForDataUsage');
+let hasConsentForAdsPersonalizationSwitch = document.getElementById('hasConsentForAdsPersonalization');
+let hasConsentForAdStorageSwitch = document.getElementById('hasConsentForAdStorage');
+
+
+if(startSdkBtn){
+    startSdkBtn.addEventListener('click', startSdk, false);
 }
-if(setConsentDataNonGDPRBtn){
-    setConsentDataNonGDPRBtn.addEventListener('click', setConsentDataNonGDPR, false);
+if(logAdRevenueBtn){
+    logAdRevenueBtn.addEventListener('click', logAdRevenue, false);
+}
+if(setConsentBtn){
+    setConsentBtn.addEventListener('click', setConsentData, false);
 }
 if (generateUserInviteBtn) {
     generateUserInviteBtn.addEventListener('click', generateUserInvite, false);
@@ -144,10 +153,42 @@ function logCrossPromotionAndOpenStore() {
         custom_param: 'custom_value',
     });
 }
-function setConsentDataWithGDPR() {
-    window.plugins.appsFlyer.setConsentData( AppsFlyerConsent.forGDPRUser(true, true));
+
+function setConsentData() {
+    console.log("Button clicked: Set consent data");
+
+    let isUserSubjectToGDPR = isUserSubjectToGDPRSwitch.checked;
+    let hasConsentForDataUsage = hasConsentForDataUsageSwitch.checked;
+    let hasConsentForAdsPersonalization = hasConsentForAdsPersonalizationSwitch.checked;
+    let hasConsentForAdStorage = hasConsentForAdStorageSwitch.checked;
+
+    let consentData = new AppsFlyerConsent(
+        isUserSubjectToGDPR,
+        hasConsentForDataUsage,
+        hasConsentForAdsPersonalization,
+        hasConsentForAdStorage
+    );
+
+    window.plugins.appsFlyer.setConsentData(consentData);
 }
 
-function setConsentDataNonGDPR() {
-    window.plugins.appsFlyer.setConsentData( AppsFlyerConsent.forNonGDPRUser());
+function logAdRevenue() {
+    console.log("Button clicked: logAdRevenue");
+    let mediationNetwork = MediationNetwork.TOPON;
+    let adRevenueData = {
+        'monetizationNetwork': 'testMonetizationNetwork',
+        'mediationNetwork': mediationNetwork,
+        'currencyIso4217Code': 'USD',
+        'revenue': 15.0
+    };
+    let additionalParams = {
+        'additionalKey1':'additionalValue1',
+        'additionalKey2':'additionalValue2'
+    }
+    window.plugins.appsFlyer.logAdRevenue(adRevenueData, additionalParams);
+}
+
+function startSdk() {
+    console.log("Button clicked: Started the SDK");
+    window.plugins.appsFlyer.startSdk();
 }

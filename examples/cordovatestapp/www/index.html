@@ -19,8 +19,9 @@
 </div>
 
 <div class="btn-group-vertical">
-    <button type="button" id="logEvent" class="btn btn-primary">log Event</button>
-    <button type="button" id="logCrossPromotionAndOpenStore" class="btn btn-primary">log Cross Promotion And Open
+    <button type="button" id="startSdk" class="btn btn-primary">Start SDK</button>
+    <button type="button" id="logEvent" class="btn btn-primary">Log Event</button>
+    <button type="button" id="logCrossPromotionAndOpenStore" class="btn btn-primary">Log Cross Promotion And Open
         Store
     </button>
     <button type="button" id="generateUserInvite" class="btn btn-primary">Generate UserInvite</button>
@@ -34,9 +35,30 @@
     <button type="button" id="customDomains" class="btn btn-primary">Test customDomains</button>
     <button type="button" id="enableFB" class="btn btn-primary"> Test enabledFB</button>
     <button type="button" id="addPushNotificationPath" class="btn btn-primary">Test addPushNotificationDeepLinkPath</button>
-    <button type="button" id="setConsentDataNonGDPR" class="btn btn-primary">Test setConsentDataNonGDPR</button>
-    <button type="button" id="setConsentDataWithGDPR" class="btn btn-primary">Test setConsentDataWithGDPR</button>
+    <button type="button" id="logAdRevenue" class="btn btn-primary">Test logAdRevenue</button>
 
-<script type="text/javascript" src="js/buttons.js"></script>
+    <!-- Consent Section -->
+    <div class="consent-section">
+        <h3>Consent Settings</h3>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="isUserSubjectToGDPR">
+            <label class="form-check-label" for="isUserSubjectToGDPR">Is User Subject to GDPR</label>
+        </div>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="hasConsentForDataUsage">
+            <label class="form-check-label" for="hasConsentForDataUsage">Has Consent for Data Usage</label>
+        </div>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="hasConsentForAdsPersonalization">
+            <label class="form-check-label" for="hasConsentForAdsPersonalization">Has Consent for Ads Personalization</label>
+        </div>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="hasConsentForAdStorage">
+            <label class="form-check-label" for="hasConsentForAdStorage">Has Consent for Ad Storage</label>
+        </div>
+        <button type="button" id="testSetConsent" class="btn btn-primary">Set AppsFlyer consent</button>
+    </div>
+
+    <script type="text/javascript" src="js/buttons.js"></script>
 </body>
 </html>
