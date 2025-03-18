@@ -96,7 +96,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
 
         // Initialize the SDK
-        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.15.3" additionalParams:nil];
+        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.16.2" additionalParams:nil];
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
@@ -289,47 +289,40 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     }
 }
 
-
 /**
-*   Sets new currency code. currencyId: ISO 4217 Currency Codes.
-*/
+ * Sets the manually provided user consent.
+ */
+ 
 - (void)setConsentData:(CDVInvokedUrlCommand*)command
 {
     if ([command.arguments count] == 0) {
+        NSLog(@"Error: No arguments provided.");
         return;
     }
-    NSDictionary *consentDataMap = (NSDictionary*)[command.arguments objectAtIndex: 0];
 
-    BOOL isUserSubjectToGDPR = NO;
-    BOOL hasConsentForDataUsage = NO;
-    BOOL hasConsentForAdsPersonalization = NO;
+    NSDictionary *consentDataMap = (NSDictionary*)[command.arguments objectAtIndex:0];
 
-    id isUserSubjectToGDPRValue = nil;
-    id hasConsentForDataUsageValue = nil;
-    id hasConsentForAdsPersonalizationValue = nil;
+    // Extract values safely, allowing nil, YES, and NO
+    id isUserSubjectToGDPRValue = [consentDataMap objectForKey:@"isUserSubjectToGDPR"];
+    id hasConsentForDataUsageValue = [consentDataMap objectForKey:@"hasConsentForDataUsage"];
+    id hasConsentForAdsPersonalizationValue = [consentDataMap objectForKey:@"hasConsentForAdsPersonalization"];
+    id hasConsentForAdStorageValue = [consentDataMap objectForKey:@"hasConsentForAdStorage"];
 
-    isUserSubjectToGDPRValue = [consentDataMap objectForKey:@"isUserSubjectToGDPR"];
-    if ([isUserSubjectToGDPRValue isKindOfClass:[NSNumber class]]) {
-       isUserSubjectToGDPR = [isUserSubjectToGDPRValue boolValue];
-    }
+    // Convert to NSNumber explicitly (nil stays nil, but NO/YES are preserved)
+    NSNumber *isUserSubjectToGDPR = ([isUserSubjectToGDPRValue isKindOfClass:[NSNumber class]]) ? isUserSubjectToGDPRValue : nil;
+    NSNumber *hasConsentForDataUsage = ([hasConsentForDataUsageValue isKindOfClass:[NSNumber class]]) ? hasConsentForDataUsageValue : nil;
+    NSNumber *hasConsentForAdsPersonalization = ([hasConsentForAdsPersonalizationValue isKindOfClass:[NSNumber class]]) ? hasConsentForAdsPersonalizationValue : nil;
+    NSNumber *hasConsentForAdStorage = ([hasConsentForAdStorageValue isKindOfClass:[NSNumber class]]) ? hasConsentForAdStorageValue : nil;
 
-    hasConsentForDataUsageValue = [consentDataMap objectForKey:@"hasConsentForDataUsage"];
-    if ([hasConsentForDataUsageValue isKindOfClass:[NSNumber class]]) {
-       hasConsentForDataUsage = [(NSNumber*)hasConsentForDataUsageValue boolValue];
-    }
+    AppsFlyerConsent *consentData = [[AppsFlyerConsent alloc] initWithIsUserSubjectToGDPR:isUserSubjectToGDPR
+                                                                       hasConsentForDataUsage:hasConsentForDataUsage
+                                                            hasConsentForAdsPersonalization:hasConsentForAdsPersonalization
+                                                                    hasConsentForAdStorage:hasConsentForAdStorage];
 
-    hasConsentForAdsPersonalizationValue = [consentDataMap objectForKey:@"hasConsentForAdsPersonalization"];
-    if ([hasConsentForAdsPersonalizationValue isKindOfClass:[NSNumber class]]) {
-       hasConsentForAdsPersonalization = [(NSNumber*)hasConsentForAdsPersonalizationValue boolValue];
-    }
+    // Pass the consent data to AppsFlyer
+    [[AppsFlyerLib shared] setConsentData:consentData];
 
-    AppsFlyerConsent *consentData = nil;
-    if (isUserSubjectToGDPR) {
-        consentData = [[AppsFlyerConsent alloc] initForGDPRUserWithHasConsentForDataUsage:hasConsentForDataUsage hasConsentForAdsPersonalization:hasConsentForAdsPersonalization];
-    } else {
-        consentData = [[AppsFlyerConsent alloc] initNonGDPRUser];
-    }
-   [[AppsFlyerLib shared] setConsentData:consentData];
+    NSLog(@"AppsFlyerConsent set successfully.");
 }
 
 /**
