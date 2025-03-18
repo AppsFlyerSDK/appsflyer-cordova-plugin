@@ -76,3 +76,46 @@ body{
     background: transparent;
     color: #00008B;
 }
+
+.consent-section {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.consent-section .form-check {
+    width: 100%;
+    max-width: 500px;
+    text-align: left;
+}
+
+.consent-section .btn {
+    margin-top: 15px;
+    width: auto;
+}
+
+.consent-section h3 {
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.consent-section > button {
+    margin-bottom:15px;
+    border-radius:20px !important;
+    border-color: #4682B4 !important;
+    background-color: #FFE4E1;
+    text-align: center;
+    font-weight: bold;
+    border-width: 3px;
+    color: #006400;
+    opacity: 0.6;
+    filter: alpha(opacity=70);
+    padding: 12px 28px;
+}
