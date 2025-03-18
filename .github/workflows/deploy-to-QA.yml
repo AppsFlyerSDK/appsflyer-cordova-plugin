@@ -39,7 +39,9 @@ jobs:
           .github/workflows/scripts/releaseNotesGenerator.sh $JIRA_TOKEN "$jira_fixed_version"
       - name: Update package.json file
         run: |
-          # Pull the latest changes before pushing
+          # Clear unstaged changes
+          git restore .
+          # Pull changes (e.g. if changes pushed by other workflows, as in Prepare-Plugin-For-Production)
           git pull --rebase origin ${{github.ref_name}}
           
           plugin_rc_version=$(echo "${{github.ref_name}}" | grep -Eo '[0-9].[0-9]+.[0-9]+-rc[0-9]+')
