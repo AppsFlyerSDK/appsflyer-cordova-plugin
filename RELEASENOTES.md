@@ -1,6 +1,3 @@
-## 6.16.2
- Release date: *2025-03-18*
-
 - Updates to AppsFlyerConsent objects used for providing user consent manually.
 
 ## 6.15.3
