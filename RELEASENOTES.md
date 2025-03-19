@@ -1,12 +1,7 @@
-## 6.15.3
- Release date: *2024-12-02*
+## 6.16.2
+ Release date: *2025-03-18*
 
-- Cordova >> Update Plugin to v6.15.3
-
-## 6.15.3
- Release date: *2024-12-02*
-
-- Cordova >> Update Plugin to v6.15.3
+- Updates to AppsFlyerConsent objects used for providing user consent manually.
 
 ## 6.15.3
  Release date: *2024-12-02*
@@ -16,11 +11,6 @@
 ## 6.15.11
  Release date: *2024-09-03*
 - Cordova >> Fix chartboost adrevenue enum typo in ios side
-
-## 6.15.1
- Release date: *2024-09-02*
-
-- Cordova >> Update Plugin to v6.15.1
 
 ## 6.15.1
  Release date: *2024-09-02*

@@ -41,10 +41,10 @@ document.addEventListener(
             appId: 'id111111111',
             isDebug: true,
             onInstallConversionDataListener: true,
-            shouldStartSdk: false,
-            // onDeepLinkListener: true, //if true, will override onAppOpenAttribution
-            waitForATTUserAuthorization: 0, //--> Here you set the time for the sdk to wait before launch
+            onDeepLinkListener: true, //if true, will override onAppOpenAttribution
+            waitForATTUserAuthorization: 15, //--> Here you set the time for the sdk to wait before launch
         };
+
         window.plugins.appsFlyer.initSdk(options, function (res) {
             console.log('GCD ~~>' + res);
             alert('GCD ~~>' + res);
