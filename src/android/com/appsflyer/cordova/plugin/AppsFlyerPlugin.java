@@ -64,6 +64,9 @@ import com.appsflyer.internal.platform_extension.PluginInfo;
 import com.appsflyer.AppsFlyerConsent;
 import com.appsflyer.MediationNetwork;
 import com.appsflyer.AFAdRevenueData;
+import com.appsflyer.AFPurchaseDetails;
+import com.appsflyer.AppsFlyerInAppPurchaseValidationCallback;
+import com.appsflyer.AFPurchaseType;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -150,6 +153,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return setSharingFilterForAllPartners(callbackContext);
         } else if ("validateAndLogInAppPurchase".equals(action)) {
             return validateAndLogInAppPurchase(args, callbackContext);
+        } else if ("validateAndLogInAppPurchaseV2".equals(action)) {
+            return validateAndLogInAppPurchaseV2(args, callbackContext);
         } else if ("setOneLinkCustomDomains".equals(action)) {
             return setOneLinkCustomDomains(args, callbackContext);
         } else if ("enableFacebookDeferredApplinks".equals(action)) {
@@ -241,9 +246,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             try {
                 JSONObject consentData = args.getJSONObject(0);
                 Boolean isUserSubjectToGDPR = getBooleanOrNull(consentData, "isUserSubjectToGDPR");
-                Boolean hasConsentForDataUsage = getBooleanOrNull(consentData, "hasConsentForDataUsage");;
-                Boolean hasConsentForAdsPersonalization = getBooleanOrNull(consentData, "hasConsentForAdsPersonalization");;
-                Boolean hasConsentForAdStorage = getBooleanOrNull(consentData, "hasConsentForAdStorage");;
+                Boolean hasConsentForDataUsage = getBooleanOrNull(consentData, "hasConsentForDataUsage");
+                Boolean hasConsentForAdsPersonalization = getBooleanOrNull(consentData, "hasConsentForAdsPersonalization");
+                Boolean hasConsentForAdStorage = getBooleanOrNull(consentData, "hasConsentForAdStorage");
 
                 AppsFlyerConsent consent = new AppsFlyerConsent(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization, hasConsentForAdStorage);
                 AppsFlyerLib.getInstance().setConsentData(consent);
@@ -1082,6 +1087,55 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
+private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackContext callbackContext) {
+        try {
+            JSONObject purchaseDetails = args.getJSONObject(0);
+            String purchaseType = purchaseDetails.optString("purchaseType", "");
+            String purchaseToken = purchaseDetails.optString("purchaseToken", "");
+            String productId = purchaseDetails.optString("productId", "");
+            JSONObject additionalParametersJson = args.getJSONObject(1);
+            Map<String, String> additionalParameters = null;
+
+            Log.d("12312313", purchaseType + " " + purchaseToken + " " + productId);
+
+            if (purchaseType.isEmpty() || purchaseToken.isEmpty() || productId.isEmpty()) {
+                callbackContext.error(NO_PARAMETERS_ERROR);
+                return true;
+            }
+
+            if (additionalParametersJson != null) {
+                additionalParameters = toMap(additionalParametersJson);
+            }
+
+            AFPurchaseDetails details = new AFPurchaseDetails(
+                purchaseType.equals("subscription") ? AFPurchaseType.SUBSCRIPTION : AFPurchaseType.ONE_TIME_PURCHASE,
+                purchaseToken,
+                productId
+            );
+
+            AppsFlyerLib.getInstance().validateAndLogInAppPurchase(details, additionalParameters, new AppsFlyerInAppPurchaseValidationCallback() {
+                @Override
+                public void onInAppPurchaseValidationFinished(@NonNull Map<String, ?> validationResult) {
+                    JSONObject jsonObject = new JSONObject(validationResult);
+                    String jsonString = jsonObject.toString();
+                    callbackContext.success(jsonString);
+                }
+
+                @Override
+                public void onInAppPurchaseValidationError(@NonNull Map<String, ?> validationError) {
+                    JSONObject jsonObject = new JSONObject(validationError);
+                    String jsonString = jsonObject.toString();
+                    callbackContext.error(jsonString);
+                }
+            });
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            callbackContext.error(FAILURE);
+            return true;
+        }
+        return true;
+    }
 
     public void initInAppPurchaseValidatorListener(final CallbackContext callbackContext) {
         AppsFlyerLib.getInstance().registerValidatorListener(this.cordova.getContext(), new AppsFlyerInAppPurchaseValidatorListener() {
@@ -1094,7 +1148,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             @Override
             public void onValidateInAppFailure(String error) {
                 callbackContext.error(VALIDATE_FAILED + error);
-
             }
         });
     }
