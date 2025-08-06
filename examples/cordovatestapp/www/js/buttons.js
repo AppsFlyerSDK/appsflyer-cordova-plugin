@@ -13,6 +13,7 @@ let customDomainsBtn = document.getElementById('customDomains');
 let enableFBBtn = document.getElementById('enableFB');
 let addPushNotificationPathBtn = document.getElementById('addPushNotificationPath');
 let logAdRevenueBtn = document.getElementById('logAdRevenue');
+let disableAppSetIdBtn = document.getElementById('disableAppSetId');
 
 // Consent
 let setConsentBtn = document.getElementById('testSetConsent');
@@ -69,6 +70,9 @@ if (enableFBBtn) {
 }
 if (addPushNotificationPathBtn) {
     addPushNotificationPathBtn.addEventListener('click', addPushNotificationDeepLinkPath, false);
+}
+if (disableAppSetIdBtn) {
+    disableAppSetIdBtn.addEventListener('click', disableAppSetId, false);
 }
 
 function callBackFunction(id) {
@@ -186,6 +190,10 @@ function logAdRevenue() {
         'additionalKey2':'additionalValue2'
     }
     window.plugins.appsFlyer.logAdRevenue(adRevenueData, additionalParams);
+}
+
+function disableAppSetId() {
+    window.plugins.appsFlyer.disableAppSetId();
 }
 
 function startSdk() {

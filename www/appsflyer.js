@@ -71,10 +71,6 @@ if (!window.CustomEvent) {
         return new AppsFlyerConsent(false, null, null, null);
     };
 
-    // Expose AppsFlyerConsent to the global scope
-    global.AppsFlyerConsent = AppsFlyerConsent;
-
-
     /**
      * initialize the SDK.
      * args: SDK configuration
@@ -486,6 +482,14 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.enableTCFDataCollection = function (enable) {
         exec(null, null, 'AppsFlyerPlugin', 'enableTCFDataCollection', [enable]);
+    };
+
+    /**
+     * If this method is called - AppsFlyer SDK will no longer collect App Set Id,
+     * even if such dependency is added to the app.
+     */
+    AppsFlyer.prototype.disableAppSetId = function () {
+        exec(null, null, 'AppsFlyerPlugin', 'disableAppSetId', []);
     };
 
     module.exports = new AppsFlyer();

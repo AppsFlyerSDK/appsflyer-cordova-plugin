@@ -180,6 +180,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return enableTCFDataCollection(args);
         } else if ("logAdRevenue".equals(action)) {
             return logAdRevenue(args);
+        } else if ("disableAppSetId".equals(action)) {
+            return disableAppSetId();
         }
         return false;
     }
@@ -241,9 +243,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             try {
                 JSONObject consentData = args.getJSONObject(0);
                 Boolean isUserSubjectToGDPR = getBooleanOrNull(consentData, "isUserSubjectToGDPR");
-                Boolean hasConsentForDataUsage = getBooleanOrNull(consentData, "hasConsentForDataUsage");;
-                Boolean hasConsentForAdsPersonalization = getBooleanOrNull(consentData, "hasConsentForAdsPersonalization");;
-                Boolean hasConsentForAdStorage = getBooleanOrNull(consentData, "hasConsentForAdStorage");;
+                Boolean hasConsentForDataUsage = getBooleanOrNull(consentData, "hasConsentForDataUsage");
+                Boolean hasConsentForAdsPersonalization = getBooleanOrNull(consentData, "hasConsentForAdsPersonalization");
+                Boolean hasConsentForAdStorage = getBooleanOrNull(consentData, "hasConsentForAdStorage");
 
                 AppsFlyerConsent consent = new AppsFlyerConsent(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization, hasConsentForAdStorage);
                 AppsFlyerLib.getInstance().setConsentData(consent);
@@ -1082,7 +1084,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
-
     public void initInAppPurchaseValidatorListener(final CallbackContext callbackContext) {
         AppsFlyerLib.getInstance().registerValidatorListener(this.cordova.getContext(), new AppsFlyerInAppPurchaseValidatorListener() {
             @Override
@@ -1094,7 +1095,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             @Override
             public void onValidateInAppFailure(String error) {
                 callbackContext.error(VALIDATE_FAILED + error);
-
             }
         });
     }
@@ -1263,6 +1263,11 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     private void setPluginInfo(){
         PluginInfo pluginInfo = new PluginInfo(Plugin.CORDOVA, PLUGIN_VERSION);
         AppsFlyerLib.getInstance().setPluginInfo(pluginInfo);
+    }
+
+    private boolean disableAppSetId(){
+        AppsFlyerLib.getInstance().disableAppSetId();
+        return true;
     }
 
     /**

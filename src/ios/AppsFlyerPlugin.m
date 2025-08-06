@@ -96,7 +96,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
 
         // Initialize the SDK
-        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.16.2" additionalParams:nil];
+        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.17.2" additionalParams:nil];
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
@@ -1051,6 +1051,10 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSString *partnerId = (NSString*)[command.arguments objectAtIndex: 0];
     NSDictionary *data = (NSDictionary*)[command.arguments objectAtIndex: 1];
     [[AppsFlyerLib shared] setPartnerDataWithPartnerId:partnerId partnerInfo:data];
+}
+
+- (void)disableAppSetId:(CDVInvokedUrlCommand*)command{
+    NSLog(@"AppsFlyer: This feature is not available on iOS");
 }
 
 @end
