@@ -185,6 +185,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return enableTCFDataCollection(args);
         } else if ("logAdRevenue".equals(action)) {
             return logAdRevenue(args);
+        } else if ("disableAppSetId".equals(action)) {
+            return disableAppSetId();
         }
         return false;
     }
@@ -1087,7 +1089,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
-private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackContext callbackContext) {
+    private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackContext callbackContext) {
         try {
             JSONObject purchaseDetails = args.getJSONObject(0);
             String purchaseType = purchaseDetails.optString("purchaseType", "");
@@ -1095,8 +1097,6 @@ private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackCont
             String productId = purchaseDetails.optString("productId", "");
             JSONObject additionalParametersJson = args.getJSONObject(1);
             Map<String, String> additionalParameters = null;
-
-            Log.d("12312313", purchaseType + " " + purchaseToken + " " + productId);
 
             if (purchaseType.isEmpty() || purchaseToken.isEmpty() || productId.isEmpty()) {
                 callbackContext.error(NO_PARAMETERS_ERROR);
@@ -1316,6 +1316,11 @@ private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackCont
     private void setPluginInfo(){
         PluginInfo pluginInfo = new PluginInfo(Plugin.CORDOVA, PLUGIN_VERSION);
         AppsFlyerLib.getInstance().setPluginInfo(pluginInfo);
+    }
+
+    private boolean disableAppSetId(){
+        AppsFlyerLib.getInstance().disableAppSetId();
+        return true;
     }
 
     /**

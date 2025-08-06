@@ -515,5 +515,13 @@ if (!window.CustomEvent) {
         exec(null, null, 'AppsFlyerPlugin', 'enableTCFDataCollection', [enable]);
     };
 
+    /**
+     * If this method is called - AppsFlyer SDK will no longer collect App Set Id,
+     * even if such dependency is added to the app.
+     */
+    AppsFlyer.prototype.disableAppSetId = function () {
+        exec(null, null, 'AppsFlyerPlugin', 'disableAppSetId', []);
+    };
+
     module.exports = new AppsFlyer();
 })(window);
