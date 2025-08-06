@@ -52,8 +52,9 @@ The list of available methods for this plugin is described below.
 | [`sendPushNotificationData`](#sendPushNotificationData)               | `(Object data)`                                                           | Measure and get data from push-notification campaigns.                                                  |
 | [`setDisableNetworkData`](#setDisableNetworkData)                     | `(boolean disable)`                                                       | Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device. |
 | [`setConsentData`](#setConsentData)                                   | `(AppsFlyerConsent consent)`                                              | Set consent fields manually (e.g. by prompting user and collecting results).                            |                                           
-| [`enableTCFDataCollection`](#enableTCFDataCollection)                                   | `(boolean enable)`                                                        | instruct the SDK to collect the TCF data from the device.                                               |                                           
-| [`logAdRevenue`](#logAdRevenue)                                   | `(Object adRevenueData, Object additionalParams)`                         | Log ad revenue event.                                                                                   |                                           
+| [`enableTCFDataCollection`](#enableTCFDataCollection)                 | `(boolean enable)`                                                        | instruct the SDK to collect the TCF data from the device.                                               |                                           
+| [`logAdRevenue`](#logAdRevenue)                                       | `(Object adRevenueData, Object additionalParams)`                         | Log ad revenue event.                                                                                   |                                           
+| [`disableAppSetId`](#disableAppSetId)                                 |                                                                           | **Android only** - Disables App Set ID collection (enabled by default)                                  |                                           
 
   
 ---
@@ -831,7 +832,18 @@ let additionalParams = {
     'additionalKey2':'additionalValue2'
 }
 window.plugins.appsFlyer.logAdRevenue(adRevenueData, additionalParams);
+```
 
+---
+
+##### <a id="disableAppSetId"> **`disableAppSetId(): void`**
+Disables App Set ID collection (enabled by default). Please look on [App Set ID official documentation](https://developer.android.com/identity/app-set-id)
+
+*Example:*
+
+```javascript
+
+window.plugins.appsFlyer.disableAppSetId();
 
 ```
 Here's how you use `appsFlyer.logAdRevenue` within a Cordova app:

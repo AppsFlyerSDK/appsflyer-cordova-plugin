@@ -1053,4 +1053,8 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     [[AppsFlyerLib shared] setPartnerDataWithPartnerId:partnerId partnerInfo:data];
 }
 
+- (void)disableAppSetId:(CDVInvokedUrlCommand*)command{
+    NSLog(@"AppsFlyer: This feature is not available on iOS");
+}
+
 @end
