@@ -71,25 +71,6 @@ if (!window.CustomEvent) {
         return new AppsFlyerConsent(false, null, null, null);
     };
 
-    // Expose AppsFlyerConsent to the global scope
-    global.AppsFlyerConsent = AppsFlyerConsent;
-
-    /**
-     * @class AFPurchaseDetails
-     * @constructor
-     * @param {string} purchaseType - Type of the purchase can be: subscription or one_time_purchase.
-     * @param {string} purchaseToken - Token of the purchase.
-     * @param {string} productId - ID of the purchased product.
-     */
-    function AFPurchaseDetails(purchaseType, purchaseToken, productId) {
-        this.purchaseType = purchaseType;
-        this.purchaseToken = purchaseToken;
-        this.productId = productId;
-    }
-
-    // Expose AFPurchaseDetails to the global scope
-    global.AFPurchaseDetails = AFPurchaseDetails;
-
     /**
      * initialize the SDK.
      * args: SDK configuration
@@ -332,18 +313,6 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.validateAndLogInAppPurchase = function (purchaseInfo, successC, errorC) {
         exec(successC, errorC, 'AppsFlyerPlugin', 'validateAndLogInAppPurchase', [purchaseInfo]);
-    };
-
-    /**
-     * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
-     * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
-     * @param {AFPurchaseDetails} afPurchaseDetails object containing purchase details
-     * @param {string} additionalParameters JSON including all the additional parameters
-     * @param successC Success callback
-     * @param errorC Error callback
-     */
-    AppsFlyer.prototype.validateAndLogInAppPurchase = function (afPurchaseDetails, additionalParameters, successC, errorC) {
-        exec(successC, errorC, 'AppsFlyerPlugin', 'validateAndLogInAppPurchaseV2', [afPurchaseDetails, additionalParameters]);
     };
 
     /**
