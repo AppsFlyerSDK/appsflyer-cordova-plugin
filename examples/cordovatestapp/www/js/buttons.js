@@ -14,6 +14,7 @@ let enableFBBtn = document.getElementById('enableFB');
 let addPushNotificationPathBtn = document.getElementById('addPushNotificationPath');
 let logAdRevenueBtn = document.getElementById('logAdRevenue');
 let disableAppSetIdBtn = document.getElementById('disableAppSetId');
+let validateAndLogV2Btn = document.getElementById('validateAndLogV2');
 
 // Consent
 let setConsentBtn = document.getElementById('testSetConsent');
@@ -73,6 +74,9 @@ if (addPushNotificationPathBtn) {
 }
 if (disableAppSetIdBtn) {
     disableAppSetIdBtn.addEventListener('click', disableAppSetId, false);
+}
+if (validateAndLogV2Btn) {
+    validateAndLogV2Btn.addEventListener('click', validateAndLogV2, false);
 }
 
 function callBackFunction(id) {
@@ -194,6 +198,22 @@ function logAdRevenue() {
 
 function disableAppSetId() {
     window.plugins.appsFlyer.disableAppSetId();
+}
+
+function validateAndLogV2() {
+    const afDetails = new AFPurchaseDetails("subscription", "abcd", "product1");
+
+    const additionalParams = {
+        param1: "value1",
+        param2: "value2"
+    };
+
+    window.plugins.appsFlyer.validateAndLogInAppPurchaseV2(
+        afDetails,
+        additionalParams,
+        callBackFunction,
+        callBackFunction
+    );
 }
 
 function startSdk() {

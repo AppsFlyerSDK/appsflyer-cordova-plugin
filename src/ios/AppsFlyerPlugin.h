@@ -37,6 +37,9 @@
 - (void)enableTCFDataCollection:(CDVInvokedUrlCommand*)command;
 - (void)setSharingFilter:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
 - (void)setSharingFilterForAllPartners:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
+- (void)validateAndLogInAppPurchase: (CDVInvokedUrlCommand*)command;
+- (void)validateAndLogInAppPurchaseV2: (CDVInvokedUrlCommand*)command;
+- (void)setUseReceiptValidationSandbox:(CDVInvokedUrlCommand*)command;
 
 @end
 
@@ -75,6 +78,8 @@
 #define afPrice                                 @"price"
 #define afCurrency                              @"currency"
 #define afAdditionalParameters                  @"additionalParameters"
+#define afProductId                             @"productId"
+#define afPurchaseType                          @"purchaseType"
 static NSString *const NO_PARAMETERS_ERROR    = @"No purchase parameters found";
 static NSString *const VALIDATE_SUCCESS       = @"In-App Purchase Validation success";
 
