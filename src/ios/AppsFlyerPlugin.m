@@ -96,7 +96,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
 
         // Initialize the SDK
-        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.16.2" additionalParams:nil];
+        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.17.2" additionalParams:nil];
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
@@ -214,12 +214,12 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         @"customMediation": @(AppsFlyerAdRevenueMediationNetworkTypeCustom),
         @"directMonetizationNetwork": @(AppsFlyerAdRevenueMediationNetworkTypeDirectMonetization)
     };
-    
+
     NSNumber *enumValueNumber = stringToEnumMap[mediationNetworkString];
     if (enumValueNumber) {
         return (AppsFlyerAdRevenueMediationNetworkType)[enumValueNumber integerValue];
     } else {
-        return -1; 
+        return -1;
     }
 }
 
@@ -292,7 +292,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 /**
  * Sets the manually provided user consent.
  */
- 
+
 - (void)setConsentData:(CDVInvokedUrlCommand*)command
 {
     if ([command.arguments count] == 0) {
@@ -984,6 +984,116 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     }
 }
 
+/**
+* Receipt validation V2 is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
+* This method uses the new V2 API with purchase details object.
+* Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
+*
+* @param purchase details, success and failure callbacks
+*/
+- (void)validateAndLogInAppPurchaseV2: (CDVInvokedUrlCommand*)command {
+    NSLog(@"[AppsFlyer DEBUG] validateAndLogInAppPurchaseV2 called");
+
+    NSString* productId = nil;
+    NSString* transactionId = nil;
+    NSString* purchaseType = nil;
+    NSDictionary* additionalParameters = nil;
+
+    NSDictionary* purchaseDetails = [command.arguments objectAtIndex:0];
+    NSLog(@"[AppsFlyer DEBUG] purchaseDetails: %@", purchaseDetails);
+
+    if(![purchaseDetails isKindOfClass: [NSNull class]]){
+        NSLog(@"[AppsFlyer DEBUG] purchaseDetails is not null");
+
+        productId = (NSString*)[purchaseDetails objectForKey: afProductId];
+        transactionId = (NSString*)[purchaseDetails objectForKey: @"purchaseToken"];
+        purchaseType = (NSString*)[purchaseDetails objectForKey: afPurchaseType];
+
+        NSLog(@"[AppsFlyer DEBUG] Extracted values:");
+        NSLog(@"[AppsFlyer DEBUG] - productId: %@", productId);
+        NSLog(@"[AppsFlyer DEBUG] - purchaseToken: %@", transactionId);
+        NSLog(@"[AppsFlyer DEBUG] - purchaseType: %@", purchaseType);
+
+        // Get additional parameters if provided
+        if ([command.arguments count] > 1 && ![[command.arguments objectAtIndex:1] isKindOfClass:[NSNull class]]) {
+            additionalParameters = (NSDictionary*)[command.arguments objectAtIndex:1];
+            NSLog(@"[AppsFlyer DEBUG] additionalParameters: %@", additionalParameters);
+        } else {
+            NSLog(@"[AppsFlyer DEBUG] No additional parameters provided");
+        }
+
+        // Validate required parameters
+        BOOL hasProductId = productId && [productId length] > 0;
+        BOOL hasTransactionId = transactionId && [transactionId length] > 0;
+        BOOL hasPurchaseType = purchaseType && [purchaseType length] > 0;
+
+        if (!hasProductId || !hasTransactionId || !hasPurchaseType) {
+            NSLog(@"[AppsFlyer DEBUG] Validation failed - missing required parameters");
+            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: NO_PARAMETERS_ERROR];
+            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+            return;
+        }
+
+        NSLog(@"[AppsFlyer DEBUG] All parameters validated successfully, creating AFSDKPurchaseDetails");
+
+        // Create AFSDKPurchaseDetails object
+        AFSDKPurchaseType purchaseTypeEnum = AFSDKPurchaseTypeOneTimePurchase;
+        if ([purchaseType isEqualToString:@"subscription"]) {
+            purchaseTypeEnum = AFSDKPurchaseTypeSubscription;
+            NSLog(@"[AppsFlyer DEBUG] Purchase type set to subscription");
+        } else {
+            NSLog(@"[AppsFlyer DEBUG] Purchase type set to one-time purchase");
+        }
+
+        AFSDKPurchaseDetails *details = [[AFSDKPurchaseDetails alloc] initWithProductId:productId
+                                                                           transactionId:transactionId
+                                                                            purchaseType:purchaseTypeEnum];
+
+        // Use the actual V2 method with the correct signature
+        NSLog(@"[AppsFlyer DEBUG] Calling AppsFlyerLib validateAndLogInAppPurchase V2 method");
+        [[AppsFlyerLib shared] validateAndLogInAppPurchase:details
+                                   purchaseAdditionalDetails:additionalParameters
+                                                completion:^(NSDictionary * _Nullable response, NSError * _Nullable error) {
+            NSLog(@"[AppsFlyer DEBUG] V2 validation completion called");
+            if (error) {
+                NSLog(@"[AppsFlyer DEBUG] V2 validation failed with error: %@", error.localizedDescription);
+                // Error case
+                NSDictionary *errorDict = @{
+                    @"error": error.localizedDescription ?: @"Unknown error",
+                    @"code": @(error.code)
+                };
+                NSError *jsonError;
+                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:errorDict options:0 error:&jsonError];
+                NSString *jsonString = @"";
+                if (!jsonError) {
+                    jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                }
+
+                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:jsonString];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+            } else {
+                NSLog(@"[AppsFlyer DEBUG] V2 validation succeeded with response: %@", response);
+                // Success case
+                NSError *jsonError;
+                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:response options:0 error:&jsonError];
+                NSString *jsonString = @"";
+                if (!jsonError) {
+                    jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                }
+
+                CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:jsonString];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+            }
+        }];
+
+    } else {
+        NSLog(@"[AppsFlyer DEBUG] purchaseDetails is null or NSNull");
+        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: NO_PARAMETERS_ERROR];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+        return;
+    }
+}
+
 - (void)setUseReceiptValidationSandbox:(CDVInvokedUrlCommand*)command {
     BOOL isSandbox = [command.arguments objectAtIndex:0];
     [AppsFlyerLib shared].useReceiptValidationSandbox = isSandbox;
@@ -1051,6 +1161,10 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSString *partnerId = (NSString*)[command.arguments objectAtIndex: 0];
     NSDictionary *data = (NSDictionary*)[command.arguments objectAtIndex: 1];
     [[AppsFlyerLib shared] setPartnerDataWithPartnerId:partnerId partnerInfo:data];
+}
+
+- (void)disableAppSetId:(CDVInvokedUrlCommand*)command{
+    NSLog(@"AppsFlyer: This feature is not available on iOS");
 }
 
 @end

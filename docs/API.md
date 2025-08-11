@@ -35,6 +35,7 @@ The list of available methods for this plugin is described below.
 | [`setSharingFilter`](#setSharingFilter)                               | `(partners)`                                                              | Used by advertisers to exclude specified networks/integrated partners from getting data                 |
 | [`setSharingFilterForPartners`](#setSharingFilterForPartners)         | `(partners)`                                                              | Used by advertisers to exclude specified networks/integrated partners from getting data                 |
 | [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase)         | `(Object purchaseInfo, function success, function error)`                 | API for server verification of in-app purchases                                                         |
+| [`validateAndLogInAppPurchaseV2`](#validateAndLogInAppPurchaseV2)     | `(Object purchaseDetails, Object additionalParameters, function success, function error)` | API for server verification of in-app purchases using V2 API (BETA)                                    |
 | [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox)   | `(boolean isSandbox, function success, function error)`                   | In app purchase receipt validation Apple environment                                                    |
 | [`disableCollectASA`](#disableCollectASA)                             | `(boolean collectASA, function success)`                                  | **iOS**  - set the SDK to load OR not to load iAd.framework dynamically                                 |
 | [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)`                | Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).          |
@@ -52,8 +53,9 @@ The list of available methods for this plugin is described below.
 | [`sendPushNotificationData`](#sendPushNotificationData)               | `(Object data)`                                                           | Measure and get data from push-notification campaigns.                                                  |
 | [`setDisableNetworkData`](#setDisableNetworkData)                     | `(boolean disable)`                                                       | Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device. |
 | [`setConsentData`](#setConsentData)                                   | `(AppsFlyerConsent consent)`                                              | Set consent fields manually (e.g. by prompting user and collecting results).                            |                                           
-| [`enableTCFDataCollection`](#enableTCFDataCollection)                                   | `(boolean enable)`                                                        | instruct the SDK to collect the TCF data from the device.                                               |                                           
-| [`logAdRevenue`](#logAdRevenue)                                   | `(Object adRevenueData, Object additionalParams)`                         | Log ad revenue event.                                                                                   |                                           
+| [`enableTCFDataCollection`](#enableTCFDataCollection)                 | `(boolean enable)`                                                        | instruct the SDK to collect the TCF data from the device.                                               |                                           
+| [`logAdRevenue`](#logAdRevenue)                                       | `(Object adRevenueData, Object additionalParams)`                         | Log ad revenue event.                                                                                   |                                           
+| [`disableAppSetId`](#disableAppSetId)                                 |                                                                           | **Android only** - Disables App Set ID collection (enabled by default)                                  |                                           
 
   
 ---
@@ -508,6 +510,61 @@ Receipt validation is a secure mechanism whereby the payment platform (e.g. Appl
 | `currency` | `string` | The product currency |
 ---
 
+##### <a id="validateAndLogInAppPurchaseV2"> **`validateAndLogInAppPurchaseV2(purchaseDetails, additionalParameters, successC, failureC): void`**
+
+Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported. This method uses the new V2 API (BETA).
+
+> 📘Note
+> 
+> Contact your CSM to join the beta for this feature.
+
+*Example:*
+
+```javascript
+var purchaseDetails = new AFPurchaseDetails(
+    "my-product-id",           // productId
+    "12345-transaction-id",    // purchaseToken/transactionId
+    "subscription"             // purchaseType: "subscription" or "one_time_purchase"
+);
+
+var additionalParameters = {
+    custom_param_1: "value1",
+    custom_param_2: "value2"
+};
+
+window.plugins.appsFlyer.validateAndLogInAppPurchaseV2(
+    purchaseDetails, 
+    additionalParameters, 
+    function(success) {
+        console.log("Purchase validation successful:", success);
+    }, 
+    function(error) {
+        console.log("Purchase validation failed:", error);
+    }
+);
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `purchaseDetails` | `Object` | Purchase details object containing productId, purchaseToken, and purchaseType |
+| `additionalParameters` | `Object` | Additional parameters to include with the purchase event (optional) |
+| `successC` | `function` | Success callback - called when validation is successful |
+| `failureC` | `function` | Failure callback - called when validation fails |
+
+*Purchase details parameters:*
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `productId` | `string` | The product identifier |
+| `purchaseToken` | `string` | The purchase token from Google Play Store (Android) or transaction ID (iOS) |
+| `purchaseType` | `string` | The purchase type: "subscription" or "one_time_purchase" |
+
+> 📘Note
+> 
+> `validateAndLogInAppPurchaseV2` generates an `af_purchase` in-app event upon successful validation. Sending this event yourself will cause duplicate event reporting.
+
+---
+
 ##### <a id="setUseReceiptValidationSandbox"> **`setUseReceiptValidationSandbox(isSandbox, successC, failureC): void`**
 
 In app purchase receipt validation Apple environment(production or sandbox)<br>Callback functions are optional.
@@ -773,7 +830,7 @@ The AppsFlyerConsent object has 4 parameters:
 
 <b>Deprecated functions</b>
 
-<s>AppsFlyerConsent.forNonGDPRUser: Indicates that GDPR doesn’t apply to the user and generates nonGDPR consent object. This method doesn’t accept any parameters.
+<s>AppsFlyerConsent.forNonGDPRUser: Indicates that GDPR doesn't apply to the user and generates nonGDPR consent object. This method doesn't accept any parameters.
 AppsFlyerConsent.forGDPRUser: create an AppsFlyerConsent object with 2 parameters.
 </s>
 
@@ -831,7 +888,18 @@ let additionalParams = {
     'additionalKey2':'additionalValue2'
 }
 window.plugins.appsFlyer.logAdRevenue(adRevenueData, additionalParams);
+```
 
+---
+
+##### <a id="disableAppSetId"> **`disableAppSetId(): void`**
+Disables App Set ID collection (enabled by default). Please look on [App Set ID official documentation](https://developer.android.com/identity/app-set-id)
+
+*Example:*
+
+```javascript
+
+window.plugins.appsFlyer.disableAppSetId();
 
 ```
 Here's how you use `appsFlyer.logAdRevenue` within a Cordova app:

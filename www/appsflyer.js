@@ -74,6 +74,21 @@ if (!window.CustomEvent) {
     // Expose AppsFlyerConsent to the global scope
     global.AppsFlyerConsent = AppsFlyerConsent;
 
+    /**
+     * @class AFPurchaseDetails
+     * @constructor
+     * @param {string} purchaseType - Type of the purchase can be: subscription or one_time_purchase.
+     * @param {string} purchaseToken - Token of the purchase.
+     * @param {string} productId - ID of the purchased product.
+     */
+    function AFPurchaseDetails(purchaseType, purchaseToken, productId) {
+        this.purchaseType = purchaseType;
+        this.purchaseToken = purchaseToken;
+        this.productId = productId;
+    }
+
+    // Expose AFPurchaseDetails to the global scope
+    global.AFPurchaseDetails = AFPurchaseDetails;
 
     /**
      * initialize the SDK.
@@ -320,6 +335,18 @@ if (!window.CustomEvent) {
     };
 
     /**
+     * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
+     * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
+     * @param {AFPurchaseDetails} afPurchaseDetails object containing purchase details
+     * @param {string} additionalParameters JSON including all the additional parameters
+     * @param successC Success callback
+     * @param errorC Error callback
+     */
+    AppsFlyer.prototype.validateAndLogInAppPurchaseV2 = function (afPurchaseDetails, additionalParameters, successC, errorC) {
+        exec(successC, errorC, 'AppsFlyerPlugin', 'validateAndLogInAppPurchaseV2', [afPurchaseDetails, additionalParameters]);
+    };
+
+    /**
      * When testing purchase validation in the Sandbox environment, please make sure to set true.
      * @param isSandbox boolean value
      * @param successC Success callback
@@ -486,6 +513,14 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.enableTCFDataCollection = function (enable) {
         exec(null, null, 'AppsFlyerPlugin', 'enableTCFDataCollection', [enable]);
+    };
+
+    /**
+     * If this method is called - AppsFlyer SDK will no longer collect App Set Id,
+     * even if such dependency is added to the app.
+     */
+    AppsFlyer.prototype.disableAppSetId = function () {
+        exec(null, null, 'AppsFlyerPlugin', 'disableAppSetId', []);
     };
 
     module.exports = new AppsFlyer();
