@@ -1098,6 +1098,8 @@ private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackCont
             JSONObject additionalParametersJson = args.getJSONObject(1);
             Map<String, String> additionalParameters = null;
 
+            Log.d("12312313", purchaseType + " " + purchaseToken + " " + productId);
+
             if (purchaseType.isEmpty() || purchaseToken.isEmpty() || productId.isEmpty()) {
                 callbackContext.error(NO_PARAMETERS_ERROR);
                 return true;
