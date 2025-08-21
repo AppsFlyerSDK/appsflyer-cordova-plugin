@@ -14,7 +14,6 @@ on:
       - 'resources/**'
       - 'testsScripts/**'
       - 'docs/**'
-      -
 jobs:
   Deploy-To-Production:
     if: github.event.pull_request.merged == true
