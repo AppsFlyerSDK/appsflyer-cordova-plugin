@@ -8,9 +8,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)   
 [![Downloads](https://img.shields.io/npm/dm/cordova-plugin-appsflyer-sdk.svg)](https://www.npmjs.com/package/cordova-plugin-appsflyer-sdk)  
   ----------  
-🛠 In order for us to provide optimal support, we would kindly ask you to submit any issues to support@appsflyer.com  
-  
-*When submitting an issue please specify your AppsFlyer sign-up (account) email , your app ID , reproduction steps, code snippets, logs, and any additional relevant information.*  
+🛠 In order for us to provide optimal support, please contact AppsFlyer support through the Customer Assistant Chatbot for assistance with troubleshooting issues or product guidance. </br>
+To do so, please follow [this article](https://support.appsflyer.com/hc/en-us/articles/23583984402193-Using-the-Customer-Assistant-Chatbot)
   
 ----------  
 ###  <a id="capacitornote"> <img src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_capacitor_icon_130703.png"  width="30">    <img src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_capacitor_icon_130703.png"  width="30"> ⚠️ Note for Capacitor users  ⚠️  <img src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_capacitor_icon_130703.png" width="30">  <img src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_capacitor_icon_130703.png"  width="30">  <br>  
