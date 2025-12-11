@@ -96,7 +96,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
 
         // Initialize the SDK
-        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.17.7" additionalParams:nil];
+        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.17.8" additionalParams:nil];
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
@@ -987,12 +987,12 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 /**
 * Receipt validation V2 is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
 * This method uses the new V2 API with purchase details object.
-* Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
+* Learn more - https://dev.appsflyer.com/hc/docs/validate-and-log-purchase-ios
 *
 * @param purchase details, success and failure callbacks
 */
 - (void)validateAndLogInAppPurchaseV2: (CDVInvokedUrlCommand*)command {
-    NSLog(@"[AppsFlyer DEBUG] validateAndLogInAppPurchaseV2 called");
+    NSLog(@"[DEBUG] AppsFlyer: validateAndLogInAppPurchaseV2 called");
 
     NSString* productId = nil;
     NSString* transactionId = nil;
@@ -1000,26 +1000,26 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     NSDictionary* additionalParameters = nil;
 
     NSDictionary* purchaseDetails = [command.arguments objectAtIndex:0];
-    NSLog(@"[AppsFlyer DEBUG] purchaseDetails: %@", purchaseDetails);
+    NSLog(@"[DEBUG] AppsFlyer: purchaseDetails: %@", purchaseDetails);
 
     if(![purchaseDetails isKindOfClass: [NSNull class]]){
-        NSLog(@"[AppsFlyer DEBUG] purchaseDetails is not null");
+        NSLog(@"[DEBUG] AppsFlyer: purchaseDetails is not null");
 
         productId = (NSString*)[purchaseDetails objectForKey: afProductId];
         transactionId = (NSString*)[purchaseDetails objectForKey: @"purchaseToken"];
         purchaseType = (NSString*)[purchaseDetails objectForKey: afPurchaseType];
 
-        NSLog(@"[AppsFlyer DEBUG] Extracted values:");
-        NSLog(@"[AppsFlyer DEBUG] - productId: %@", productId);
-        NSLog(@"[AppsFlyer DEBUG] - purchaseToken: %@", transactionId);
-        NSLog(@"[AppsFlyer DEBUG] - purchaseType: %@", purchaseType);
+        NSLog(@"[DEBUG] AppsFlyer: Extracted values:");
+        NSLog(@"[DEBUG] AppsFlyer: - productId: %@", productId);
+        NSLog(@"[DEBUG] AppsFlyer: - purchaseToken: %@", transactionId);
+        NSLog(@"[DEBUG] AppsFlyer: - purchaseType: %@", purchaseType);
 
         // Get additional parameters if provided
         if ([command.arguments count] > 1 && ![[command.arguments objectAtIndex:1] isKindOfClass:[NSNull class]]) {
             additionalParameters = (NSDictionary*)[command.arguments objectAtIndex:1];
-            NSLog(@"[AppsFlyer DEBUG] additionalParameters: %@", additionalParameters);
+            NSLog(@"[DEBUG] AppsFlyer: additionalParameters: %@", additionalParameters);
         } else {
-            NSLog(@"[AppsFlyer DEBUG] No additional parameters provided");
+            NSLog(@"[DEBUG] AppsFlyer: No additional parameters provided");
         }
 
         // Validate required parameters
@@ -1028,21 +1028,21 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         BOOL hasPurchaseType = purchaseType && [purchaseType length] > 0;
 
         if (!hasProductId || !hasTransactionId || !hasPurchaseType) {
-            NSLog(@"[AppsFlyer DEBUG] Validation failed - missing required parameters");
+            NSLog(@"[DEBUG] AppsFlyer: Validation failed - missing required parameters");
             CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: NO_PARAMETERS_ERROR];
             [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
             return;
         }
 
-        NSLog(@"[AppsFlyer DEBUG] All parameters validated successfully, creating AFSDKPurchaseDetails");
+        NSLog(@"[DEBUG] AppsFlyer: All parameters validated successfully, creating AFSDKPurchaseDetails");
 
         // Create AFSDKPurchaseDetails object
         AFSDKPurchaseType purchaseTypeEnum = AFSDKPurchaseTypeOneTimePurchase;
         if ([purchaseType isEqualToString:@"subscription"]) {
             purchaseTypeEnum = AFSDKPurchaseTypeSubscription;
-            NSLog(@"[AppsFlyer DEBUG] Purchase type set to subscription");
+            NSLog(@"[DEBUG] AppsFlyer: Purchase type set to subscription");
         } else {
-            NSLog(@"[AppsFlyer DEBUG] Purchase type set to one-time purchase");
+            NSLog(@"[DEBUG] AppsFlyer: Purchase type set to one-time purchase");
         }
 
         AFSDKPurchaseDetails *details = [[AFSDKPurchaseDetails alloc] initWithProductId:productId
@@ -1050,13 +1050,13 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                                                             purchaseType:purchaseTypeEnum];
 
         // Use the actual V2 method with the correct signature
-        NSLog(@"[AppsFlyer DEBUG] Calling AppsFlyerLib validateAndLogInAppPurchase V2 method");
+        NSLog(@"[DEBUG] AppsFlyer: Calling AppsFlyerLib validateAndLogInAppPurchase V2 method");
         [[AppsFlyerLib shared] validateAndLogInAppPurchase:details
                                    purchaseAdditionalDetails:additionalParameters
                                                 completion:^(NSDictionary * _Nullable response, NSError * _Nullable error) {
-            NSLog(@"[AppsFlyer DEBUG] V2 validation completion called");
+            NSLog(@"[DEBUG] AppsFlyer: V2 validation completion called");
             if (error) {
-                NSLog(@"[AppsFlyer DEBUG] V2 validation failed with error: %@", error.localizedDescription);
+                NSLog(@"[DEBUG] AppsFlyer: V2 validation failed with error: %@", error.localizedDescription);
                 // Error case
                 NSDictionary *errorDict = @{
                     @"error": error.localizedDescription ?: @"Unknown error",
@@ -1072,7 +1072,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                 CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:jsonString];
                 [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
             } else {
-                NSLog(@"[AppsFlyer DEBUG] V2 validation succeeded with response: %@", response);
+                NSLog(@"[DEBUG] AppsFlyer: V2 validation succeeded with response: %@", response);
                 // Success case
                 NSError *jsonError;
                 NSData *jsonData = [NSJSONSerialization dataWithJSONObject:response options:0 error:&jsonError];
@@ -1087,7 +1087,7 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }];
 
     } else {
-        NSLog(@"[AppsFlyer DEBUG] purchaseDetails is null or NSNull");
+        NSLog(@"[DEBUG] AppsFlyer: purchaseDetails is null or NSNull");
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: NO_PARAMETERS_ERROR];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         return;

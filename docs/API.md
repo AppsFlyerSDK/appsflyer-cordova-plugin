@@ -34,8 +34,8 @@ The list of available methods for this plugin is described below.
 | [`setSharingFilterForAllPartners`](#setSharingFilterForAllPartners)   |                                                                           | Used by advertisers to exclude all networks/integrated partners from getting data                       |
 | [`setSharingFilter`](#setSharingFilter)                               | `(partners)`                                                              | Used by advertisers to exclude specified networks/integrated partners from getting data                 |
 | [`setSharingFilterForPartners`](#setSharingFilterForPartners)         | `(partners)`                                                              | Used by advertisers to exclude specified networks/integrated partners from getting data                 |
-| [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase)         | `(Object purchaseInfo, function success, function error)`                 | API for server verification of in-app purchases                                                         |
-| [`validateAndLogInAppPurchaseV2`](#validateAndLogInAppPurchaseV2)     | `(Object purchaseDetails, Object additionalParameters, function success, function error)` | API for server verification of in-app purchases using V2 API (BETA)                                    |
+| [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase)         | `(Object purchaseInfo, function success, function error)`                 | Deprecated. Please use `validateAndLogInAppPurchaseV2`                                 |
+| [`validateAndLogInAppPurchaseV2`](#validateAndLogInAppPurchaseV2)     | `(Object purchaseDetails, Object additionalParameters, function success, function error)` | API for server verification of in-app purchases using V2 API (BETA)                                     |
 | [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox)   | `(boolean isSandbox, function success, function error)`                   | In app purchase receipt validation Apple environment                                                    |
 | [`disableCollectASA`](#disableCollectASA)                             | `(boolean collectASA, function success)`                                  | **iOS**  - set the SDK to load OR not to load iAd.framework dynamically                                 |
 | [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)`                | Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).          |
@@ -471,6 +471,8 @@ window.plugins.appsFlyer.setSharingFilterForPartners(partners);
 
 ##### <a id="validateAndLogInAppPurchase"> **`validateAndLogInAppPurchase(purchaseInfo, successC, failureC): void`**
 
+Deprecated, please use `validateAndLogInAppPurchaseV2`.
+
 Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases)
 
 *Example:*
@@ -512,11 +514,7 @@ Receipt validation is a secure mechanism whereby the payment platform (e.g. Appl
 
 ##### <a id="validateAndLogInAppPurchaseV2"> **`validateAndLogInAppPurchaseV2(purchaseDetails, additionalParameters, successC, failureC): void`**
 
-Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported. This method uses the new V2 API (BETA).
-
-> 📘Note
-> 
-> Contact your CSM to join the beta for this feature.
+Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported. This method uses V2 API.
 
 *Example:*
 
