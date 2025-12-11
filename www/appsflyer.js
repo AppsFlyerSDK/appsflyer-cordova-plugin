@@ -324,6 +324,7 @@ if (!window.CustomEvent) {
     };
 
     /**
+     * @deprecated Will be removed in the future. Please use validateAndLogInAppPurchaseV2.
      * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
      * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
      * @param purchaseInfo json includes: String publicKey, String signature, String purchaseData, String price, String currency, JSONObject additionalParameters.
@@ -336,7 +337,9 @@ if (!window.CustomEvent) {
 
     /**
      * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
-     * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
+     * Learn more:
+     * Android: https://dev.appsflyer.com/hc/docs/validate-and-log-purchase-android
+     * iOS: https://dev.appsflyer.com/hc/docs/validate-and-log-purchase-ios
      * @param {AFPurchaseDetails} afPurchaseDetails object containing purchase details
      * @param {string} additionalParameters JSON including all the additional parameters
      * @param successC Success callback
