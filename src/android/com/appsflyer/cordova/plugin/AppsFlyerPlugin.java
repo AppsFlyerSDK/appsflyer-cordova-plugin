@@ -1,8 +1,6 @@
 package com.appsflyer.cordova.plugin;
 
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.ADDITIONAL_PARAMETERS;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_COLLECT_ANDROID_ID;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_COLLECT_IMEI;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_CONVERSION_DATA;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEEP_LINK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEV_KEY;
@@ -11,12 +9,11 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_IS_DEBUG;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_APP_OPEN_ATTRIBUTION;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_ATTRIBUTION_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_DEEP_LINKING;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SHOULD_START_SDK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_DATA_LOADED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_SUCCESS;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.CURRENCY;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.FAILURE;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_BRAND_DOMAIN;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_CAMPAIGN;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_CHANNEL;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_CUSTOMERID;
@@ -24,21 +21,14 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_DEEPLINK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_FAIL;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_IMAGEURL;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_REFERRER;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_BRAND_DOMAIN;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_CUSTOMER_ID;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_DEVKEY_FOUND;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_EVENT_NAME_FOUND;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_PARAMETERS_ERROR;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_VALID_TOKEN;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PRICE;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PROMOTE_ID;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PUBLIC_KEY;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PURCHASE_DATA;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SIGNATURE;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_FAILED;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.VALIDATE_SUCCESS;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PLUGIN_VERSION;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PROMOTE_ID;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SHOULD_START_SDK;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
 
 import android.content.Context;
 import android.content.Intent;
@@ -48,25 +38,30 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.appsflyer.AppsFlyerConversionListener;
-import com.appsflyer.AppsFlyerInAppPurchaseValidatorListener;
 import com.appsflyer.AppsFlyerLib;
 import com.appsflyer.AppsFlyerProperties;
-import com.appsflyer.CreateOneLinkHttpTask;
-import com.appsflyer.attribution.AppsFlyerRequestListener;
-import com.appsflyer.deeplink.DeepLinkListener;
-import com.appsflyer.deeplink.DeepLinkResult;
+import com.appsflyer.pluginbridge.handler.AppsFlyerRpcHandler;
+import com.appsflyer.pluginbridge.model.RpcResponse;
+import com.appsflyer.pluginbridge.parser.JsonRpcRequestParser;
+
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
+import com.appsflyer.share.AFAdRevenueData;
+import com.appsflyer.share.AFPurchaseDetails;
+import com.appsflyer.share.AFPurchaseType;
+import com.appsflyer.share.AppsFlyerConsent;
+import com.appsflyer.share.AppsFlyerConversionListener;
+import com.appsflyer.share.AppsFlyerInAppPurchaseValidationCallback;
 import com.appsflyer.share.CrossPromotionHelper;
+import com.appsflyer.share.EmailsCryptType;
 import com.appsflyer.share.LinkGenerator;
+import com.appsflyer.share.MediationNetwork;
 import com.appsflyer.share.ShareInviteHelper;
-import com.appsflyer.internal.platform_extension.Plugin;
-import com.appsflyer.internal.platform_extension.PluginInfo;
-import com.appsflyer.AppsFlyerConsent;
-import com.appsflyer.MediationNetwork;
-import com.appsflyer.AFAdRevenueData;
-import com.appsflyer.AFPurchaseDetails;
-import com.appsflyer.AppsFlyerInAppPurchaseValidationCallback;
-import com.appsflyer.AFPurchaseType;
+import com.appsflyer.share.attribution.AppsFlyerRequestListener;
+import com.appsflyer.share.deeplink.DeepLinkListener;
+import com.appsflyer.share.deeplink.DeepLinkResult;
+import com.appsflyer.share.platform_extension.Plugin;
+import com.appsflyer.share.platform_extension.PluginInfo;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -88,6 +83,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     private CallbackContext mDeepLinkListener = null;
     private CallbackContext mInviteListener = null;
     private Uri intentURI = null;
+
+    private AppsFlyerRpcHandler rpcHandler;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -113,14 +110,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     @Override
     public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) {
         Log.d("AppsFlyer", "Executing...");
-        if ("setCurrencyCode".equals(action)) {
-            return setCurrencyCode(args);
-        } else if ("registerOnAppOpenAttribution".equals(action)) {
+        if ("registerOnAppOpenAttribution".equals(action)) {
             return registerOnAppOpenAttribution(callbackContext);
         } else if ("registerDeepLink".equals(action)) {
             return registerDeepLink(callbackContext);
-        } else if ("setAppUserId".equals(action)) {
-            return setAppUserId(args, callbackContext);
         } else if ("getAppsFlyerUID".equals(action)) {
             return getAppsFlyerUID(callbackContext);
         } else if ("anonymizeUser".equals(action)) {
@@ -147,12 +140,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return getSdkVersion(callbackContext);
         } else if ("setSharingFilterForPartners".equals(action)) {
             return setSharingFilterForPartners(args);
-        } else if ("setSharingFilter".equals(action)) {
-            return setSharingFilter(args, callbackContext);
-        } else if ("setSharingFilterForAllPartners".equals(action)) {
-            return setSharingFilterForAllPartners(callbackContext);
-        } else if ("validateAndLogInAppPurchase".equals(action)) {
-            return validateAndLogInAppPurchase(args, callbackContext);
         } else if ("validateAndLogInAppPurchaseV2".equals(action)) {
             return validateAndLogInAppPurchaseV2(args, callbackContext);
         } else if ("setOneLinkCustomDomains".equals(action)) {
@@ -187,55 +174,158 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return logAdRevenue(args);
         } else if ("disableAppSetId".equals(action)) {
             return disableAppSetId();
+        } else if ("executeRpc".equals(action)) {
+            return executeRpc(args, callbackContext);
         }
         return false;
     }
 
-        /**
-         * log AdRevenue event
-         *
-         * @param args - event params
-         * @return true
-         */
-        private boolean logAdRevenue(JSONArray args) {
-            cordova.getThreadPool().execute(() -> {
-                Map<String, Object> additionalParameters = null;
-                try {
-                    if(!args.get(0).equals(null)){
-                        JSONObject afAdRevenueDataJsonObj = args.getJSONObject(0);
-                        String monetizationNetwork = afAdRevenueDataJsonObj.optString("monetizationNetwork", null);
-                        String mediationNetwork = afAdRevenueDataJsonObj.optString("mediationNetwork", null);
-                        String currencyIso4217Code = afAdRevenueDataJsonObj.optString("currencyIso4217Code", null);
-                        double revenue = afAdRevenueDataJsonObj.optDouble("revenue", -1);
-                        MediationNetwork mediationNetworkEnumVal = null;
+    /**
+     * log AdRevenue event
+     *
+     * @param args - event params
+     * @return true
+     */
+    private boolean logAdRevenue(JSONArray args) {
+        cordova.getThreadPool().execute(() -> {
+            Map<String, Object> additionalParameters = null;
+            try {
+                if(!args.get(0).equals(null)){
+                    JSONObject afAdRevenueDataJsonObj = args.getJSONObject(0);
+                    String monetizationNetwork = afAdRevenueDataJsonObj.optString("monetizationNetwork", null);
+                    String mediationNetwork = afAdRevenueDataJsonObj.optString("mediationNetwork", null);
+                    String currencyIso4217Code = afAdRevenueDataJsonObj.optString("currencyIso4217Code", null);
+                    double revenue = afAdRevenueDataJsonObj.optDouble("revenue", -1);
+                    MediationNetwork mediationNetworkEnumVal = null;
 
-                        if(mediationNetwork != null){
-                            for(MediationNetwork mediationNetworkEnum: MediationNetwork.values()){
-                                if(mediationNetworkEnum.getValue().equals(mediationNetwork)){
-                                    mediationNetworkEnumVal = mediationNetworkEnum;
-                                    break;
-                                }
+                    if(mediationNetwork != null){
+                        for(MediationNetwork mediationNetworkEnum: MediationNetwork.values()){
+                            if(mediationNetworkEnum.getValue().equals(mediationNetwork)){
+                                mediationNetworkEnumVal = mediationNetworkEnum;
+                                break;
                             }
                         }
-
-                        if(!args.get(1).equals(null)){
-                            JSONObject additionalParametersJson = args.getJSONObject(1);
-                            additionalParameters = toObjectMap(additionalParametersJson);
-                        }
-                        if(mediationNetworkEnumVal != null){
-                            AFAdRevenueData afAdRevenueData = new AFAdRevenueData(monetizationNetwork, mediationNetworkEnumVal, currencyIso4217Code, revenue);
-                            AppsFlyerLib.getInstance().logAdRevenue(afAdRevenueData, additionalParameters);
-                        }
-                        else{
-                           Log.d("AppsFlyer", "Could not log Ad-Revenue event, bad inputs");
-                        }
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
+
+                    if(!args.get(1).equals(null)){
+                        JSONObject additionalParametersJson = args.getJSONObject(1);
+                        additionalParameters = toObjectMap(additionalParametersJson);
+                    }
+                    if(mediationNetworkEnumVal != null){
+                        AFAdRevenueData afAdRevenueData = new AFAdRevenueData(monetizationNetwork, mediationNetworkEnumVal, currencyIso4217Code, revenue);
+                        AppsFlyerLib.getInstance().logAdRevenue(afAdRevenueData, additionalParameters);
+                    }
+                    else{
+                        Log.d("AppsFlyer", "Could not log Ad-Revenue event, bad inputs");
+                    }
                 }
-            });
-            return true;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        });
+        return true;
+    }
+
+    public boolean executeRpc(JSONArray args, final CallbackContext callbackContext) {
+        try {
+            // 1. Extract method and params
+            JSONObject options = args.length() > 0 ? args.getJSONObject(0) : new JSONObject();
+            String method = options.optString("method", null);
+            JSONObject paramsJson = options.optJSONObject("params");
+            if (paramsJson == null) {
+                paramsJson = new JSONObject();
+            }
+
+            // 2. Build JSON-RPC request string
+            JSONObject jsonRequest = new JSONObject();
+            jsonRequest.put("method", method);
+            jsonRequest.put("params", paramsJson);
+            String jsonRequestString = jsonRequest.toString();
+
+            // 3. Lazy init handler and execute via execute(jsonString) overload
+            AppsFlyerRpcHandler handler = getOrCreateRpcHandler();
+            RpcResponse response = handler.execute(jsonRequestString);
+
+            // 4. Handle response
+            handleRpcResponse(response, callbackContext);
+        } catch (JSONException e) {
+            Log.e("AppsFlyer", "executeRpc JSON error", e);
+            callbackContext.error("PARSE_ERROR" + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            Log.e("AppsFlyer", "executeRpc invalid request", e);
+            callbackContext.error("INVALID_PARAMETERS" + e.getMessage());
+        } catch (Throwable t) {
+            Log.e("AppsFlyer", "executeRpc error", t);
+            callbackContext.error("INTERNAL_ERROR" + (t.getMessage() != null ? t.getMessage() : "Unknown error"));
         }
+        return true;
+    }
+
+    /**
+     * Sends the RPC response to the Cordova callback. Success with Map is serialized to JSON string;
+     * other success results use toString(). VoidSuccess and Error are handled accordingly.
+     */
+    private void handleRpcResponse(RpcResponse response, CallbackContext callbackContext) throws JSONException {
+        if (response instanceof RpcResponse.Success) {
+            Object result = ((RpcResponse.Success<?>) response).getResult();
+            if (result instanceof Map) {
+                JSONObject jsonObject = new JSONObject((Map) result);
+                String jsonString = jsonObject.toString();
+                callbackContext.success(jsonString);
+            } else {
+                callbackContext.success(result != null ? result.toString() : "");
+            }
+        } else if (response instanceof RpcResponse.VoidSuccess) {
+            callbackContext.success();
+        } else if (response instanceof RpcResponse.Error) {
+            RpcResponse.Error error = (RpcResponse.Error) response;
+            callbackContext.error(error.getCode() + error.getMessage());
+        }
+    }
+
+    /**
+     * Lazily creates and returns the RPC handler. Bridge events (e.g. conversion data, deep link)
+     * are forwarded to the plugin via RpcEventNotifier and sent to JS through sendEvent.
+     */
+    private AppsFlyerRpcHandler getOrCreateRpcHandler() {
+        if (rpcHandler == null) {
+            Context context = cordova.getActivity().getApplicationContext();
+            rpcHandler = new AppsFlyerRpcHandler(
+                    context,
+                    createRpcEventNotifier(),
+                    AppsFlyerLib.getInstance(),
+                    new JsonRpcRequestParser()
+            );
+        }
+        return rpcHandler;
+    }
+
+    /**
+     * Creates a notifier (Kotlin (String) -> Unit) that forwards bridge events to the plugin.
+     * Bridge sends JSON with "event", "data", "timestamp", "origin"; we map "event" to "type"
+     * for sendEvent routing and pass the payload to JS.
+     */
+    private Function1<String, Unit> createRpcEventNotifier() {
+        return eventJson -> {
+            try {
+                JSONObject obj = new JSONObject(eventJson);
+                String event = obj.optString("event", "");
+                // Map bridge event names to plugin type names for sendEvent routing
+                if ("onConversionDataSuccess".equals(event)) {
+                    obj.put("type", AF_ON_INSTALL_CONVERSION_DATA_LOADED);
+                } else if ("onConversionDataFail".equals(event)) {
+                    obj.put("type", AF_ON_INSTALL_CONVERSION_FAILURE);
+                } else {
+                    obj.put("type", event);
+                }
+                obj.put("status", AF_SUCCESS);
+                sendEvent(obj);
+            } catch (JSONException e) {
+                Log.e("AppsFlyer", "RpcEventNotifier failed", e);
+            }
+            return Unit.INSTANCE;
+        };
+    }
 
     /**
      * set consent data according to GDPR if applies or not.
@@ -384,7 +474,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
             // assign some values
             AppsFlyerConversionListener gcdListener = null;
-            AppsFlyerProperties.getInstance().set(AppsFlyerProperties.LAUNCH_PROTECT_ENABLED, false);
             AppsFlyerLib instance = AppsFlyerLib.getInstance();
             boolean isConversionData = options.optBoolean(AF_CONVERSION_DATA, false);
             boolean isDebug = options.optBoolean(AF_IS_DEBUG, false);
@@ -394,9 +483,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             // trigger some setters
             if (options.has(AF_COLLECT_ANDROID_ID)) {
                 AppsFlyerLib.getInstance().setCollectAndroidID(options.optBoolean(AF_COLLECT_ANDROID_ID, true));
-            }
-            if (options.has(AF_COLLECT_IMEI)) {
-                AppsFlyerLib.getInstance().setCollectIMEI(options.optBoolean(AF_COLLECT_IMEI, true));
             }
             if (isDeepLinking) {
                 instance.subscribeForDeepLink(registerDeepLinkListener());
@@ -423,7 +509,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
             if(shouldStartSDK){
                 if (mConversionListener == null) {
-                    instance.start(cordova.getActivity(), devKey, new AppsFlyerRequestListener() {
+                    instance.start(new AppsFlyerRequestListener() {
                         @Override
                         public void onSuccess() {
                             callbackContext.success(SUCCESS);
@@ -436,7 +522,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                     });
                 }
                 else{
-                     startSdk();
+                    startSdk();
                 }
             }
             if (gcdListener != null) {
@@ -456,7 +542,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      */
     private boolean startSdk() {
         AppsFlyerLib instance = AppsFlyerLib.getInstance();
-        instance.start(cordova.getActivity());
+        instance.start();
         return true;
     }
 
@@ -509,16 +595,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             @Override
             public void onConversionDataFail(String errorMessage) {
                 handleError(AF_ON_INSTALL_CONVERSION_FAILURE, errorMessage);
-            }
-
-            @Override
-            public void onAppOpenAttribution(Map<String, String> attributionData) {
-                handleSuccess(AF_ON_APP_OPEN_ATTRIBUTION, null, attributionData);
-            }
-
-            @Override
-            public void onAttributionFailure(String errorMessage) {
-                handleError(AF_ON_ATTRIBUTION_FAILURE, errorMessage);
             }
 
         };
@@ -639,57 +715,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 callbackContext.error(s);
             }
         });
-
-        return true;
-    }
-
-    /**
-     * Sets new currency code.
-     *
-     * @param parameters currencyId: ISO 4217 Currency Codes.
-     * @return
-     */
-    private boolean setCurrencyCode(JSONArray parameters) {
-
-        String currencyId = null;
-        try {
-            currencyId = parameters.getString(0);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return true; //TODO error
-        }
-        if (currencyId == null || currencyId.length() == 0) {
-            return true; //TODO error
-        }
-        AppsFlyerLib.getInstance().setCurrencyCode(currencyId);
-
-        return true;
-    }
-
-    /**
-     * Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs.
-     *
-     * @param parameters      customerUserId
-     * @param callbackContext Success and Error callbacks.
-     * @return
-     */
-    private boolean setAppUserId(JSONArray parameters, CallbackContext callbackContext) {
-
-        try {
-            String customeUserId = parameters.getString(0);
-            if (customeUserId == null || customeUserId.length() == 0) {
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_CUSTOMER_ID));
-                return true;
-            }
-            AppsFlyerLib.getInstance().setCustomerUserId(customeUserId);
-
-            PluginResult r = new PluginResult(PluginResult.Status.OK);
-            r.setKeepCallback(false);
-            callbackContext.sendPluginResult(r);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return true; //TODO error
-        }
 
         return true;
     }
@@ -886,7 +911,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 }
             }
 
-            linkGenerator.generateLink(context, new inviteCallbacksImpl());
+            linkGenerator.generateLink(context, new InviteCallbacksImpl());
             mInviteListener = callbackContext;
             sendPluginNoResult(mInviteListener);
         } catch (JSONException e) {
@@ -898,7 +923,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     /**
      * Callback function for the link generator
      */
-    private class inviteCallbacksImpl implements CreateOneLinkHttpTask.ResponseListener {
+    private class InviteCallbacksImpl implements LinkGenerator.ResponseListener {
         @Override
         public void onResponse(String s) {
             PluginResult result = new PluginResult(PluginResult.Status.OK, s);
@@ -1022,74 +1047,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return true;
     }
 
-
-    /**
-     * @param parameters      Comma separated array of partners that need to be excluded
-     * @param callbackContext
-     */
-    @Deprecated
-    private boolean setSharingFilter(JSONArray parameters, CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(() -> {
-            String[] networksArray = convertToStringArray(parameters);
-            if (networksArray != null && networksArray.length > 0) {
-                AppsFlyerLib.getInstance().setSharingFilter(networksArray);
-            }
-        });
-
-        return true;
-    }
-
-    /**
-     * Used by advertisers to exclude all networks/integrated partners from getting data
-     */
-    @Deprecated
-    private boolean setSharingFilterForAllPartners(CallbackContext callbackContext) {
-        AppsFlyerLib.getInstance().setSharingFilterForAllPartners();
-        callbackContext.success(SUCCESS);
-        return true;
-    }
-
-    /**
-     * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
-     * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
-     */
-    public boolean validateAndLogInAppPurchase(JSONArray args, CallbackContext callbackContext) {
-        String publicKey = "";
-        String signature = "";
-        String purchaseData = "";
-        String price = "";
-        String currency = "";
-        Map<String, String> additionalParameters = null;
-        JSONObject additionalParametersJson;
-
-        try {
-            final JSONObject purchaseInfo = args.getJSONObject(0);
-
-            publicKey = purchaseInfo.optString(PUBLIC_KEY, "");
-            signature = purchaseInfo.optString(SIGNATURE, "");
-            purchaseData = purchaseInfo.optString(PURCHASE_DATA, "");
-            price = purchaseInfo.optString(PRICE, "");
-            currency = purchaseInfo.optString(CURRENCY, "");
-            if (purchaseInfo.has(ADDITIONAL_PARAMETERS)) {
-                additionalParametersJson = purchaseInfo.optJSONObject(ADDITIONAL_PARAMETERS);
-                additionalParameters = toMap(additionalParametersJson);
-            }
-
-            if (publicKey.isEmpty() || signature.isEmpty() || purchaseData.isEmpty() || price.isEmpty() || currency.isEmpty()) {
-                callbackContext.error(NO_PARAMETERS_ERROR);
-                return true;
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-            callbackContext.error(FAILURE);
-            return true;
-        }
-        initInAppPurchaseValidatorListener(callbackContext);
-        AppsFlyerLib.getInstance().validateAndLogInAppPurchase(this.cordova.getContext(), publicKey, signature, purchaseData, price, currency, additionalParameters);
-        return true;
-    }
-
-private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackContext callbackContext) {
+    private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackContext callbackContext) {
         try {
             JSONObject purchaseDetails = args.getJSONObject(0);
             String purchaseType = purchaseDetails.optString("purchaseType", "");
@@ -1108,9 +1066,9 @@ private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackCont
             }
 
             AFPurchaseDetails details = new AFPurchaseDetails(
-                purchaseType.equals("subscription") ? AFPurchaseType.SUBSCRIPTION : AFPurchaseType.ONE_TIME_PURCHASE,
-                purchaseToken,
-                productId
+                    purchaseType.equals("subscription") ? AFPurchaseType.SUBSCRIPTION : AFPurchaseType.ONE_TIME_PURCHASE,
+                    purchaseToken,
+                    productId
             );
 
             AppsFlyerLib.getInstance().validateAndLogInAppPurchase(details, additionalParameters, new AppsFlyerInAppPurchaseValidationCallback() {
@@ -1135,21 +1093,6 @@ private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackCont
             return true;
         }
         return true;
-    }
-
-    public void initInAppPurchaseValidatorListener(final CallbackContext callbackContext) {
-        AppsFlyerLib.getInstance().registerValidatorListener(this.cordova.getContext(), new AppsFlyerInAppPurchaseValidatorListener() {
-            @Override
-            public void onValidateInApp() {
-                callbackContext.success(VALIDATE_SUCCESS);
-
-            }
-
-            @Override
-            public void onValidateInAppFailure(String error) {
-                callbackContext.error(VALIDATE_FAILED + error);
-            }
-        });
     }
 
     /**
@@ -1210,7 +1153,7 @@ private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackCont
                     callbackContext.error(FAILURE);
                     return;
                 }
-                AppsFlyerLib.getInstance().setUserEmails(AppsFlyerProperties.EmailsCryptType.SHA256, emails);
+                AppsFlyerLib.getInstance().setUserEmails(EmailsCryptType.SHA256, emails);
                 callbackContext.success(SUCCESS);
             } catch (Exception e) {
                 e.printStackTrace();

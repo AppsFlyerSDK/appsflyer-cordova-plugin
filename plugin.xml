@@ -58,6 +58,9 @@
                     <action android:name="com.android.vending.INSTALL_REFERRER"/>
                 </intent-filter>
             </receiver>
+            <meta-data
+                    android:name="AF_LAUNCH_PROTECT_ENABLED"
+                    android:value="false" />
         </config-file>
 
         <source-file src="src/android/com/appsflyer/cordova/plugin/AppsFlyerPlugin.java"

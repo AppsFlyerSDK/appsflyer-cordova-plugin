@@ -156,10 +156,16 @@ if (!window.CustomEvent) {
 
     /**
      * currencyId: ISO 4217 Currency Codes
+     * On Android uses RPC (executeRpc); on iOS uses legacy native action.
      */
     AppsFlyer.prototype.setCurrencyCode = function (currencyId) {
         argscheck.checkArgs('S', 'AppsFlyer.setCurrencyCode', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'setCurrencyCode', [currencyId]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCurrencyCode', params: { currencyCode: currencyId } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'setCurrencyCode', [currencyId]);
+        }
     };
 
     /**
@@ -175,7 +181,12 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setAppUserId = function (customerUserId) {
         argscheck.checkArgs('S', 'AppsFlyer.setAppUserId', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'setAppUserId', [customerUserId]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: { customerId: customerUserId } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'setAppUserId', [customerUserId]);
+        }
     };
 
     /**
@@ -303,36 +314,6 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setSharingFilterForPartners = function (networks) {
         exec(null, null, 'AppsFlyerPlugin', 'setSharingFilterForPartners', [networks]);
-    };
-
-    /**
-     * Used by advertisers to exclude specified networks/integrated partners from getting data
-     * networks Comma separated array of partners that need to be excluded
-     *  @deprecated deprecated since 6.4.0. Use setSharingFilterForPartners instead
-     */
-    AppsFlyer.prototype.setSharingFilter = function (networks) {
-        exec(null, null, 'AppsFlyerPlugin', 'setSharingFilter', [networks]);
-    };
-
-    /**
-     * Used by advertisers to exclude all networks/integrated partners from getting data
-     *  @deprecated deprecated since 6.4.0. Use setSharingFilterForPartners instead
-     */
-    AppsFlyer.prototype.setSharingFilterForAllPartners = function () {
-        argscheck.checkArgs('*', 'AppsFlyer.setSharingFilterForAllPartners', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'setSharingFilterForAllPartners', []);
-    };
-
-    /**
-     * @deprecated Will be removed in the future. Please use validateAndLogInAppPurchaseV2.
-     * Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
-     * Learn more - https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases
-     * @param purchaseInfo json includes: String publicKey, String signature, String purchaseData, String price, String currency, JSONObject additionalParameters.
-     * @param successC Success callback
-     * @param errorC Error callback
-     */
-    AppsFlyer.prototype.validateAndLogInAppPurchase = function (purchaseInfo, successC, errorC) {
-        exec(successC, errorC, 'AppsFlyerPlugin', 'validateAndLogInAppPurchase', [purchaseInfo]);
     };
 
     /**
