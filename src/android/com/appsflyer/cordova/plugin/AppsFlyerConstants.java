@@ -35,6 +35,7 @@ public class AppsFlyerConstants {
     final static String AF_ON_APP_OPEN_ATTRIBUTION ="onAppOpenAttribution";
     final static String AF_ON_INSTALL_CONVERSION_FAILURE ="onInstallConversionFailure";
     final static String AF_ON_INSTALL_CONVERSION_DATA_LOADED ="onInstallConversionDataLoaded";
+    final static String AF_ON_SESSION_READY = "onSessionReady";
     final static String NO_DOMAINS = "no domains in the domains array";
 
 

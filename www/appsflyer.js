@@ -194,15 +194,24 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.getAppsFlyerUID = function (successCB) {
         argscheck.checkArgs('F', 'AppsFlyer.getAppsFlyerUID', arguments);
-        exec(
-            function (result) {
-                successCB(result);
-            },
-            null,
-            'AppsFlyerPlugin',
-            'getAppsFlyerUID',
-            []
-        );
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(
+                function (result) { successCB(result); },
+                null,
+                'AppsFlyerPlugin',
+                'executeRpc',
+                [{ method: 'getAppsFlyerUID', params: {} }]
+            );
+        } else {
+            exec(
+                function (result) { successCB(result); },
+                null,
+                'AppsFlyerPlugin',
+                'getAppsFlyerUID',
+                []
+            );
+        }
     };
 
     /**
@@ -210,7 +219,12 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.anonymizeUser = function (isDisabled) {
         argscheck.checkArgs('*', 'AppsFlyer.anonymizeUser', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'anonymizeUser', [isDisabled]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'anonymizeUser', params: { shouldAnonymize: isDisabled } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'anonymizeUser', [isDisabled]);
+        }
     };
 
     /**
@@ -218,7 +232,33 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.Stop = function (isStop) {
         argscheck.checkArgs('*', 'AppsFlyer.Stop', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'Stop', [isStop]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'stop', params: { shouldStop: isStop } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'Stop', [isStop]);
+        }
+    };
+
+    /**
+     * (Android) Registers a callback to be notified when the SDK is ready to trigger a new session.
+     * Call start() within the callback to ensure proper session initialization with all required data (e.g. deeplink parameters).
+     * @param {function} successCB - Called when the session is ready; receives event object with type "onSessionReady".
+     */
+    AppsFlyer.prototype.registerSessionReadyListener = function (successCB) {
+        argscheck.checkArgs('F', 'AppsFlyer.registerSessionReadyListener', arguments);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(
+                function (result) { if (successCB) successCB(result); },
+                null,
+                'AppsFlyerPlugin',
+                'executeRpc',
+                [{ method: 'registerSessionReadyListener', params: {} }]
+            );
+        } else {
+            if (successCB) successCB({ type: 'onSessionReady', status: 'success' });
+        }
     };
 
     /**

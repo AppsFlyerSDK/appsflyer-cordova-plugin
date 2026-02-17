@@ -11,6 +11,7 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_ATTRIBUTION_
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_DEEP_LINKING;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_DATA_LOADED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_FAILURE;
+import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_SESSION_READY;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_SUCCESS;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_BRAND_DOMAIN;
@@ -40,6 +41,7 @@ import androidx.annotation.NonNull;
 
 import com.appsflyer.AppsFlyerLib;
 import com.appsflyer.AppsFlyerProperties;
+import com.appsflyer.share.SessionReadyListener;
 import com.appsflyer.pluginbridge.handler.AppsFlyerRpcHandler;
 import com.appsflyer.pluginbridge.model.RpcResponse;
 import com.appsflyer.pluginbridge.parser.JsonRpcRequestParser;
@@ -82,6 +84,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     private CallbackContext mAttributionDataListener = null;
     private CallbackContext mDeepLinkListener = null;
     private CallbackContext mInviteListener = null;
+    private CallbackContext mSessionReadyListener = null;
     private Uri intentURI = null;
 
     private AppsFlyerRpcHandler rpcHandler;
@@ -114,12 +117,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return registerOnAppOpenAttribution(callbackContext);
         } else if ("registerDeepLink".equals(action)) {
             return registerDeepLink(callbackContext);
-        } else if ("getAppsFlyerUID".equals(action)) {
-            return getAppsFlyerUID(callbackContext);
-        } else if ("anonymizeUser".equals(action)) {
-            return anonymizeUser(args);
-        } else if ("Stop".equals(action)) {
-            return stop(args);
         } else if ("initSdk".equals(action)) {
             return initSdk(args, callbackContext);
         } else if ("startSdk".equals(action)) {
@@ -234,6 +231,12 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             JSONObject paramsJson = options.optJSONObject("params");
             if (paramsJson == null) {
                 paramsJson = new JSONObject();
+            }
+
+            // Handle registerSessionReadyListener in-plugin (SDK API not in bridge)
+            // TODO Remove when registerSessionReadyListener will be available within RPC
+            if ("registerSessionReadyListener".equals(method)) {
+                return handleRegisterSessionReadyListener(callbackContext);
             }
 
             // 2. Build JSON-RPC request string
@@ -671,7 +674,45 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
             result.setKeepCallback(true);
             mDeepLinkListener.sendPluginResult(result);
+        } else if (
+                params.optString("type") == AF_ON_SESSION_READY
+                        && mSessionReadyListener != null) {
+            PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
+            result.setKeepCallback(true);
+            mSessionReadyListener.sendPluginResult(result);
         }
+    }
+
+    /**
+     * Registers a callback to be notified when the SDK is ready to trigger a new session.
+     * Invoked via RPC method "registerSessionReadyListener". When the session is ready,
+     * the JS callback receives an event with type {@link AppsFlyerConstants#AF_ON_SESSION_READY}.
+     */
+    private boolean handleRegisterSessionReadyListener(final CallbackContext callbackContext) {
+        mSessionReadyListener = callbackContext;
+        PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
+        result.setKeepCallback(true);
+        callbackContext.sendPluginResult(result);
+
+        AppsFlyerLib.getInstance().registerSessionReadyListener(new SessionReadyListener() {
+            @Override
+            public void onSessionReady() {
+                cordova.getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            JSONObject obj = new JSONObject();
+                            obj.put("type", AF_ON_SESSION_READY);
+                            obj.put("status", AF_SUCCESS);
+                            sendEvent(obj);
+                        } catch (JSONException e) {
+                            Log.e("AppsFlyer", "SessionReadyListener failed", e);
+                        }
+                    }
+                });
+            }
+        });
+        return true;
     }
 
     /**
@@ -716,58 +757,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
         });
 
-        return true;
-    }
-
-    /**
-     * Get the Appsflyer ID
-     *
-     * @param callbackContext
-     * @return
-     */
-    private boolean getAppsFlyerUID(CallbackContext callbackContext) {
-
-        String id = AppsFlyerLib.getInstance().getAppsFlyerUID(cordova.getActivity().getApplicationContext());
-        PluginResult r = new PluginResult(PluginResult.Status.OK, id);
-        r.setKeepCallback(false);
-        callbackContext.sendPluginResult(r);
-
-        return true;
-    }
-
-    /**
-     * End User Opt-Out from AppsFlyer analytics.
-     *
-     * @param parameters boolean isDisabled
-     * @return
-     */
-    private boolean anonymizeUser(JSONArray parameters) {
-
-        try {
-            boolean isDisabled = parameters.getBoolean(0);
-            AppsFlyerLib.getInstance().anonymizeUser(isDisabled);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return true; //TODO error
-        }
-        return true;
-    }
-
-    /**
-     * Shut down all SDK tracking
-     *
-     * @param parameters boolean isStopTracking
-     * @return
-     */
-    private boolean stop(JSONArray parameters) {
-
-        try {
-            boolean isStop = parameters.getBoolean(0);
-            AppsFlyerLib.getInstance().stop(isStop, cordova.getActivity().getApplicationContext());
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return true; //TODO error
-        }
         return true;
     }
 
