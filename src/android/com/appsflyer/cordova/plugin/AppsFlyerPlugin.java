@@ -25,7 +25,6 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_REFERRER;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_DEVKEY_FOUND;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_EVENT_NAME_FOUND;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_PARAMETERS_ERROR;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_VALID_TOKEN;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PLUGIN_VERSION;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PROMOTE_ID;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SHOULD_START_SDK;
@@ -123,10 +122,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return startSdk();
         } else if ("logEvent".equals(action)) {
             return logEvent(args, callbackContext);
-        } else if ("updateServerUninstallToken".equals(action)) {
-            return updateServerUninstallToken(args, callbackContext);
-        } else if ("setAppInviteOneLinkID".equals(action)) {
-            return setAppInviteOneLinkID(args, callbackContext);
         } else if ("generateInviteLink".equals(action)) {
             return generateInviteLink(args, callbackContext);
         } else if ("logCrossPromotionImpression".equals(action)) {
@@ -784,56 +779,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return newMap;
     }
 
-    /**
-     * (Android) Allows to pass GCM/FCM Tokens that where collected by third party plugins to the AppsFlyer server. Can be used for Uninstall Tracking.
-     *
-     * @param parameters      token
-     * @param callbackContext null in this case. We dont use callbacks for this method
-     * @return
-     */
-    private boolean updateServerUninstallToken(JSONArray parameters, CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(new Runnable() {
-            @Override
-            public void run() {
-                String token = parameters.optString(0);
-                if (token != null && token.length() > 0) {
-                    Context c = cordova.getActivity().getApplicationContext();
-                    AppsFlyerLib.getInstance().updateServerUninstallToken(c, token);
-                    callbackContext.success(SUCCESS);
-                } else {
-                    callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_VALID_TOKEN));
-                }
-            }
-        });
-
-        return true;
-    }
-
     // USER INVITE
-
-    /**
-     * Set AppsFlyer’s OneLink ID
-     *
-     * @param parameters      oneLinkID.
-     * @param callbackContext null in this case. We dont use callbacks for this method
-     * @return
-     */
-    private boolean setAppInviteOneLinkID(JSONArray parameters, CallbackContext callbackContext) {
-        try {
-            String oneLinkID = parameters.getString(0);
-            if (oneLinkID == null || oneLinkID.length() == 0) {
-                callbackContext.error(FAILURE);
-                return true;
-            }
-            AppsFlyerLib.getInstance().setAppInviteOneLink(oneLinkID);
-            callbackContext.success(SUCCESS);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            callbackContext.error(FAILURE);
-            return true;
-        }
-        return true;
-    }
 
     /**
      * Allowing your existing users to invite their friends and contacts as new users to your app
@@ -956,7 +902,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromotionImpression Failed"));
         }
         return true;
-
     }
 
     /**

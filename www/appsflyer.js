@@ -278,7 +278,12 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.updateServerUninstallToken = function (token) {
         argscheck.checkArgs('S', 'AppsFlyer.updateServerUninstallToken', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'updateServerUninstallToken', [token]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'updateServerUninstallToken', params: { token: token } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'updateServerUninstallToken', [token]);
+        }
     };
 
     /**
@@ -287,7 +292,12 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setAppInviteOneLinkID = function (args) {
         argscheck.checkArgs('S', 'AppsFlyer.setAppInviteOneLinkID', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'setAppInviteOneLinkID', [args]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAppInviteOneLink', params: { oneLinkId: args } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'setAppInviteOneLinkID', [args]);
+        }
     };
 
     /**
