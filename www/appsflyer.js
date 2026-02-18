@@ -354,16 +354,25 @@ if (!window.CustomEvent) {
      * successCB: Success callback that returns the SDK version
      */
     AppsFlyer.prototype.getSdkVersion = function (successCB) {
-        exec(successCB, null, 'AppsFlyerPlugin', 'getSdkVersion', []);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getSdkVersion', params: {} }]);
+        } else {
+            exec(successCB, null, 'AppsFlyerPlugin', 'getSdkVersion', []);
+        }
     };
 
     /**
      * Used by advertisers to exclude specified networks/integrated partners from getting data
      * networks Comma separated array of partners that need to be excluded
-     *
      */
     AppsFlyer.prototype.setSharingFilterForPartners = function (networks) {
-        exec(null, null, 'AppsFlyerPlugin', 'setSharingFilterForPartners', [networks]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setSharingFilterForPartners', params: { partners: networks || [] } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'setSharingFilterForPartners', [networks]);
+        }
     };
 
     /**
@@ -418,7 +427,12 @@ if (!window.CustomEvent) {
      * @param errorC error callback
      */
     AppsFlyer.prototype.setOneLinkCustomDomains = function (domains, successC, errorC) {
-        exec(successC, errorC, 'AppsFlyerPlugin', 'setOneLinkCustomDomains', [domains]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setOneLinkCustomDomain', params: { domains: domains || [] } }]);
+        } else {
+            exec(successC, errorC, 'AppsFlyerPlugin', 'setOneLinkCustomDomains', [domains]);
+        }
     };
 
     /**
@@ -434,21 +448,30 @@ if (!window.CustomEvent) {
 
     /**
      * Facebook Advanced Matching
-     * @param args: phone number
-     * @param callbackContext
-     * @return
+     * @param phoneNumber phone number
+     * @param successC success callback
      */
     AppsFlyer.prototype.setPhoneNumber = function (phoneNumber, successC) {
-        exec(successC, null, 'AppsFlyerPlugin', 'setPhoneNumber', [phoneNumber]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPhoneNumber', params: { phoneNumber: phoneNumber || '' } }]);
+        } else {
+            exec(successC, null, 'AppsFlyerPlugin', 'setPhoneNumber', [phoneNumber]);
+        }
     };
 
     /**
      * Facebook Advanced Matching
-     * @param userEmails: Strings array of emails
-     * @param successC: success functions
+     * @param userEmails Strings array of emails
+     * @param successC success callback
      */
     AppsFlyer.prototype.setUserEmails = function (userEmails, successC) {
-        exec(successC, null, 'AppsFlyerPlugin', 'setUserEmails', [userEmails]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmails', params: { emails: userEmails || [] } }]);
+        } else {
+            exec(successC, null, 'AppsFlyerPlugin', 'setUserEmails', [userEmails]);
+        }
     };
 
     /**

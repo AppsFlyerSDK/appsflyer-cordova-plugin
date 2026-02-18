@@ -54,7 +54,6 @@ import com.appsflyer.share.AppsFlyerConsent;
 import com.appsflyer.share.AppsFlyerConversionListener;
 import com.appsflyer.share.AppsFlyerInAppPurchaseValidationCallback;
 import com.appsflyer.share.CrossPromotionHelper;
-import com.appsflyer.share.EmailsCryptType;
 import com.appsflyer.share.LinkGenerator;
 import com.appsflyer.share.MediationNetwork;
 import com.appsflyer.share.ShareInviteHelper;
@@ -128,20 +127,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return logCrossPromotionImpression(args, callbackContext);
         } else if ("logCrossPromotionAndOpenStore".equals(action)) {
             return logAndOpenStore(args, callbackContext);
-        } else if ("getSdkVersion".equals(action)) {
-            return getSdkVersion(callbackContext);
-        } else if ("setSharingFilterForPartners".equals(action)) {
-            return setSharingFilterForPartners(args);
         } else if ("validateAndLogInAppPurchaseV2".equals(action)) {
             return validateAndLogInAppPurchaseV2(args, callbackContext);
-        } else if ("setOneLinkCustomDomains".equals(action)) {
-            return setOneLinkCustomDomains(args, callbackContext);
         } else if ("enableFacebookDeferredApplinks".equals(action)) {
             return enableFacebookDeferredApplinks(args);
-        } else if ("setPhoneNumber".equals(action)) {
-            return setPhoneNumber(args, callbackContext);
-        } else if ("setUserEmails".equals(action)) {
-            return setUserEmails(args, callbackContext);
         } else if ("setHost".equals(action)) {
             return setHost(args);
         } else if ("addPushNotificationDeepLinkPath".equals(action)) {
@@ -956,31 +945,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         callbackContext.sendPluginResult(pluginResult);
     }
 
-    /**
-     * Get the current SDK version
-     *
-     * @param callbackContext successCB: Success callback that returns the SDK version.
-     * @return
-     */
-    private boolean getSdkVersion(CallbackContext callbackContext) {
-        final String version = AppsFlyerLib.getInstance().getSdkVersion();
-        final PluginResult result = new PluginResult(PluginResult.Status.OK, version);
-        callbackContext.sendPluginResult(result);
-        return true;
-    }
-
-
-    private boolean setSharingFilterForPartners(JSONArray parameters) {
-        cordova.getThreadPool().execute(() -> {
-            String[] networksArray = convertToStringArray(parameters);
-            if (networksArray != null && networksArray.length > 0) {
-                AppsFlyerLib.getInstance().setSharingFilterForPartners(networksArray);
-            }
-        });
-
-        return true;
-    }
-
     private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackContext callbackContext) {
         try {
             JSONObject purchaseDetails = args.getJSONObject(0);
@@ -1030,29 +994,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     }
 
     /**
-     * Set Onelink custom/branded domains
-     * Use this API during the SDK Initialization to indicate branded domains.
-     * For more information please refer to https://support.appsflyer.com/hc/en-us/articles/360002329137-Implementing-Branded-Links
-     *
-     * @param parameters      array of strings
-     * @param callbackContext success and error callbacks
-     * @return
-     */
-    private boolean setOneLinkCustomDomains(JSONArray parameters, CallbackContext callbackContext) {
-
-        String[] domains = convertToStringArray(parameters);
-        if (domains != null && domains.length > 0) {
-            AppsFlyerLib.getInstance().setOneLinkCustomDomain(domains);
-            callbackContext.success(SUCCESS);
-        } else {
-            callbackContext.error(FAILURE);
-        }
-        return true;
-
-    }
-
-
-    /**
      * use this api If you need deep linking data from Facebook, deferred deep linking, Dynamic Product Ads, or reasons that
      * unrelated to attribution such as authentication, ad monetization, social sharing, user invites, etc.
      * More information here: https://support.appsflyer.com/hc/en-us/articles/207033826-Facebook-Ads-setup-guide#integration
@@ -1068,49 +1009,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         } catch (JSONException e) {
             e.printStackTrace();
             return true;
-        }
-        return true;
-    }
-
-    /**
-     * Facebook Advanced Matching
-     *
-     * @param args:            Strings array of emails
-     * @param callbackContext: success functions
-     * @return
-     */
-    private boolean setUserEmails(JSONArray args, CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(() -> {
-            try {
-                String[] emails = convertToStringArray(args);
-                if (emails == null || emails.length == 0) {
-                    callbackContext.error(FAILURE);
-                    return;
-                }
-                AppsFlyerLib.getInstance().setUserEmails(EmailsCryptType.SHA256, emails);
-                callbackContext.success(SUCCESS);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-        return true;
-    }
-
-    /**
-     * Facebook Advanced Matching
-     *
-     * @param args:           phone number
-     * @param callbackContext
-     * @return
-     */
-    private boolean setPhoneNumber(JSONArray args, CallbackContext callbackContext) {
-        try {
-            String phoneNumber = args.getString(0);
-            AppsFlyerLib.getInstance().setPhoneNumber(phoneNumber);
-            Log.d("AppsFlyer", phoneNumber);
-            callbackContext.success(SUCCESS);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return true;
     }
