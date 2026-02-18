@@ -147,11 +147,16 @@ if (!window.CustomEvent) {
 
     /**
      * Register Unified deep link listener
-     * @param onDeepLinkListener: ddl callback triggered when deep linked has been clicked and onDeepLinkListener = true;
+     * @param onDeepLinkListener ddl callback triggered when deep linked has been clicked and onDeepLinkListener = true;
      */
     AppsFlyer.prototype.registerDeepLink = function (onDeepLinkListener) {
         callbackMap.ddlSuc = onDeepLinkListener;
-        exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'registerDeepLink', []);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'subscribeForDeepLink', params: {} }]);
+        } else {
+            exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'registerDeepLink', []);
+        }
     };
 
     /**
