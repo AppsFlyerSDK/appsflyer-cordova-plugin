@@ -14,19 +14,10 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONV
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_SESSION_READY;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_SUCCESS;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.FAILURE;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_BRAND_DOMAIN;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_CAMPAIGN;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_CHANNEL;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_CUSTOMERID;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_DEEPLINK;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_FAIL;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_IMAGEURL;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.INVITE_REFERRER;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_DEVKEY_FOUND;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_EVENT_NAME_FOUND;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_PARAMETERS_ERROR;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PLUGIN_VERSION;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PROMOTE_ID;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SHOULD_START_SDK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
 
@@ -53,10 +44,7 @@ import com.appsflyer.share.AFPurchaseType;
 import com.appsflyer.share.AppsFlyerConsent;
 import com.appsflyer.share.AppsFlyerConversionListener;
 import com.appsflyer.share.AppsFlyerInAppPurchaseValidationCallback;
-import com.appsflyer.share.CrossPromotionHelper;
-import com.appsflyer.share.LinkGenerator;
 import com.appsflyer.share.MediationNetwork;
-import com.appsflyer.share.ShareInviteHelper;
 import com.appsflyer.share.attribution.AppsFlyerRequestListener;
 import com.appsflyer.share.deeplink.DeepLinkListener;
 import com.appsflyer.share.deeplink.DeepLinkResult;
@@ -81,7 +69,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     private CallbackContext mConversionListener = null;
     private CallbackContext mAttributionDataListener = null;
     private CallbackContext mDeepLinkListener = null;
-    private CallbackContext mInviteListener = null;
     private CallbackContext mSessionReadyListener = null;
     private Uri intentURI = null;
 
@@ -121,12 +108,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return startSdk();
         } else if ("logEvent".equals(action)) {
             return logEvent(args, callbackContext);
-        } else if ("generateInviteLink".equals(action)) {
-            return generateInviteLink(args, callbackContext);
-        } else if ("logCrossPromotionImpression".equals(action)) {
-            return logCrossPromotionImpression(args, callbackContext);
-        } else if ("logCrossPromotionAndOpenStore".equals(action)) {
-            return logAndOpenStore(args, callbackContext);
         } else if ("validateAndLogInAppPurchaseV2".equals(action)) {
             return validateAndLogInAppPurchaseV2(args, callbackContext);
         } else if ("enableFacebookDeferredApplinks".equals(action)) {
@@ -769,169 +750,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     }
 
     // USER INVITE
-
-    /**
-     * Allowing your existing users to invite their friends and contacts as new users to your app
-     *
-     * @param args            Parameters for Invite link
-     * @param callbackContext Success callback (generated link) and Error callback.
-     * @return
-     */
-    private boolean generateInviteLink(JSONArray args, CallbackContext callbackContext) {
-
-        String channel = null;
-        String campaign = null;
-        String referrerName = null;
-        String referrerImageUrl = null;
-        String customerID = null;
-        String baseDeepLink = null;
-        String brandDomain = null;
-
-        try {
-            final JSONObject options = args.getJSONObject(0);
-
-            channel = options.optString(INVITE_CHANNEL, "");
-            campaign = options.optString(INVITE_CAMPAIGN, "");
-            referrerName = options.optString(INVITE_REFERRER, "");
-            referrerImageUrl = options.optString(INVITE_IMAGEURL, "");
-            customerID = options.optString(INVITE_CUSTOMERID, "");
-            baseDeepLink = options.optString(INVITE_DEEPLINK, "");
-            brandDomain = options.optString(INVITE_BRAND_DOMAIN, "");
-
-            Context context = this.cordova.getActivity().getApplicationContext();
-            LinkGenerator linkGenerator = ShareInviteHelper.generateInviteUrl(context);
-
-            if (channel != null && channel != "") {
-                linkGenerator.setChannel(channel);
-            }
-            if (campaign != null && campaign != "") {
-                linkGenerator.setCampaign(campaign);
-            }
-            if (referrerName != null && referrerName != "") {
-                linkGenerator.setReferrerName(referrerName);
-            }
-            if (referrerImageUrl != null && referrerImageUrl != "") {
-                linkGenerator.setReferrerImageURL(referrerImageUrl);
-            }
-            if (customerID != null && customerID != "") {
-                linkGenerator.setReferrerCustomerId(customerID);
-            }
-            if (baseDeepLink != null && baseDeepLink != "") {
-                linkGenerator.setBaseDeeplink(baseDeepLink);
-            }
-            if (brandDomain != null && brandDomain != "") {
-                linkGenerator.setBrandDomain(brandDomain);
-            }
-
-            if (options.length() > 1 && !options.get("userParams").equals("")) {
-                JSONObject jsonCustomValues = options.getJSONObject("userParams");
-
-                Iterator<?> keys = jsonCustomValues.keys();
-
-                while (keys.hasNext()) {
-                    String key = (String) keys.next();
-                    Object keyvalue = jsonCustomValues.get(key);
-                    linkGenerator.addParameter(key, keyvalue.toString());
-                }
-            }
-
-            linkGenerator.generateLink(context, new InviteCallbacksImpl());
-            mInviteListener = callbackContext;
-            sendPluginNoResult(mInviteListener);
-        } catch (JSONException e) {
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, INVITE_FAIL));
-        }
-        return true;
-    }
-
-    /**
-     * Callback function for the link generator
-     */
-    private class InviteCallbacksImpl implements LinkGenerator.ResponseListener {
-        @Override
-        public void onResponse(String s) {
-            PluginResult result = new PluginResult(PluginResult.Status.OK, s);
-            result.setKeepCallback(false);
-            mInviteListener.sendPluginResult(result);
-        }
-
-        @Override
-        public void onResponseError(String s) {
-
-        }
-    }
-
-    /**
-     * Track cross promotion impression. Make sure to use the promoted App ID as it appears within the AppsFlyer dashboard.
-     *
-     * @param parameters      appId: Promoted Application ID
-     *                        campaign: Promoted Campaign
-     * @param callbackContext
-     * @return
-     */
-    public boolean logCrossPromotionImpression(JSONArray parameters, CallbackContext callbackContext) {
-        String promotedAppId = null;
-        String campaign = null;
-
-        try {
-            final JSONObject options = parameters.getJSONObject(0);
-
-            promotedAppId = options.optString(PROMOTE_ID, "");
-            campaign = options.optString(INVITE_CAMPAIGN, "");
-
-            if (promotedAppId != null && promotedAppId != "") {
-                Context context = this.cordova.getActivity().getApplicationContext();
-                CrossPromotionHelper.logCrossPromoteImpression(context, promotedAppId, campaign);
-            } else {
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromoted App ID Not set"));
-                return true;
-            }
-
-        } catch (JSONException e) {
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromotionImpression Failed"));
-        }
-        return true;
-    }
-
-    /**
-     * Use this call to track the click and launch the app store's app page (via Browser)
-     *
-     * @param parameters      promotedAppId: Promoted Application ID
-     *                        campaign: Promoted Campaign
-     *                        userParams: Additional Parameters to track
-     * @param callbackContext
-     * @return
-     */
-    public boolean logAndOpenStore(JSONArray parameters, CallbackContext callbackContext) {
-        String promotedAppId = null;
-        String campaign = null;
-        Map<String, String> userParams = null;
-        try {
-            promotedAppId = parameters.getString(0);
-            campaign = parameters.getString(1);
-            if (promotedAppId != null && promotedAppId != "") {
-                Context context = this.cordova.getActivity().getApplicationContext();
-                if (!parameters.isNull(2)) {
-                    Map<String, String> newUserParams = new HashMap<String, String>();
-                    JSONObject usrParams = parameters.optJSONObject(2);
-                    Iterator<?> keys = usrParams.keys();
-                    while (keys.hasNext()) {
-                        String key = (String) keys.next();
-                        Object keyvalue = usrParams.get(key);
-                        newUserParams.put(key, keyvalue.toString());
-                    }
-                    userParams = newUserParams;
-                }
-                CrossPromotionHelper.logAndOpenStore(context, promotedAppId, campaign, userParams);
-            } else {
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromoted App ID Not set"));
-                return true;
-            }
-        } catch (JSONException e) {
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "CrossPromotion Failed"));
-        }
-        return true;
-    }
 
     /**
      * Helper function to send a callback with no results.

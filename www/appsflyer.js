@@ -302,34 +302,61 @@ if (!window.CustomEvent) {
 
     /**
      * Allowing your existing users to invite their friends and contacts as new users to your app
-     * args: Parameters for Invite link.
+     * args: Parameters for Invite link (channel, campaign, referrerName, referrerImageURL/referrerImageUrl, customerID/customerId, baseDeepLink, brandDomain, userParams).
      * successCB: Success callback (generated link).
      * errorCB: Error callback.
      */
     AppsFlyer.prototype.generateInviteLink = function (args, successCB, errorCB) {
         argscheck.checkArgs('O', 'AppsFlyer.generateInviteLink', arguments);
-        exec(successCB, errorCB, 'AppsFlyerPlugin', 'generateInviteLink', [args]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            const params = {
+                channel: args.channel || null,
+                campaign: args.campaign || null,
+                referrerName: args.referrerName || null,
+                referrerImageUrl: args.referrerImageUrl || args.referrerImageURL || null,
+                customerId: args.customerId || args.customerID || null,
+                baseDeepLink: args.baseDeepLink || null,
+                brandDomain: args.brandDomain || null,
+                userParams: args.userParams || null,
+                awaitResponse: args.awaitResponse !== false
+            };
+            exec(successCB, errorCB, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'generateInviteLink', params: params }]);
+        } else {
+            exec(successCB, errorCB, 'AppsFlyerPlugin', 'generateInviteLink', [args]);
+        }
     };
 
     /**
      * log cross promotion impression. Make sure to use the promoted App ID as it appears within the AppsFlyer dashboard.
      * appId: Promoted Application ID
      * campaign: Promoted Campaign
+     * userParams: Optional map of additional parameters.
      */
-    AppsFlyer.prototype.logCrossPromotionImpression = function (appId, campaign) {
+    AppsFlyer.prototype.logCrossPromotionImpression = function (appId, campaign, userParams) {
         argscheck.checkArgs('*', 'AppsFlyer.logCrossPromotionImpression', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'logCrossPromotionImpression', [appId, campaign]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logCrossPromoteImpression', params: { appId: appId || '', campaign: campaign || '', userParams: userParams || null } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'logCrossPromotionImpression', [appId, campaign]);
+        }
     };
 
     /**
      * Launch the app store's app page (via Browser).
      * appId: Promoted Application ID.
      * campaign: Promoted Campaign.
-     * params: Additional Parameters to log.
+     * params: Additional Parameters to log (optional object).
      */
     AppsFlyer.prototype.logCrossPromotionAndOpenStore = function (appId, campaign, params) {
         argscheck.checkArgs('*', 'AppsFlyer.logCrossPromotionAndOpenStore', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'logCrossPromotionAndOpenStore', [appId, campaign, params]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAndOpenStore', params: { promotedAppId: appId || '', campaign: campaign || '', userParams: params || null } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'logCrossPromotionAndOpenStore', [appId, campaign, params]);
+        }
     };
 
     /**
