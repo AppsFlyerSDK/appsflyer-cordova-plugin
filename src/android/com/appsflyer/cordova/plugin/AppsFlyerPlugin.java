@@ -40,7 +40,6 @@ import kotlin.jvm.functions.Function1;
 import com.appsflyer.share.AFAdRevenueData;
 import com.appsflyer.share.AFPurchaseDetails;
 import com.appsflyer.share.AFPurchaseType;
-import com.appsflyer.share.AppsFlyerConsent;
 import com.appsflyer.share.AppsFlyerConversionListener;
 import com.appsflyer.share.AppsFlyerInAppPurchaseValidationCallback;
 import com.appsflyer.share.MediationNetwork;
@@ -123,8 +122,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return sendPushNotificationData(args);
         } else if ("setDisableNetworkData".equals(action)) {
             return setDisableNetworkData(args);
-        } else if ("setConsentData".equals(action)) {
-            return setConsentData(args);
         } else if ("enableTCFDataCollection".equals(action)) {
             return enableTCFDataCollection(args);
         } else if ("logAdRevenue".equals(action)) {
@@ -297,37 +294,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
             return Unit.INSTANCE;
         };
-    }
-
-    /**
-     * set consent data according to GDPR if applies or not.
-     *
-     * @param args - json object that represents consent data object.
-     * @return true
-     */
-    private boolean setConsentData(JSONArray args) {
-        cordova.getThreadPool().execute(() -> {
-            try {
-                JSONObject consentData = args.getJSONObject(0);
-                Boolean isUserSubjectToGDPR = getBooleanOrNull(consentData, "isUserSubjectToGDPR");
-                Boolean hasConsentForDataUsage = getBooleanOrNull(consentData, "hasConsentForDataUsage");
-                Boolean hasConsentForAdsPersonalization = getBooleanOrNull(consentData, "hasConsentForAdsPersonalization");
-                Boolean hasConsentForAdStorage = getBooleanOrNull(consentData, "hasConsentForAdStorage");
-
-                AppsFlyerConsent consent = new AppsFlyerConsent(isUserSubjectToGDPR, hasConsentForDataUsage, hasConsentForAdsPersonalization, hasConsentForAdStorage);
-                AppsFlyerLib.getInstance().setConsentData(consent);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        });
-        return true;
-    }
-
-    private Boolean getBooleanOrNull(JSONObject consentData, String key) {
-        try {
-            return consentData.getBoolean(key);
-        } catch (Throwable ignore) {}
-        return null;
     }
 
     /**

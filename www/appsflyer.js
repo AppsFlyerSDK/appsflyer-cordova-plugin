@@ -591,8 +591,19 @@ if (!window.CustomEvent) {
      * @param appsFlyerConsent - object of AppsFlyerConsent that holds three values when GDPR is applies to the user, and one value when It's not.
      * when GDPR applies to the user and your app does not use a CMP compatible with TCF v2.2, use this API to provide the consent data directly to the SDK.<br>
      */
-    AppsFlyer.prototype.setConsentData = function (appsFlyerConsent){
-        exec(null, null, 'AppsFlyerPlugin', 'setConsentData', [appsFlyerConsent]);
+    AppsFlyer.prototype.setConsentData = function (appsFlyerConsent) {
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            const params = {
+                isUserSubjectToGDPR: appsFlyerConsent.isUserSubjectToGDPR === true,
+                hasConsentForDataUsage: appsFlyerConsent.hasConsentForDataUsage,
+                hasConsentForAdsPersonalization: appsFlyerConsent.hasConsentForAdsPersonalization,
+                hasConsentForAdStorage: appsFlyerConsent.hasConsentForAdStorage
+            };
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setConsentData', params: params }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'setConsentData', [appsFlyerConsent]);
+        }
     };
 
     /**
