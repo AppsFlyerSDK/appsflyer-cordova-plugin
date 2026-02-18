@@ -29,8 +29,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.appsflyer.AppsFlyerLib;
-import com.appsflyer.AppsFlyerProperties;
-import com.appsflyer.share.SessionReadyListener;
 import com.appsflyer.pluginbridge.handler.AppsFlyerRpcHandler;
 import com.appsflyer.pluginbridge.model.RpcResponse;
 import com.appsflyer.pluginbridge.parser.JsonRpcRequestParser;
@@ -354,16 +352,13 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @return true
      */
     private boolean setDisableAdvertisingIdentifier(JSONArray args, CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    boolean disable = args.getBoolean(0);
-                    AppsFlyerLib.getInstance().setDisableAdvertisingIdentifiers(disable);
-                    callbackContext.success(SUCCESS);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+        cordova.getThreadPool().execute(() -> {
+            try {
+                boolean disable = args.getBoolean(0);
+                AppsFlyerLib.getInstance().setDisableAdvertisingIdentifiers(disable);
+                callbackContext.success(SUCCESS);
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         });
         return true;
@@ -423,7 +418,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                     mConversionListener = callbackContext;
                 }
 
-                gcdListener = registerConversionListener(instance);
+                gcdListener = registerConversionListener();
 
             }
             // init appsflyerSDK
@@ -471,10 +466,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     /**
      * GCD listener. handles success and errors in conversion data .
      *
-     * @param instance
      * @return
      */
-    private AppsFlyerConversionListener registerConversionListener(AppsFlyerLib instance) {
+    private AppsFlyerConversionListener registerConversionListener() {
         return new AppsFlyerConversionListener() {
 
             @Override
@@ -541,29 +535,26 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         final String jsonStr = params.toString();
         final String type = params.optString("type", "");
 
-        Runnable send = new Runnable() {
-            @Override
-            public void run() {
-                if ((AF_ON_ATTRIBUTION_FAILURE.equals(type) || AF_ON_APP_OPEN_ATTRIBUTION.equals(type))
-                        && mAttributionDataListener != null) {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
-                    result.setKeepCallback(true);
-                    mAttributionDataListener.sendPluginResult(result);
-                } else if ((AF_ON_INSTALL_CONVERSION_DATA_LOADED.equals(type)
-                        || AF_ON_INSTALL_CONVERSION_FAILURE.equals(type))
-                        && mConversionListener != null) {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
-                    result.setKeepCallback(true);
-                    mConversionListener.sendPluginResult(result);
-                } else if (AF_DEEP_LINK.equals(type) && mDeepLinkListener != null) {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
-                    result.setKeepCallback(true);
-                    mDeepLinkListener.sendPluginResult(result);
-                } else if (AF_ON_SESSION_READY.equals(type) && mSessionReadyListener != null) {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
-                    result.setKeepCallback(true);
-                    mSessionReadyListener.sendPluginResult(result);
-                }
+        Runnable send = () -> {
+            if ((AF_ON_ATTRIBUTION_FAILURE.equals(type) || AF_ON_APP_OPEN_ATTRIBUTION.equals(type))
+                    && mAttributionDataListener != null) {
+                PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
+                result.setKeepCallback(true);
+                mAttributionDataListener.sendPluginResult(result);
+            } else if ((AF_ON_INSTALL_CONVERSION_DATA_LOADED.equals(type)
+                    || AF_ON_INSTALL_CONVERSION_FAILURE.equals(type))
+                    && mConversionListener != null) {
+                PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
+                result.setKeepCallback(true);
+                mConversionListener.sendPluginResult(result);
+            } else if (AF_DEEP_LINK.equals(type) && mDeepLinkListener != null) {
+                PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
+                result.setKeepCallback(true);
+                mDeepLinkListener.sendPluginResult(result);
+            } else if (AF_ON_SESSION_READY.equals(type) && mSessionReadyListener != null) {
+                PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
+                result.setKeepCallback(true);
+                mSessionReadyListener.sendPluginResult(result);
             }
         };
 
@@ -585,24 +576,15 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);
 
-        AppsFlyerLib.getInstance().registerSessionReadyListener(new SessionReadyListener() {
-            @Override
-            public void onSessionReady() {
-                cordova.getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            JSONObject obj = new JSONObject();
-                            obj.put("type", AF_ON_SESSION_READY);
-                            obj.put("status", AF_SUCCESS);
-                            sendEvent(obj);
-                        } catch (JSONException e) {
-                            Log.e("AppsFlyer", "SessionReadyListener failed", e);
-                        }
-                    }
-                });
-            }
-        });
+        AppsFlyerLib.getInstance().registerSessionReadyListener(() -> {
+            try {
+                JSONObject obj = new JSONObject();
+                obj.put("type", AF_ON_SESSION_READY);
+                obj.put("status", AF_SUCCESS);
+                sendEvent(obj);
+            } catch (JSONException e) {
+                Log.e("AppsFlyer", "SessionReadyListener failed", e);
+            }            });
         return true;
     }
 
