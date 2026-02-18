@@ -66,8 +66,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     private CallbackContext mConversionListener = null;
     private CallbackContext mAttributionDataListener = null;
     private CallbackContext mDeepLinkListener = null;
-    /** Cached deep link event when the bridge fires before JS has called registerDeepLink. */
-    private JSONObject mPendingDeepLinkEvent = null;
     private CallbackContext mSessionReadyListener = null;
     private Uri intentURI = null;
 
@@ -571,8 +569,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     /**
      * Sends the event to the JavaScript side. Runs on the UI thread so Cordova can deliver
-     * the result to the WebView. Deep link events that arrive before a listener is registered
-     * are cached and delivered when the listener is set.
+     * the result to the WebView (the bridge may invoke the notifier from a background thread).
      */
     private void sendEvent(JSONObject params) {
         final String jsonStr = params.toString();
@@ -592,17 +589,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                     PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
                     result.setKeepCallback(true);
                     mConversionListener.sendPluginResult(result);
-                } else if (AF_DEEP_LINK.equals(type)) {
-                    if (mDeepLinkListener != null) {
-                        PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
-                        result.setKeepCallback(true);
-                        mDeepLinkListener.sendPluginResult(result);
-                    } else {
-                        try {
-                            mPendingDeepLinkEvent = new JSONObject(jsonStr);
-                        } catch (JSONException ignore) {
-                        }
-                    }
+                } else if (AF_DEEP_LINK.equals(type) && mDeepLinkListener != null) {
+                    PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
+                    result.setKeepCallback(true);
+                    mDeepLinkListener.sendPluginResult(result);
                 } else if (AF_ON_SESSION_READY.equals(type) && mSessionReadyListener != null) {
                     PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
                     result.setKeepCallback(true);
@@ -653,29 +643,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     /**
      * Registers the callback for deep link events (kept open for multiple events via sendEvent).
      * NO_RESULT + keepCallback is sent from handleRpcResponse when isCallbackRegistrationOnly is true.
-     * If a deep link event was already received before registration, it is delivered immediately.
      */
     private void handleSubscribeForDeepLink(CallbackContext callbackContext) {
         mDeepLinkListener = callbackContext;
-        if (mPendingDeepLinkEvent != null) {
-            final JSONObject pending = mPendingDeepLinkEvent;
-            mPendingDeepLinkEvent = null;
-            Runnable deliver = new Runnable() {
-                @Override
-                public void run() {
-                    if (mDeepLinkListener != null) {
-                        PluginResult result = new PluginResult(PluginResult.Status.OK, pending.toString());
-                        result.setKeepCallback(true);
-                        mDeepLinkListener.sendPluginResult(result);
-                    }
-                }
-            };
-            if (cordova.getActivity() != null) {
-                cordova.getActivity().runOnUiThread(deliver);
-            } else {
-                deliver.run();
-            }
-        }
     }
 
     /**
