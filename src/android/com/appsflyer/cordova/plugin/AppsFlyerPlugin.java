@@ -193,12 +193,12 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 paramsJson = new JSONObject();
             }
 
-            // Methods that register callbacks (invoke handler; subscribeForDeepLink then continues to RPC)
+            // Methods that register callbacks
             if ("registerSessionReadyListener".equals(method)) {
                 return handleRegisterSessionReadyListener(callbackContext);
             }
             if ("subscribeForDeepLink".equals(method)) {
-                handleSubscribeForDeepLink(callbackContext);
+                mDeepLinkListener = callbackContext;
             }
 
             // 2. Build JSON-RPC request string and execute (all methods, including subscribeForDeepLink)
@@ -638,14 +638,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
         });
         return true;
-    }
-
-    /**
-     * Registers the callback for deep link events (kept open for multiple events via sendEvent).
-     * NO_RESULT + keepCallback is sent from handleRpcResponse when isCallbackRegistrationOnly is true.
-     */
-    private void handleSubscribeForDeepLink(CallbackContext callbackContext) {
-        mDeepLinkListener = callbackContext;
     }
 
     /**
