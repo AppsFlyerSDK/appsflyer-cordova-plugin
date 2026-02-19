@@ -1,6 +1,5 @@
 package com.appsflyer.cordova.plugin;
 
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_COLLECT_ANDROID_ID;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEEP_LINK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEV_KEY;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_DATA_LOADED;
@@ -224,10 +223,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             // assign some values
             AppsFlyerLib instance = AppsFlyerLib.getInstance();
 
-            // trigger some setters
-            if (options.has(AF_COLLECT_ANDROID_ID)) {
-                AppsFlyerLib.getInstance().setCollectAndroidID(options.optBoolean(AF_COLLECT_ANDROID_ID, true));
-            }
             setPluginInfo();
 
             instance.init(devKey, null, cordova.getActivity());

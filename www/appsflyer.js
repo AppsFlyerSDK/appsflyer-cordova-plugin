@@ -158,6 +158,15 @@ if (!window.CustomEvent) {
     };
 
     /**
+     * Enable or disable Android ID collection. Android only; no-op on iOS.
+     */
+    AppsFlyer.prototype.setCollectAndroidID = function (isEnabled) {
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCollectAndroidID', params: { isCollect: !!isEnabled } }]);
+        }
+    };
+
+    /**
      * currencyId: ISO 4217 Currency Codes
      * On Android uses RPC (executeRpc); on iOS uses legacy native action.
      */
