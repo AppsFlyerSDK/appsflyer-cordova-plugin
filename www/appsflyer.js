@@ -274,12 +274,27 @@ if (!window.CustomEvent) {
      * Log rich in-app events
      * eventName: custom event name, is presented in your dashboard.
      * eventValue: event details
-     * successCB: Success callback - called after event sent successful  .
+     * successCB: Success callback - called after event sent successful.
      * errorCB: Error callback - called when error occurs.
+     * On Android uses RPC (executeRpc); on iOS uses legacy native action.
      */
     AppsFlyer.prototype.logEvent = function (eventName, eventValue, successCB, errorCB) {
         argscheck.checkArgs('SO', 'AppsFlyer.logEvent', arguments);
-        exec(successCB, errorCB, 'AppsFlyerPlugin', 'logEvent', [eventName, eventValue]);
+        if (isAndroid()) {
+            const hasCallback = (typeof successCB === 'function') || (typeof errorCB === 'function');
+            const params = {
+                eventName: eventName || '',
+                eventValues: eventValue || null,
+                awaitResponse: hasCallback
+            };
+            if (hasCallback) {
+                exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logEvent', params: params }]);
+            } else {
+                exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logEvent', params: params }]);
+            }
+        } else {
+            exec(successCB, errorCB, 'AppsFlyerPlugin', 'logEvent', [eventName, eventValue]);
+        }
     };
 
     /**

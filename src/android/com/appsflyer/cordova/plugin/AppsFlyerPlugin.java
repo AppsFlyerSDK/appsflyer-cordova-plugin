@@ -89,8 +89,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         Log.d("AppsFlyer", "Executing...");
         if ("initSdk".equals(action)) {
             return initSdk(args, callbackContext);
-        } else if ("logEvent".equals(action)) {
-            return logEvent(args, callbackContext);
         } else if ("validateAndLogInAppPurchaseV2".equals(action)) {
             return validateAndLogInAppPurchaseV2(args, callbackContext);
         } else if ("setDisableAdvertisingIdentifier".equals(action)) {
@@ -466,51 +464,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             } catch (JSONException e) {
                 Log.e("AppsFlyer", "SessionReadyListener failed", e);
             }            });
-        return true;
-    }
-
-    /**
-     * Track rich in-app events
-     *
-     * @param parameters      eventName: custom event name, is presented in your dashboard.
-     *                        eventValue: event details
-     * @param callbackContext Success callback - called after successful event tracking.
-     *                        Error callback - called when error occurs.
-     * @return
-     */
-    private boolean logEvent(JSONArray parameters, final CallbackContext callbackContext) {
-        String eventName;
-        Map<String, Object> eventValues = null;
-        try {
-            eventName = parameters.getString(0);
-
-            if (parameters.length() > 1 && !parameters.get(1).equals(null)) {
-                JSONObject jsonEventValues = parameters.getJSONObject(1);
-                eventValues = jsonToMap(jsonEventValues.toString());
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return true;
-        }
-
-        if (eventName == null || eventName.trim().length() == 0) {
-            callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_EVENT_NAME_FOUND));
-            return true;
-        }
-
-        Context c = this.cordova.getActivity().getApplicationContext();
-        AppsFlyerLib.getInstance().logEvent(c, eventName, eventValues, callbackContext == null ? null : new AppsFlyerRequestListener() {
-            @Override
-            public void onSuccess() {
-                callbackContext.success(eventName);
-            }
-
-            @Override
-            public void onError(int i, String s) {
-                callbackContext.error(s);
-            }
-        });
-
         return true;
     }
 
