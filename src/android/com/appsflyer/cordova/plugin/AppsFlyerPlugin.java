@@ -11,7 +11,6 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_SESSION_READ
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_SUCCESS;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_DEVKEY_FOUND;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_PARAMETERS_ERROR;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PLUGIN_VERSION;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SHOULD_START_SDK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
@@ -31,10 +30,7 @@ import com.appsflyer.pluginbridge.parser.JsonRpcRequestParser;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
-import com.appsflyer.share.AFPurchaseDetails;
-import com.appsflyer.share.AFPurchaseType;
 import com.appsflyer.share.AppsFlyerConversionListener;
-import com.appsflyer.share.AppsFlyerInAppPurchaseValidationCallback;
 import com.appsflyer.share.attribution.AppsFlyerRequestListener;
 import com.appsflyer.share.platform_extension.Plugin;
 import com.appsflyer.share.platform_extension.PluginInfo;
@@ -87,8 +83,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         Log.d("AppsFlyer", "Executing...");
         if ("initSdk".equals(action)) {
             return initSdk(args, callbackContext);
-        } else if ("validateAndLogInAppPurchaseV2".equals(action)) {
-            return validateAndLogInAppPurchaseV2(args, callbackContext);
         } else if ("executeRpc".equals(action)) {
             return executeRpc(args, callbackContext);
         }
@@ -398,7 +392,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 sendEvent(obj);
             } catch (JSONException e) {
                 Log.e("AppsFlyer", "SessionReadyListener failed", e);
-            }            });
+            }
+        });
         return true;
     }
 
@@ -412,54 +407,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 PluginResult.Status.NO_RESULT);
         pluginResult.setKeepCallback(true);
         callbackContext.sendPluginResult(pluginResult);
-    }
-
-    private boolean validateAndLogInAppPurchaseV2(JSONArray args, final CallbackContext callbackContext) {
-        try {
-            JSONObject purchaseDetails = args.getJSONObject(0);
-            String purchaseType = purchaseDetails.optString("purchaseType", "");
-            String purchaseToken = purchaseDetails.optString("purchaseToken", "");
-            String productId = purchaseDetails.optString("productId", "");
-            JSONObject additionalParametersJson = args.getJSONObject(1);
-            Map<String, String> additionalParameters = null;
-
-            if (purchaseType.isEmpty() || purchaseToken.isEmpty() || productId.isEmpty()) {
-                callbackContext.error(NO_PARAMETERS_ERROR);
-                return true;
-            }
-
-            if (additionalParametersJson != null) {
-                additionalParameters = toMap(additionalParametersJson);
-            }
-
-            AFPurchaseDetails details = new AFPurchaseDetails(
-                    purchaseType.equals("subscription") ? AFPurchaseType.SUBSCRIPTION : AFPurchaseType.ONE_TIME_PURCHASE,
-                    purchaseToken,
-                    productId
-            );
-
-            AppsFlyerLib.getInstance().validateAndLogInAppPurchase(details, additionalParameters, new AppsFlyerInAppPurchaseValidationCallback() {
-                @Override
-                public void onInAppPurchaseValidationFinished(@NonNull Map<String, ?> validationResult) {
-                    JSONObject jsonObject = new JSONObject(validationResult);
-                    String jsonString = jsonObject.toString();
-                    callbackContext.success(jsonString);
-                }
-
-                @Override
-                public void onInAppPurchaseValidationError(@NonNull Map<String, ?> validationError) {
-                    JSONObject jsonObject = new JSONObject(validationError);
-                    String jsonString = jsonObject.toString();
-                    callbackContext.error(jsonString);
-                }
-            });
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-            callbackContext.error(FAILURE);
-            return true;
-        }
-        return true;
     }
 
     private void setPluginInfo(){

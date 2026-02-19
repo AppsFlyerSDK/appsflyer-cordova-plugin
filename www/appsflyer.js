@@ -435,13 +435,30 @@ if (!window.CustomEvent) {
      * Learn more:
      * Android: https://dev.appsflyer.com/hc/docs/validate-and-log-purchase-android
      * iOS: https://dev.appsflyer.com/hc/docs/validate-and-log-purchase-ios
-     * @param {AFPurchaseDetails} afPurchaseDetails object containing purchase details
-     * @param {string} additionalParameters JSON including all the additional parameters
+     * @param {AFPurchaseDetails} afPurchaseDetails object containing purchase details (purchaseType, purchaseToken, productId)
+     * @param {object} additionalParameters optional map of additional parameters
      * @param successC Success callback
      * @param errorC Error callback
+     * On Android uses RPC (executeRpc) with method validateAndLogInAppPurchase; on iOS uses legacy native action.
      */
-    AppsFlyer.prototype.validateAndLogInAppPurchaseV2 = function (afPurchaseDetails, additionalParameters, successC, errorC) {
-        exec(successC, errorC, 'AppsFlyerPlugin', 'validateAndLogInAppPurchaseV2', [afPurchaseDetails, additionalParameters]);
+    AppsFlyer.prototype.validateAndLogInAppPurchase = function (afPurchaseDetails, additionalParameters, successC, errorC) {
+        if (isAndroid()) {
+            const hasCallback = (typeof successC === 'function') || (typeof errorC === 'function');
+            const params = {
+                purchaseType: (afPurchaseDetails && afPurchaseDetails.purchaseType) || '',
+                purchaseToken: (afPurchaseDetails && afPurchaseDetails.purchaseToken) || '',
+                productId: (afPurchaseDetails && afPurchaseDetails.productId) || '',
+                additionalParameters: additionalParameters || null,
+                awaitResponse: hasCallback
+            };
+            if (hasCallback) {
+                exec(successC || function () {}, errorC || function () {}, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'validateAndLogInAppPurchase', params: params }]);
+            } else {
+                exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'validateAndLogInAppPurchase', params: params }]);
+            }
+        } else {
+            exec(successC, errorC, 'AppsFlyerPlugin', 'validateAndLogInAppPurchaseV2', [afPurchaseDetails, additionalParameters]);
+        }
     };
 
     /**
