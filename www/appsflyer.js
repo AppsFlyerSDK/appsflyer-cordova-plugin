@@ -509,16 +509,27 @@ if (!window.CustomEvent) {
      * @param hostName
      */
     AppsFlyer.prototype.setHost = function (hostPrefix, hostName) {
-        exec(null, null, 'AppsFlyerPlugin', 'setHost', [hostPrefix, hostName]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setHost', params: { hostPrefixName: hostPrefix || null, hostName: hostName || '' } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'setHost', [hostPrefix, hostName]);
+        }
     };
 
     /**
      * The addPushNotificationDeepLinkPath method provides app owners with a flexible interface for configuring how deep links are extracted from push notification payloads.
      * for more information: https://support.appsflyer.com/hc/en-us/articles/207032126-Android-SDK-integration-for-developers#core-apis-65-configure-push-notification-deep-link-resolution
-     * @param path: an array of string that represents the path
+     * @param path an array of string that represents the path
      */
     AppsFlyer.prototype.addPushNotificationDeepLinkPath = function (path) {
-        exec(null, null, 'AppsFlyerPlugin', 'addPushNotificationDeepLinkPath', [path]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            const deepLinkPath = Array.isArray(path) ? path : (path != null ? [path] : []);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'addPushNotificationDeepLinkPath', params: { deepLinkPath: deepLinkPath } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'addPushNotificationDeepLinkPath', [path]);
+        }
     };
 
     /**
@@ -526,7 +537,13 @@ if (!window.CustomEvent) {
      * @param urls
      */
     AppsFlyer.prototype.setResolveDeepLinkURLs = function (urls) {
-        exec(null, null, 'AppsFlyerPlugin', 'setResolveDeepLinkURLs', [urls]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            const urlList = Array.isArray(urls) ? urls : (urls != null ? [urls] : []);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setResolveDeepLinkURLs', params: { urls: urlList } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'setResolveDeepLinkURLs', [urls]);
+        }
     };
 
     /**

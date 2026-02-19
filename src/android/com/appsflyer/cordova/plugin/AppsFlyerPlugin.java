@@ -100,12 +100,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return validateAndLogInAppPurchaseV2(args, callbackContext);
         } else if ("enableFacebookDeferredApplinks".equals(action)) {
             return enableFacebookDeferredApplinks(args);
-        } else if ("setHost".equals(action)) {
-            return setHost(args);
-        } else if ("addPushNotificationDeepLinkPath".equals(action)) {
-            return addPushNotificationDeepLinkPath(args);
-        } else if ("setResolveDeepLinkURLs".equals(action)) {
-            return setResolveDeepLinkURLs(args);
         } else if ("setDisableAdvertisingIdentifier".equals(action)) {
             return setDisableAdvertisingIdentifier(args, callbackContext);
         } else if ("setAdditionalData".equals(action)) {
@@ -716,56 +710,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         } catch (JSONException e) {
             e.printStackTrace();
             return true;
-        }
-        return true;
-    }
-
-    /**
-     * set custom host prefix and host name
-     *
-     * @param args: host prefix and host name
-     * @return
-     */
-    private boolean setHost(JSONArray args) {
-        try {
-            String prefix = args.getString(0);
-            String name = args.getString(1);
-            AppsFlyerLib.getInstance().setHost(prefix, name);
-            Log.d("AppsFlyer", prefix + "." + name);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return true;
-    }
-
-    private boolean addPushNotificationDeepLinkPath(JSONArray args) {
-        try {
-            String pathStr = args.getString(0);
-            String[] path = convertToStringArray(args);
-            if (path != null && path.length > 0) {
-                AppsFlyerLib.getInstance().addPushNotificationDeepLinkPath(path);
-                Log.d("AppsFlyer", path.toString());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return true;
-    }
-
-    /**
-     * Use this API to get the OneLink from click domains that launch the app. Make sure to call this API before SDK initialization.
-     *
-     * @param args: urls
-     */
-    private boolean setResolveDeepLinkURLs(JSONArray args) {
-        try {
-            String[] urls = convertToStringArray(args);
-            if (urls != null && urls.length > 0) {
-                AppsFlyerLib.getInstance().setResolveDeepLinkURLs(urls);
-                Log.d("AppsFlyer", urls.toString());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return true;
     }
