@@ -622,10 +622,21 @@ if (!window.CustomEvent) {
 
     /**
      * Measure and get data from push-notification campaigns.
-     * @param pushData - JSON object contains the push data
+     * Uses sendPushNotificationData(AFPushData). pushData must contain campaign, pid, and optionally isRetargeting, additionalParameters.
+     * @param pushData - Object with campaign (string), pid (string), isRetargeting (boolean, optional), additionalParameters (object, optional)
      */
-    AppsFlyer.prototype.sendPushNotificationData = function (pushData){
-        exec(null, null, 'AppsFlyerPlugin', 'sendPushNotificationData', [pushData]);
+    AppsFlyer.prototype.sendPushNotificationData = function (pushData) {
+        if (isAndroid()) {
+            const params = {
+                campaign: pushData && (pushData.campaign != null) ? String(pushData.campaign) : '',
+                pid: pushData && (pushData.pid != null) ? String(pushData.pid) : '',
+                isRetargeting: !!(pushData && pushData.isRetargeting),
+                additionalParameters: (pushData && pushData.additionalParameters) || null
+            };
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'sendPushNotificationData', params: params }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'sendPushNotificationData', [pushData]);
+        }
     };
 
     /**

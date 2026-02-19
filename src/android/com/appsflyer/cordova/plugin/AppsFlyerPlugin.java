@@ -89,8 +89,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return initSdk(args, callbackContext);
         } else if ("validateAndLogInAppPurchaseV2".equals(action)) {
             return validateAndLogInAppPurchaseV2(args, callbackContext);
-        } else if ("sendPushNotificationData".equals(action)) {
-            return sendPushNotificationData(args);
         } else if ("executeRpc".equals(action)) {
             return executeRpc(args, callbackContext);
         }
@@ -211,23 +209,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
             return Unit.INSTANCE;
         };
-    }
-
-    private boolean sendPushNotificationData(JSONArray args) {
-        cordova.getThreadPool().execute(() -> {
-            try {
-                JSONObject js = args.getJSONObject(0);
-                Intent i = cordova.getActivity().getIntent();
-                if (i != null) {
-                    i.putExtras(jsonToBundle(js));
-                    cordova.getActivity().setIntent(i);
-                    AppsFlyerLib.getInstance().sendPushNotificationData(cordova.getActivity());
-                }
-            } catch (JSONException e) {
-                Log.d("AppsFlyer", "Could not parse json to bundle");
-            }
-        });
-        return true;
     }
 
     /**
