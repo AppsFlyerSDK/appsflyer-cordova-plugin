@@ -6,52 +6,37 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONV
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_SESSION_READY;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_SUCCESS;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PLUGIN_VERSION;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Bundle;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
 
 import com.appsflyer.AppsFlyerLib;
 import com.appsflyer.pluginbridge.handler.AppsFlyerRpcHandler;
 import com.appsflyer.pluginbridge.model.RpcResponse;
 import com.appsflyer.pluginbridge.parser.JsonRpcRequestParser;
-
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
 import com.appsflyer.share.platform_extension.Plugin;
 import com.appsflyer.share.platform_extension.PluginInfo;
 
 import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 
 public class AppsFlyerPlugin extends CordovaPlugin {
 
     private CallbackContext mConversionListener = null;
     private CallbackContext mDeepLinkListener = null;
     private CallbackContext mSessionReadyListener = null;
-    private Uri intentURI = null;
 
     private AppsFlyerRpcHandler rpcHandler;
-
-    @Override
-    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-        super.initialize(cordova, webView);
-    }
 
     /**
      * Called when the activity receives a new intent.
@@ -66,8 +51,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      * @param action          The action name to call into.
      * @param args            Arguments to pass into the native environment.
      * @param callbackContext Success and Error function callback (optionally with an error/success parameter)
-     * @return
-     * @throws JSONException
      */
     @Override
     public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) {
@@ -182,7 +165,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         return eventJson -> {
             try {
                 JSONObject obj = new JSONObject(eventJson);
-                Log.i("AppsFlyer", "Received event notification " + obj.toString());
+                Log.d("AppsFlyer", "Received event notification " + obj);
                 String event = obj.optString("event", "");
                 // Map bridge event names to plugin type names for sendEvent routing
                 if ("onConversionDataSuccess".equals(event)) {
@@ -260,8 +243,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     /**
      * Helper function to send a callback with no results.
-     *
-     * @param callbackContext
      */
     private void sendPluginNoResult(CallbackContext callbackContext) {
         PluginResult pluginResult = new PluginResult(
@@ -275,50 +256,4 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         AppsFlyerLib.getInstance().setPluginInfo(pluginInfo);
     }
 
-    private Map<String, String> toMap(JSONObject jsonobj) throws JSONException {
-        Map<String, String> map = new HashMap<String, String>();
-        Iterator<String> keys = jsonobj.keys();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            String value = (String) jsonobj.get(key);
-            map.put(key, value);
-        }
-        return map;
-    }
-
-    private Bundle jsonToBundle(JSONObject json) throws JSONException {
-        Bundle bundle = new Bundle();
-        Iterator<String> iterator = json.keys();
-        while (iterator.hasNext()) {
-            String key = iterator.next();
-            Object value = json.get(key);
-            switch (value.getClass().getSimpleName()) {
-                case "String":
-                    bundle.putString(key, (String) value);
-                    break;
-                case "Integer":
-                    bundle.putInt(key, (Integer) value);
-                    break;
-                case "Long":
-                    bundle.putLong(key, (Long) value);
-                    break;
-                case "Boolean":
-                    bundle.putBoolean(key, (Boolean) value);
-                    break;
-                case "JSONObject":
-                    bundle.putBundle(key, jsonToBundle((JSONObject) value));
-                    break;
-                case "Float":
-                    bundle.putFloat(key, (Float) value);
-                    break;
-                case "Double":
-                    bundle.putDouble(key, (Double) value);
-                    break;
-                default:
-                    bundle.putString(key, value.getClass().getSimpleName());
-            }
-        }
-        return bundle;
-        
-    }
 }
