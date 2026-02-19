@@ -33,12 +33,10 @@ import com.appsflyer.pluginbridge.parser.JsonRpcRequestParser;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
-import com.appsflyer.share.AFAdRevenueData;
 import com.appsflyer.share.AFPurchaseDetails;
 import com.appsflyer.share.AFPurchaseType;
 import com.appsflyer.share.AppsFlyerConversionListener;
 import com.appsflyer.share.AppsFlyerInAppPurchaseValidationCallback;
-import com.appsflyer.share.MediationNetwork;
 import com.appsflyer.share.attribution.AppsFlyerRequestListener;
 import com.appsflyer.share.platform_extension.Plugin;
 import com.appsflyer.share.platform_extension.PluginInfo;
@@ -110,62 +108,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return sendPushNotificationData(args);
         } else if ("setDisableNetworkData".equals(action)) {
             return setDisableNetworkData(args);
-        } else if ("enableTCFDataCollection".equals(action)) {
-            return enableTCFDataCollection(args);
-        } else if ("logAdRevenue".equals(action)) {
-            return logAdRevenue(args);
-        } else if ("disableAppSetId".equals(action)) {
-            return disableAppSetId();
         } else if ("executeRpc".equals(action)) {
             return executeRpc(args, callbackContext);
         }
         return false;
-    }
-
-    /**
-     * log AdRevenue event
-     *
-     * @param args - event params
-     * @return true
-     */
-    private boolean logAdRevenue(JSONArray args) {
-        cordova.getThreadPool().execute(() -> {
-            Map<String, Object> additionalParameters = null;
-            try {
-                if(!args.get(0).equals(null)){
-                    JSONObject afAdRevenueDataJsonObj = args.getJSONObject(0);
-                    String monetizationNetwork = afAdRevenueDataJsonObj.optString("monetizationNetwork", null);
-                    String mediationNetwork = afAdRevenueDataJsonObj.optString("mediationNetwork", null);
-                    String currencyIso4217Code = afAdRevenueDataJsonObj.optString("currencyIso4217Code", null);
-                    double revenue = afAdRevenueDataJsonObj.optDouble("revenue", -1);
-                    MediationNetwork mediationNetworkEnumVal = null;
-
-                    if(mediationNetwork != null){
-                        for(MediationNetwork mediationNetworkEnum: MediationNetwork.values()){
-                            if(mediationNetworkEnum.getValue().equals(mediationNetwork)){
-                                mediationNetworkEnumVal = mediationNetworkEnum;
-                                break;
-                            }
-                        }
-                    }
-
-                    if(!args.get(1).equals(null)){
-                        JSONObject additionalParametersJson = args.getJSONObject(1);
-                        additionalParameters = toObjectMap(additionalParametersJson);
-                    }
-                    if(mediationNetworkEnumVal != null){
-                        AFAdRevenueData afAdRevenueData = new AFAdRevenueData(monetizationNetwork, mediationNetworkEnumVal, currencyIso4217Code, revenue);
-                        AppsFlyerLib.getInstance().logAdRevenue(afAdRevenueData, additionalParameters);
-                    }
-                    else{
-                        Log.d("AppsFlyer", "Could not log Ad-Revenue event, bad inputs");
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        });
-        return true;
     }
 
     public boolean executeRpc(JSONArray args, final CallbackContext callbackContext) {
@@ -282,25 +228,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
             return Unit.INSTANCE;
         };
-    }
-
-    /**
-     * set collect tcf data or not.
-     *
-     * @param args - json object that holds the boolean value.
-     * @return true
-     */
-    private boolean enableTCFDataCollection(JSONArray args) {
-        cordova.getThreadPool().execute(() -> {
-            try {
-                boolean enable = args.getBoolean(0);
-                AppsFlyerLib.getInstance().enableTCFDataCollection(enable);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-        });
-        return true;
     }
 
     private boolean setDisableNetworkData(JSONArray args) {
@@ -742,11 +669,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     private void setPluginInfo(){
         PluginInfo pluginInfo = new PluginInfo(Plugin.CORDOVA, PLUGIN_VERSION);
         AppsFlyerLib.getInstance().setPluginInfo(pluginInfo);
-    }
-
-    private boolean disableAppSetId(){
-        AppsFlyerLib.getInstance().disableAppSetId();
-        return true;
     }
 
     /**

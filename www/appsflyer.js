@@ -173,9 +173,21 @@ if (!window.CustomEvent) {
     /**
      * Public API - logAdRevenue function
      */
-    AppsFlyer.prototype.logAdRevenue = function(afAdRevenueData, additionalParameters) {
+    AppsFlyer.prototype.logAdRevenue = function (afAdRevenueData, additionalParameters) {
         argscheck.checkArgs('OO', 'AppsFlyer.logAdRevenue', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'logAdRevenue', [afAdRevenueData, additionalParameters]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            const params = {
+                monetizationNetwork: afAdRevenueData.monetizationNetwork || '',
+                mediationNetwork: afAdRevenueData.mediationNetwork || '',
+                currencyIso4217Code: afAdRevenueData.currencyIso4217Code || '',
+                revenue: afAdRevenueData.revenue != null ? afAdRevenueData.revenue : 0,
+                additionalParameters: additionalParameters || null
+            };
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAdRevenue', params: params }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'logAdRevenue', [afAdRevenueData, additionalParameters]);
+        }
     };
 
     /**
@@ -626,7 +638,12 @@ if (!window.CustomEvent) {
      * @param enable - boolean value that represent if enables to collect or not.
      */
     AppsFlyer.prototype.enableTCFDataCollection = function (enable) {
-        exec(null, null, 'AppsFlyerPlugin', 'enableTCFDataCollection', [enable]);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableTCFDataCollection', params: { shouldCollect: !!enable } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'enableTCFDataCollection', [enable]);
+        }
     };
 
     /**
@@ -634,7 +651,12 @@ if (!window.CustomEvent) {
      * even if such dependency is added to the app.
      */
     AppsFlyer.prototype.disableAppSetId = function () {
-        exec(null, null, 'AppsFlyerPlugin', 'disableAppSetId', []);
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'disableAppSetId', params: {} }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'disableAppSetId', []);
+        }
     };
 
     module.exports = new AppsFlyer();
