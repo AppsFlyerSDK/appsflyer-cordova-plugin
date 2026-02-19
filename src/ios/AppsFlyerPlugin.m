@@ -148,6 +148,14 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
 }
 
+- (void)setDebugLog:(CDVInvokedUrlCommand*)command
+{
+    NSNumber* isEnabled = [command argumentAtIndex:0 withDefault:@NO];
+    [AppsFlyerLib shared].isDebug = [isEnabled boolValue];
+    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
 -(void)startSdk:(CDVInvokedUrlCommand*)command {
     [self setShouldStartSdk:YES];
     [[AppsFlyerLib shared] start];

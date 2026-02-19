@@ -5,14 +5,12 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_CONVERSION_DATA
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEEP_LINK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEV_KEY;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_FAILURE;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_IS_DEBUG;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_DATA_LOADED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_SESSION_READY;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_SUCCESS;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_DEVKEY_FOUND;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_EVENT_NAME_FOUND;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_PARAMETERS_ERROR;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PLUGIN_VERSION;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SHOULD_START_SDK;
@@ -292,7 +290,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             AppsFlyerConversionListener gcdListener = null;
             AppsFlyerLib instance = AppsFlyerLib.getInstance();
             boolean isConversionData = options.optBoolean(AF_CONVERSION_DATA, false);
-            boolean isDebug = options.optBoolean(AF_IS_DEBUG, false);
             boolean shouldStartSDK = options.optBoolean(SHOULD_START_SDK, true);
 
             // trigger some setters
@@ -300,11 +297,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 AppsFlyerLib.getInstance().setCollectAndroidID(options.optBoolean(AF_COLLECT_ANDROID_ID, true));
             }
             setPluginInfo();
-            instance.setDebugLog(isDebug);
-
-            if (isDebug) {
-                Log.d("AppsFlyer", "Starting Tracking");
-            }
 
             if (isConversionData) {
 
@@ -468,32 +460,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     }
 
     /**
-     * Converts Json to Map.
-     *
-     * @param inputString
-     * @return
-     */
-    private static Map<String, Object> jsonToMap(String inputString) {
-        Map<String, Object> newMap = new HashMap<String, Object>();
-
-        try {
-            JSONObject jsonObject = new JSONObject(inputString);
-            Iterator iterator = jsonObject.keys();
-            while (iterator.hasNext()) {
-                String key = (String) iterator.next();
-                newMap.put(key, jsonObject.getString(key));
-
-            }
-        } catch (JSONException e) {
-            return null;
-        }
-
-        return newMap;
-    }
-
-    // USER INVITE
-
-    /**
      * Helper function to send a callback with no results.
      *
      * @param callbackContext
@@ -558,88 +524,12 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         AppsFlyerLib.getInstance().setPluginInfo(pluginInfo);
     }
 
-    /**
-     * takes string representation of a string array and converts it to an array. use this method because old version of cordova cannot pass an array to native.
-     * newer versions can, but can break flow to older users
-     *
-     * @param str
-     * @return String array
-     */
-    private String[] stringToArray(@NonNull String str) {
-        String[] realArr = null;
-        str = str.substring(1, str.length() - 1);
-        str = str.replaceAll(" ", "");
-        realArr = str.split("[ ,]");
-        for (String el : realArr) {
-            el = el.substring(1, el.length() - 1);
-            Log.i("element", el);
-        }
-        return realArr;
-    }
-
-    /**
-     * this method get a JSONArray of strings and convert it to String array
-     *
-     * @param json JSONArray object that contains string elements
-     * @return the provided JSONArray converted to String array
-     * @throws JSONException
-     */
-    private String[] jsonArrayToStringArray(@NonNull JSONArray json) throws JSONException {
-        if (json.length() == 0) {
-            return null;
-        }
-        String[] arr = new String[json.length()];
-        for (int i = 0; i < json.length(); i++) {
-            arr[i] = json.getString(i);
-        }
-        return arr;
-    }
-
-    /**
-     * This method get the JSONArray object from JS and convert it to String array.
-     * The first element can be string representation of a string array or JSONArray of strings.
-     *
-     * @param json JSONArray object from JS.
-     * @return String array or null
-     */
-    private String[] convertToStringArray(JSONArray json) {
-        if (json == null || json.length() == 0) {
-            return null;
-        }
-
-        String[] arr = null;
-
-        try {
-            Object obj = json.get(0);
-            if (obj instanceof String) {
-                arr = stringToArray((String) obj);
-            } else if (obj instanceof JSONArray) {
-                arr = jsonArrayToStringArray((JSONArray) obj);
-            }
-        } catch (JSONException | ClassCastException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return arr;
-    }
-
     private Map<String, String> toMap(JSONObject jsonobj) throws JSONException {
         Map<String, String> map = new HashMap<String, String>();
         Iterator<String> keys = jsonobj.keys();
         while (keys.hasNext()) {
             String key = keys.next();
             String value = (String) jsonobj.get(key);
-            map.put(key, value);
-        }
-        return map;
-    }
-
-    private Map<String, Object> toObjectMap(JSONObject jsonobj) throws JSONException {
-        Map<String, Object> map = new HashMap<String, Object>();
-        Iterator<String> keys = jsonobj.keys();
-        while (keys.hasNext()) {
-            String key = keys.next();
-            Object value = jsonobj.get(key);
             map.put(key, value);
         }
         return map;

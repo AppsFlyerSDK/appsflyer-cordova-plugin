@@ -146,6 +146,17 @@ if (!window.CustomEvent) {
     };
 
     /**
+     * Enable or disable debug logs. Call after initSdk if you need to change debug mode at runtime.
+     */
+    AppsFlyer.prototype.setDebugLog = function (isEnabled) {
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'isDebug', params: { isDebug: !!isEnabled } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'setDebugLog', [!!isEnabled]);
+        }
+    };
+
+    /**
      * Register Unified deep link listener
      * @param onDeepLinkListener ddl callback triggered when deep linked has been clicked and onDeepLinkListener = true;
      */
