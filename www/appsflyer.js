@@ -143,19 +143,6 @@ if (!window.CustomEvent) {
     };
 
     /**
-     * onAppOpenAttributionSuccess: Success callback - called after receiving data on App Open Attribution.
-     * onAppOpenAttributionError: Error callback - called when error occurs.
-     */
-    AppsFlyer.prototype.registerOnAppOpenAttribution = function (onAppOpenAttributionSuccess, onAppOpenAttributionError) {
-        argscheck.checkArgs('FF', 'AppsFlyer.registerOnAppOpenAttribution', arguments);
-
-        callbackMap.attrSuc = onAppOpenAttributionSuccess;
-        callbackMap.attrErr = onAppOpenAttributionError;
-
-        exec(onAppOpenAttributionSuccess, onAppOpenAttributionError, 'AppsFlyerPlugin', 'registerOnAppOpenAttribution', []);
-    };
-
-    /**
      * Register Unified deep link listener
      * @param onDeepLinkListener ddl callback triggered when deep linked has been clicked and onDeepLinkListener = true;
      */

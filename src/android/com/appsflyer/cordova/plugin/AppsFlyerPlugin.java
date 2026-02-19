@@ -6,8 +6,6 @@ import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEEP_LINK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEV_KEY;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_IS_DEBUG;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_APP_OPEN_ATTRIBUTION;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_ATTRIBUTION_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_DATA_LOADED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_SESSION_READY;
@@ -524,12 +522,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         final String type = params.optString("type", "");
 
         Runnable send = () -> {
-            if ((AF_ON_ATTRIBUTION_FAILURE.equals(type) || AF_ON_APP_OPEN_ATTRIBUTION.equals(type))
-                    && mAttributionDataListener != null) {
-                PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
-                result.setKeepCallback(true);
-                mAttributionDataListener.sendPluginResult(result);
-            } else if ((AF_ON_INSTALL_CONVERSION_DATA_LOADED.equals(type)
+            if ((AF_ON_INSTALL_CONVERSION_DATA_LOADED.equals(type)
                     || AF_ON_INSTALL_CONVERSION_FAILURE.equals(type))
                     && mConversionListener != null) {
                 PluginResult result = new PluginResult(PluginResult.Status.OK, jsonStr);
