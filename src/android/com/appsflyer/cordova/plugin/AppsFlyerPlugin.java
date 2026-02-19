@@ -1,12 +1,10 @@
 package com.appsflyer.cordova.plugin;
 
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEEP_LINK;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEV_KEY;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_DATA_LOADED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_SESSION_READY;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_SUCCESS;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_DEVKEY_FOUND;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PLUGIN_VERSION;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
 
@@ -73,10 +71,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      */
     @Override
     public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) {
-        Log.d("AppsFlyer", "Executing...");
-        if ("initSdk".equals(action)) {
-            return initSdk(args, callbackContext);
-        } else if ("executeRpc".equals(action)) {
+        if ("executeRpc".equals(action)) {
             return executeRpc(args, callbackContext);
         }
         return false;
@@ -101,6 +96,10 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
             if ("registerConversionListener".equals(method)) {
                 mConversionListener = callbackContext;
+            }
+
+            if ("init".equals(method)) {
+                setPluginInfo();
             }
 
             // 2. Build JSON-RPC request string and execute (all methods, including subscribeForDeepLink)
@@ -163,7 +162,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
      */
     private AppsFlyerRpcHandler getOrCreateRpcHandler() {
         if (rpcHandler == null) {
-            Context context = cordova.getActivity().getApplicationContext();
+            Context context = cordova.getActivity();
             rpcHandler = new AppsFlyerRpcHandler(
                     context,
                     createRpcEventNotifier(),
@@ -200,38 +199,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
             return Unit.INSTANCE;
         };
-    }
-
-    /**
-     * initialize the SDK.
-     *
-     * @param args            SDK configuration
-     * @param callbackContext Success callback - called after successful SDK initialization.
-     *                        errorCB: Error callback - called when error occurs during initialization.
-     */
-    private boolean initSdk(final JSONArray args, final CallbackContext callbackContext) {
-
-        try {
-            final JSONObject options = args.getJSONObject(0);
-
-            // assert if AF_DEV_KEY is null/empty string
-            String devKey = options.optString(AF_DEV_KEY, "");
-            if (devKey.trim().equals("")) {
-                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NO_DEVKEY_FOUND));
-            }
-
-            // assign some values
-            AppsFlyerLib instance = AppsFlyerLib.getInstance();
-
-            setPluginInfo();
-
-            instance.init(devKey, null, cordova.getActivity());
-            callbackContext.success(SUCCESS);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        return true;
     }
 
     /**

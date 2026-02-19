@@ -96,11 +96,15 @@ if (!window.CustomEvent) {
 
     /**
      * initialize the SDK.
-     * args: SDK configuration
+     * args: SDK configuration (devKey required; on Android uses RPC "init", start is separate)
      */
     AppsFlyer.prototype.initSdk = function (args) {
         argscheck.checkArgs('O', 'AppsFlyer.initSdk', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'initSdk', [args]);
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'init', params: { devKey: args.devKey || '' } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'initSdk', [args]);
+        }
     };
 
     /**
