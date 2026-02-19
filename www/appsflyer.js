@@ -125,11 +125,21 @@ if (!window.CustomEvent) {
     };
 
     /**
-     * starts the SDK.
-     *
+     * Starts the SDK. Optionally, pass success and error callbacks to be notified when start completes.
      */
-    AppsFlyer.prototype.startSdk = function () {
-        exec(null, null, 'AppsFlyerPlugin', 'startSdk', []);
+    AppsFlyer.prototype.startSdk = function (successCB, errorCB) {
+        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
+        if (isAndroid) {
+            const hasCallback = (typeof successCB === 'function') || (typeof errorCB === 'function');
+            const params = { awaitResponse: hasCallback };
+            if (hasCallback) {
+                exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'start', params: params }]);
+            } else {
+                exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'start', params: params }]);
+            }
+        } else {
+            exec(successCB || null, errorCB || null, 'AppsFlyerPlugin', 'startSdk', []);
+        }
     };
 
     /**

@@ -96,8 +96,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return registerOnAppOpenAttribution(callbackContext);
         } else if ("initSdk".equals(action)) {
             return initSdk(args, callbackContext);
-        } else if ("startSdk".equals(action)) {
-            return startSdk();
         } else if ("logEvent".equals(action)) {
             return logEvent(args, callbackContext);
         } else if ("validateAndLogInAppPurchaseV2".equals(action)) {
@@ -424,7 +422,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             // init appsflyerSDK
             instance.init(devKey, gcdListener, cordova.getActivity());
 
-            if(shouldStartSDK){
+            if (shouldStartSDK) {
                 if (mConversionListener == null) {
                     instance.start(new AppsFlyerRequestListener() {
                         @Override
@@ -437,9 +435,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                             callbackContext.error(FAILURE);
                         }
                     });
-                }
-                else{
-                    startSdk();
+                } else {
+                    instance.start();
                 }
             }
             if (gcdListener != null) {
@@ -451,15 +448,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             e.printStackTrace();
         }
 
-        return true;
-    }
-
-    /**
-     * start the SDK.
-     */
-    private boolean startSdk() {
-        AppsFlyerLib instance = AppsFlyerLib.getInstance();
-        instance.start();
         return true;
     }
 
