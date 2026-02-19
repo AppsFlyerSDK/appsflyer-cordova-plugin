@@ -468,9 +468,14 @@ if (!window.CustomEvent) {
      * If you don't want AppsFlyer to dynamically load this framework, set this property to true.
      * @param disableAdvertisingIdentifier - true OR false
      * @param successC - callback function
+     * On Android uses RPC (executeRpc); on iOS uses legacy native action.
      */
     AppsFlyer.prototype.setDisableAdvertisingIdentifier = function (disableAdvertisingIdentifier, successC) {
-        exec(successC, null, 'AppsFlyerPlugin', 'setDisableAdvertisingIdentifier', [disableAdvertisingIdentifier]);
+        if (isAndroid()) {
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableAdvertisingIdentifiers', params: { isDisable: !!disableAdvertisingIdentifier } }]);
+        } else {
+            exec(successC, null, 'AppsFlyerPlugin', 'setDisableAdvertisingIdentifier', [disableAdvertisingIdentifier]);
+        }
     };
 
     /**
@@ -626,9 +631,14 @@ if (!window.CustomEvent) {
     /**
      * Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device.
      * @param disable - Defaults to false
+     * On Android uses RPC (executeRpc); on iOS uses legacy native action.
      */
-    AppsFlyer.prototype.setDisableNetworkData = function (disable){
-        exec(null, null, 'AppsFlyerPlugin', 'setDisableNetworkData', [disable]);
+    AppsFlyer.prototype.setDisableNetworkData = function (disable) {
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableNetworkData', params: { isDisable: !!disable } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'setDisableNetworkData', [disable]);
+        }
     };
 
     /**

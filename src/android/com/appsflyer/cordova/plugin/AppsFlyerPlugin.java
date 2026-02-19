@@ -89,12 +89,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             return initSdk(args, callbackContext);
         } else if ("validateAndLogInAppPurchaseV2".equals(action)) {
             return validateAndLogInAppPurchaseV2(args, callbackContext);
-        } else if ("setDisableAdvertisingIdentifier".equals(action)) {
-            return setDisableAdvertisingIdentifier(args, callbackContext);
         } else if ("sendPushNotificationData".equals(action)) {
             return sendPushNotificationData(args);
-        } else if ("setDisableNetworkData".equals(action)) {
-            return setDisableNetworkData(args);
         } else if ("executeRpc".equals(action)) {
             return executeRpc(args, callbackContext);
         }
@@ -217,19 +213,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         };
     }
 
-    private boolean setDisableNetworkData(JSONArray args) {
-        cordova.getThreadPool().execute(() -> {
-            try {
-                boolean disable = args.getBoolean(0);
-                AppsFlyerLib.getInstance().setDisableNetworkData(disable);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-        });
-        return true;
-    }
-
     private boolean sendPushNotificationData(JSONArray args) {
         cordova.getThreadPool().execute(() -> {
             try {
@@ -242,27 +225,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 }
             } catch (JSONException e) {
                 Log.d("AppsFlyer", "Could not parse json to bundle");
-            }
-        });
-        return true;
-    }
-
-    /**
-     * Disable collection of Google, Amazon and Open advertising ids (GAID, AAID, OAID).
-     *
-     * @param args
-     * @param callbackContext Success callback - called after value is set.
-     *                        *                        Error callback - called when error occurs.
-     * @return true
-     */
-    private boolean setDisableAdvertisingIdentifier(JSONArray args, CallbackContext callbackContext) {
-        cordova.getThreadPool().execute(() -> {
-            try {
-                boolean disable = args.getBoolean(0);
-                AppsFlyerLib.getInstance().setDisableAdvertisingIdentifiers(disable);
-                callbackContext.success(SUCCESS);
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
         });
         return true;
