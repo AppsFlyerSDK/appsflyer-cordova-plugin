@@ -15,6 +15,10 @@ if (!window.CustomEvent) {
 
 (function (global) {
 
+    function isAndroid() {
+        return typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android';
+    }
+
     // Enum definition for MediationNetwork
     global.MediationNetwork = Object.freeze({
         IRONSOURCE: "ironsource",
@@ -128,8 +132,7 @@ if (!window.CustomEvent) {
      * Starts the SDK. Optionally, pass success and error callbacks to be notified when start completes.
      */
     AppsFlyer.prototype.startSdk = function (successCB, errorCB) {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             const hasCallback = (typeof successCB === 'function') || (typeof errorCB === 'function');
             const params = { awaitResponse: hasCallback };
             if (hasCallback) {
@@ -148,8 +151,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.registerDeepLink = function (onDeepLinkListener) {
         callbackMap.ddlSuc = onDeepLinkListener;
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'subscribeForDeepLink', params: {} }]);
         } else {
             exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'registerDeepLink', []);
@@ -162,8 +164,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setCurrencyCode = function (currencyId) {
         argscheck.checkArgs('S', 'AppsFlyer.setCurrencyCode', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCurrencyCode', params: { currencyCode: currencyId } }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'setCurrencyCode', [currencyId]);
@@ -175,8 +176,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.logAdRevenue = function (afAdRevenueData, additionalParameters) {
         argscheck.checkArgs('OO', 'AppsFlyer.logAdRevenue', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             const params = {
                 monetizationNetwork: afAdRevenueData.monetizationNetwork || '',
                 mediationNetwork: afAdRevenueData.mediationNetwork || '',
@@ -195,8 +195,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setAppUserId = function (customerUserId) {
         argscheck.checkArgs('S', 'AppsFlyer.setAppUserId', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: { customerId: customerUserId } }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'setAppUserId', [customerUserId]);
@@ -208,8 +207,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.getAppsFlyerUID = function (successCB) {
         argscheck.checkArgs('F', 'AppsFlyer.getAppsFlyerUID', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(
                 function (result) { successCB(result); },
                 null,
@@ -233,8 +231,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.anonymizeUser = function (isDisabled) {
         argscheck.checkArgs('*', 'AppsFlyer.anonymizeUser', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'anonymizeUser', params: { shouldAnonymize: isDisabled } }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'anonymizeUser', [isDisabled]);
@@ -246,8 +243,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.Stop = function (isStop) {
         argscheck.checkArgs('*', 'AppsFlyer.Stop', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'stop', params: { shouldStop: isStop } }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'Stop', [isStop]);
@@ -261,8 +257,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.registerSessionReadyListener = function (successCB) {
         argscheck.checkArgs('F', 'AppsFlyer.registerSessionReadyListener', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(
                 function (result) { if (successCB) successCB(result); },
                 null,
@@ -292,8 +287,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.updateServerUninstallToken = function (token) {
         argscheck.checkArgs('S', 'AppsFlyer.updateServerUninstallToken', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'updateServerUninstallToken', params: { token: token } }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'updateServerUninstallToken', [token]);
@@ -306,8 +300,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setAppInviteOneLinkID = function (args) {
         argscheck.checkArgs('S', 'AppsFlyer.setAppInviteOneLinkID', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAppInviteOneLink', params: { oneLinkId: args } }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'setAppInviteOneLinkID', [args]);
@@ -322,8 +315,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.generateInviteLink = function (args, successCB, errorCB) {
         argscheck.checkArgs('O', 'AppsFlyer.generateInviteLink', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             const params = {
                 channel: args.channel || null,
                 campaign: args.campaign || null,
@@ -349,8 +341,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.logCrossPromotionImpression = function (appId, campaign, userParams) {
         argscheck.checkArgs('*', 'AppsFlyer.logCrossPromotionImpression', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logCrossPromoteImpression', params: { appId: appId || '', campaign: campaign || '', userParams: userParams || null } }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'logCrossPromotionImpression', [appId, campaign]);
@@ -365,8 +356,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.logCrossPromotionAndOpenStore = function (appId, campaign, params) {
         argscheck.checkArgs('*', 'AppsFlyer.logCrossPromotionAndOpenStore', arguments);
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAndOpenStore', params: { promotedAppId: appId || '', campaign: campaign || '', userParams: params || null } }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'logCrossPromotionAndOpenStore', [appId, campaign, params]);
@@ -395,8 +385,7 @@ if (!window.CustomEvent) {
      * successCB: Success callback that returns the SDK version
      */
     AppsFlyer.prototype.getSdkVersion = function (successCB) {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getSdkVersion', params: {} }]);
         } else {
             exec(successCB, null, 'AppsFlyerPlugin', 'getSdkVersion', []);
@@ -408,8 +397,7 @@ if (!window.CustomEvent) {
      * networks Comma separated array of partners that need to be excluded
      */
     AppsFlyer.prototype.setSharingFilterForPartners = function (networks) {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setSharingFilterForPartners', params: { partners: networks || [] } }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'setSharingFilterForPartners', [networks]);
@@ -468,8 +456,7 @@ if (!window.CustomEvent) {
      * @param errorC error callback
      */
     AppsFlyer.prototype.setOneLinkCustomDomains = function (domains, successC, errorC) {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setOneLinkCustomDomain', params: { domains: domains || [] } }]);
         } else {
             exec(successC, errorC, 'AppsFlyerPlugin', 'setOneLinkCustomDomains', [domains]);
@@ -480,11 +467,14 @@ if (!window.CustomEvent) {
      * use this api If you need deep linking data from Facebook, deferred deep linking, Dynamic Product Ads, or reasons that
      * unrelated to attribution such as authentication, ad monetization, social sharing, user invites, etc.
      * More information here: https://support.appsflyer.com/hc/en-us/articles/207033826-Facebook-Ads-setup-guide#integration
-     * @param args: boolean value
-     * @return
+     * @param isEnabled - boolean value
      */
     AppsFlyer.prototype.enableFacebookDeferredApplinks = function (isEnabled) {
-        exec(null, null, 'AppsFlyerPlugin', 'enableFacebookDeferredApplinks', [isEnabled]);
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableFacebookDeferredApplinks', params: { isEnabled: !!isEnabled } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'enableFacebookDeferredApplinks', [isEnabled]);
+        }
     };
 
     /**
@@ -493,8 +483,7 @@ if (!window.CustomEvent) {
      * @param successC success callback
      */
     AppsFlyer.prototype.setPhoneNumber = function (phoneNumber, successC) {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPhoneNumber', params: { phoneNumber: phoneNumber || '' } }]);
         } else {
             exec(successC, null, 'AppsFlyerPlugin', 'setPhoneNumber', [phoneNumber]);
@@ -507,8 +496,7 @@ if (!window.CustomEvent) {
      * @param successC success callback
      */
     AppsFlyer.prototype.setUserEmails = function (userEmails, successC) {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmails', params: { emails: userEmails || [] } }]);
         } else {
             exec(successC, null, 'AppsFlyerPlugin', 'setUserEmails', [userEmails]);
@@ -521,8 +509,7 @@ if (!window.CustomEvent) {
      * @param hostName
      */
     AppsFlyer.prototype.setHost = function (hostPrefix, hostName) {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setHost', params: { hostPrefixName: hostPrefix || null, hostName: hostName || '' } }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'setHost', [hostPrefix, hostName]);
@@ -535,8 +522,7 @@ if (!window.CustomEvent) {
      * @param path an array of string that represents the path
      */
     AppsFlyer.prototype.addPushNotificationDeepLinkPath = function (path) {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             const deepLinkPath = Array.isArray(path) ? path : (path != null ? [path] : []);
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'addPushNotificationDeepLinkPath', params: { deepLinkPath: deepLinkPath } }]);
         } else {
@@ -549,8 +535,7 @@ if (!window.CustomEvent) {
      * @param urls
      */
     AppsFlyer.prototype.setResolveDeepLinkURLs = function (urls) {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             const urlList = Array.isArray(urls) ? urls : (urls != null ? [urls] : []);
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setResolveDeepLinkURLs', params: { urls: urlList } }]);
         } else {
@@ -581,8 +566,12 @@ if (!window.CustomEvent) {
      * Typically it is used to integrate on the SDK level with several external partner platforms
      * @param additionalData
      */
-    AppsFlyer.prototype.setAdditionalData = function (additionalData){
-        exec(null, null, 'AppsFlyerPlugin', 'setAdditionalData', [additionalData]);
+    AppsFlyer.prototype.setAdditionalData = function (additionalData) {
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAdditionalData', params: { customData: additionalData || {} } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'setAdditionalData', [additionalData]);
+        }
     };
 
     /**
@@ -592,8 +581,12 @@ if (!window.CustomEvent) {
      * @param partnerId - ID of the partner (usually suffixed with "_int")
      * @param data - Customer data, depends on the integration configuration with the specific partner
      */
-    AppsFlyer.prototype.setPartnerData = function (partnerId, data){
-        exec(null, null, 'AppsFlyerPlugin', 'setPartnerData', [partnerId, data]);
+    AppsFlyer.prototype.setPartnerData = function (partnerId, data) {
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPartnerData', params: { partnerId: partnerId || '', data: data || {} } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'setPartnerData', [partnerId, data]);
+        }
     };
 
     /**
@@ -618,8 +611,7 @@ if (!window.CustomEvent) {
      * when GDPR applies to the user and your app does not use a CMP compatible with TCF v2.2, use this API to provide the consent data directly to the SDK.<br>
      */
     AppsFlyer.prototype.setConsentData = function (appsFlyerConsent) {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             const params = {
                 isUserSubjectToGDPR: appsFlyerConsent.isUserSubjectToGDPR === true,
                 hasConsentForDataUsage: appsFlyerConsent.hasConsentForDataUsage,
@@ -638,8 +630,7 @@ if (!window.CustomEvent) {
      * @param enable - boolean value that represent if enables to collect or not.
      */
     AppsFlyer.prototype.enableTCFDataCollection = function (enable) {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableTCFDataCollection', params: { shouldCollect: !!enable } }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'enableTCFDataCollection', [enable]);
@@ -651,8 +642,7 @@ if (!window.CustomEvent) {
      * even if such dependency is added to the app.
      */
     AppsFlyer.prototype.disableAppSetId = function () {
-        const isAndroid = (typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android');
-        if (isAndroid) {
+        if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'disableAppSetId', params: {} }]);
         } else {
             exec(null, null, 'AppsFlyerPlugin', 'disableAppSetId', []);

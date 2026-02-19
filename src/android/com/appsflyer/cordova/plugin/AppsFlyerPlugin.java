@@ -57,7 +57,6 @@ import java.util.Map;
 public class AppsFlyerPlugin extends CordovaPlugin {
 
     private CallbackContext mConversionListener = null;
-    private CallbackContext mAttributionDataListener = null;
     private CallbackContext mDeepLinkListener = null;
     private CallbackContext mSessionReadyListener = null;
     private Uri intentURI = null;
@@ -88,22 +87,14 @@ public class AppsFlyerPlugin extends CordovaPlugin {
     @Override
     public boolean execute(final String action, JSONArray args, CallbackContext callbackContext) {
         Log.d("AppsFlyer", "Executing...");
-        if ("registerOnAppOpenAttribution".equals(action)) {
-            return registerOnAppOpenAttribution(callbackContext);
-        } else if ("initSdk".equals(action)) {
+        if ("initSdk".equals(action)) {
             return initSdk(args, callbackContext);
         } else if ("logEvent".equals(action)) {
             return logEvent(args, callbackContext);
         } else if ("validateAndLogInAppPurchaseV2".equals(action)) {
             return validateAndLogInAppPurchaseV2(args, callbackContext);
-        } else if ("enableFacebookDeferredApplinks".equals(action)) {
-            return enableFacebookDeferredApplinks(args);
         } else if ("setDisableAdvertisingIdentifier".equals(action)) {
             return setDisableAdvertisingIdentifier(args, callbackContext);
-        } else if ("setAdditionalData".equals(action)) {
-            return setAdditionalData(args);
-        } else if ("setPartnerData".equals(action)) {
-            return setPartnerData(args);
         } else if ("sendPushNotificationData".equals(action)) {
             return sendPushNotificationData(args);
         } else if ("setDisableNetworkData".equals(action)) {
@@ -278,18 +269,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 e.printStackTrace();
             }
         });
-        return true;
-    }
-
-    /**
-     * Get the deeplink data
-     *
-     * @param callbackContext Success callback - called after receiving data on App Open Attribution.
-     *                        Error callback - called when error occurs.
-     * @return
-     */
-    private boolean registerOnAppOpenAttribution(final CallbackContext callbackContext) {
-        mAttributionDataListener = callbackContext;
         return true;
     }
 
@@ -618,51 +597,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             callbackContext.error(FAILURE);
             return true;
         }
-        return true;
-    }
-
-    /**
-     * use this api If you need deep linking data from Facebook, deferred deep linking, Dynamic Product Ads, or reasons that
-     * unrelated to attribution such as authentication, ad monetization, social sharing, user invites, etc.
-     * More information here: https://support.appsflyer.com/hc/en-us/articles/207033826-Facebook-Ads-setup-guide#integration
-     *
-     * @param args: boolean value
-     * @return
-     */
-    private boolean enableFacebookDeferredApplinks(JSONArray args) {
-        try {
-            boolean isEnabled = args.getBoolean(0);
-            AppsFlyerLib.getInstance().enableFacebookDeferredApplinks(isEnabled);
-            Log.d("AppsFlyer", "set enableFacebookDeferredApplinks to " + isEnabled);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return true;
-        }
-        return true;
-    }
-
-    private boolean setAdditionalData(JSONArray args) {
-        cordova.getThreadPool().execute(() -> {
-            try {
-                Map<String, Object> additionalData = toObjectMap(args.getJSONObject(0));
-                AppsFlyerLib.getInstance().setAdditionalData(additionalData);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        });
-        return true;
-    }
-
-    private boolean setPartnerData(JSONArray args) {
-        cordova.getThreadPool().execute(() -> {
-            try {
-                String partnerId = args.getString(0);
-                Map<String, Object> data = toObjectMap(args.getJSONObject(1));
-                AppsFlyerLib.getInstance().setPartnerData(partnerId, data);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        });
         return true;
     }
 
