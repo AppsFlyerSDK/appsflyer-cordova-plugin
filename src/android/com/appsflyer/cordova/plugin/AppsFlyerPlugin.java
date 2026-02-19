@@ -1,18 +1,14 @@
 package com.appsflyer.cordova.plugin;
 
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_COLLECT_ANDROID_ID;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_CONVERSION_DATA;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEEP_LINK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_DEV_KEY;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_DATA_LOADED;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_INSTALL_CONVERSION_FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_ON_SESSION_READY;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.AF_SUCCESS;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.FAILURE;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.NO_DEVKEY_FOUND;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.PLUGIN_VERSION;
-import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SHOULD_START_SDK;
 import static com.appsflyer.cordova.plugin.AppsFlyerConstants.SUCCESS;
 
 import android.content.Context;
@@ -30,8 +26,6 @@ import com.appsflyer.pluginbridge.parser.JsonRpcRequestParser;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
-import com.appsflyer.share.AppsFlyerConversionListener;
-import com.appsflyer.share.attribution.AppsFlyerRequestListener;
 import com.appsflyer.share.platform_extension.Plugin;
 import com.appsflyer.share.platform_extension.PluginInfo;
 
@@ -106,6 +100,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             if ("subscribeForDeepLink".equals(method)) {
                 mDeepLinkListener = callbackContext;
             }
+            if ("registerConversionListener".equals(method)) {
+                mConversionListener = callbackContext;
+            }
 
             // 2. Build JSON-RPC request string and execute (all methods, including subscribeForDeepLink)
             JSONObject jsonRequest = new JSONObject();
@@ -117,7 +114,8 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             RpcResponse response = handler.execute(jsonRequestString);
 
             // 3. Handle response
-            boolean isCallbackRegistrationOnly = "subscribeForDeepLink".equals(method);
+            boolean isCallbackRegistrationOnly = "subscribeForDeepLink".equals(method)
+                    || "registerConversionListener".equals(method);
             handleRpcResponse(response, callbackContext, isCallbackRegistrationOnly);
         } catch (JSONException e) {
             Log.e("AppsFlyer", "executeRpc JSON error", e);
@@ -224,10 +222,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
 
             // assign some values
-            AppsFlyerConversionListener gcdListener = null;
             AppsFlyerLib instance = AppsFlyerLib.getInstance();
-            boolean isConversionData = options.optBoolean(AF_CONVERSION_DATA, false);
-            boolean shouldStartSDK = options.optBoolean(SHOULD_START_SDK, true);
 
             // trigger some setters
             if (options.has(AF_COLLECT_ANDROID_ID)) {
@@ -235,109 +230,13 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             }
             setPluginInfo();
 
-            if (isConversionData) {
-
-                if (mConversionListener == null) {
-                    mConversionListener = callbackContext;
-                }
-
-                gcdListener = registerConversionListener();
-
-            }
-            // init appsflyerSDK
-            instance.init(devKey, gcdListener, cordova.getActivity());
-
-            if (shouldStartSDK) {
-                if (mConversionListener == null) {
-                    instance.start(new AppsFlyerRequestListener() {
-                        @Override
-                        public void onSuccess() {
-                            callbackContext.success(SUCCESS);
-                        }
-
-                        @Override
-                        public void onError(int i, String s) {
-                            callbackContext.error(FAILURE);
-                        }
-                    });
-                } else {
-                    instance.start();
-                }
-            }
-            if (gcdListener != null) {
-                sendPluginNoResult(callbackContext);
-            } else {
-                callbackContext.success(SUCCESS);
-            }
+            instance.init(devKey, null, cordova.getActivity());
+            callbackContext.success(SUCCESS);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         return true;
-    }
-
-    /**
-     * GCD listener. handles success and errors in conversion data .
-     *
-     * @return
-     */
-    private AppsFlyerConversionListener registerConversionListener() {
-        return new AppsFlyerConversionListener() {
-
-            @Override
-            public void onConversionDataSuccess(Map<String, Object> conversionData) {
-                handleSuccess(AF_ON_INSTALL_CONVERSION_DATA_LOADED, conversionData, null);
-            }
-
-            @Override
-            public void onConversionDataFail(String errorMessage) {
-                handleError(AF_ON_INSTALL_CONVERSION_FAILURE, errorMessage);
-            }
-
-        };
-    }
-
-    /**
-     * Handle error while sending conversion data
-     *
-     * @param eventType    error type ("onAttributionFailure").
-     * @param errorMessage error message ().
-     */
-    private void handleError(String eventType, String errorMessage) {
-
-        try {
-            JSONObject obj = new JSONObject();
-
-            obj.put("status", AF_FAILURE);
-            obj.put("type", eventType);
-            obj.put("data", errorMessage);
-
-            sendEvent(obj);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Sending success conversion data
-     *
-     * @param eventType
-     * @param conversionData
-     * @param attributionData
-     */
-    private void handleSuccess(String eventType, Map<String, Object> conversionData, Map<String, String> attributionData) {
-        JSONObject obj = new JSONObject();
-
-        try {
-            JSONObject data = new JSONObject(conversionData == null ? attributionData : conversionData);
-            obj.put("status", AF_SUCCESS);
-            obj.put("type", eventType);
-            obj.put("data", data);
-
-            sendEvent(obj);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     /**

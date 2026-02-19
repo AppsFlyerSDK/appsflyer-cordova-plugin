@@ -97,35 +97,10 @@ if (!window.CustomEvent) {
     /**
      * initialize the SDK.
      * args: SDK configuration
-     * successCB: Success callback - called after successful SDK initialization.
-     * errorCB: Error callback - called when error occurs during initialization.
      */
-    AppsFlyer.prototype.initSdk = function (args, successCB, errorCB) {
+    AppsFlyer.prototype.initSdk = function (args) {
         argscheck.checkArgs('O', 'AppsFlyer.initSdk', arguments);
-        if (!args) {
-            if (errorCB) {
-                errorCB(AppsFlyerError.INVALID_ARGUMENT_ERROR);
-            }
-        } else {
-            if (args.appId !== undefined && (typeof args.appId != 'string' || args.appId === "")) {
-                if (errorCB) {
-                    errorCB(AppsFlyerError.APPID_NOT_VALID);
-                }
-            } else if (args.devKey !== undefined && typeof args.devKey != 'string') {
-                if (errorCB) {
-                    errorCB(AppsFlyerError.DEVKEY_NOT_VALID);
-                }
-            } else if (args.devKey === undefined || args.devKey === "") {
-                if (errorCB) {
-                    errorCB(AppsFlyerError.NO_DEVKEY_FOUND);
-                }
-            } else {
-                exec(successCB, errorCB, 'AppsFlyerPlugin', 'initSdk', [args]);
-
-                callbackMap.convSuc = successCB;
-                callbackMap.convErr = errorCB;
-            }
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'initSdk', [args]);
     };
 
     /**
@@ -166,6 +141,19 @@ if (!window.CustomEvent) {
             exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'subscribeForDeepLink', params: {} }]);
         } else {
             exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'registerDeepLink', []);
+        }
+    };
+
+    /**
+     * Register install conversion data listener. Call after initSdk to receive onInstallConversionDataLoaded / onInstallConversionDataFailure.
+     * @param successCB called with a conversion data object on success
+     * @param errorCB called with an error message on failure
+     */
+    AppsFlyer.prototype.registerConversionDataListener = function (successCB, errorCB) {
+        if (isAndroid()) {
+            exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'registerConversionListener', params: {} }]);
+        } else {
+            exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'registerConversionListener', []);
         }
     };
 

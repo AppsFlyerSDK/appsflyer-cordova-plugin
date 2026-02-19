@@ -19,7 +19,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
  NSString* mAttributionDataListener;
  NSString* mDeepLinkListener;
  NSString* mInviteListener;
- BOOL isConversionData = NO;
  BOOL isDeepLinking = NO;
 
 - (void)pluginInitialize{}
@@ -111,16 +110,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         }
     }
 #endif
-    if (![initSdkOptions isKindOfClass:[NSNull class]]) {
-
-        id isConversionDataValue = nil;
-        isConversionDataValue = [initSdkOptions objectForKey:afConversionData];
-
-        if ([isConversionDataValue isKindOfClass:[NSNumber class]]) {
-            isConversionData = [isConversionDataValue boolValue];
-        }
-    }
-
     if (shouldStartSdk) {
         [self startSdk:command];
     }
@@ -133,19 +122,17 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                                  selector:@selector(sendLaunch:)
                                                      name:UIApplicationDidBecomeActiveNotification
                                                    object:nil];
-        if(isConversionData){
-          CDVPluginResult* pluginResult = nil;
-          mConversionListener = command.callbackId;
+        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:SUCCESS];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
 
-          [AppsFlyerLib shared].delegate = self;
-
-          pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-          [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-        }
-        else{
-            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:SUCCESS];
-            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-        }
+- (void)registerConversionListener:(CDVInvokedUrlCommand*)command
+{
+    mConversionListener = command.callbackId;
+    [AppsFlyerLib shared].delegate = self;
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 - (void)setDebugLog:(CDVInvokedUrlCommand*)command
