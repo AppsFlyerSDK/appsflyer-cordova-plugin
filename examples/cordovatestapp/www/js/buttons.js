@@ -11,6 +11,7 @@ let setPhoneBtn = document.getElementById('setPhone');
 let setHostsBtn = document.getElementById('setHosts');
 let setSharingFilterForPartnersBtn = document.getElementById('setSharingFilterForPartners');
 let getUserIdBtn = document.getElementById('getUserId');
+let unregisterConversionDataListenerBtn = document.getElementById('unregisterConversionDataListener');
 let anonymizeUserBtn = document.getElementById('anonymizeUser');
 let stopBtn = document.getElementById('stop');
 let updateServerUninstallTokenBtn = document.getElementById('updateServerUninstallToken');
@@ -79,6 +80,9 @@ if (setSharingFilterForPartnersBtn) {
 }
 if (getUserIdBtn) {
     getUserIdBtn.addEventListener('click', getUserId, false);
+}
+if (unregisterConversionDataListenerBtn) {
+    unregisterConversionDataListenerBtn.addEventListener('click', unregisterConversionDataListener, false);
 }
 if (anonymizeUserBtn) {
     anonymizeUserBtn.addEventListener('click', anonymizeUser, false);
@@ -204,6 +208,11 @@ function setUserId(userAppId) {
 
 function getUserId() {
     window.plugins.appsFlyer.getAppsFlyerUID(callBackFunction);
+}
+
+function unregisterConversionDataListener() {
+    window.plugins.appsFlyer.unregisterConversionDataListener();
+    alert('Conversion data listener unregistered');
 }
 
 function anonymizeUser() {

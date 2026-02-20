@@ -80,6 +80,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             if ("registerConversionListener".equals(method)) {
                 mConversionListener = callbackContext;
             }
+            if ("unregisterConversionListener".equals(method)) {
+                mConversionListener = null;
+            }
 
             if ("init".equals(method)) {
                 setPluginInfo();

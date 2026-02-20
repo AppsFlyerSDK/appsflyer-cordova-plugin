@@ -162,6 +162,13 @@ if (!window.CustomEvent) {
     };
 
     /**
+     * Unregister install conversion data listener. No further conversion data callbacks will be delivered.
+     */
+    AppsFlyer.prototype.unregisterConversionDataListener = function () {
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'unregisterConversionListener', params: {} }]);
+    };
+
+    /**
      * Enable or disable Android ID collection. Android only; no-op on iOS.
      */
     AppsFlyer.prototype.setCollectAndroidID = function (isEnabled) {
