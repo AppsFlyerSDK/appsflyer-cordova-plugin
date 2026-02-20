@@ -83,6 +83,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             if ("unregisterConversionListener".equals(method)) {
                 mConversionListener = null;
             }
+            if ("unsubscribeForDeepLink".equals(method)) {
+                mDeepLinkListener = null;
+            }
 
             if ("init".equals(method)) {
                 setPluginInfo();

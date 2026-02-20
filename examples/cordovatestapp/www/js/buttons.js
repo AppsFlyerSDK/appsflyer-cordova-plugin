@@ -35,6 +35,21 @@ let setAdditionalDataBtn = document.getElementById('setAdditionalData');
 let setPartnerDataBtn = document.getElementById('setPartnerData');
 let setDisableAdvertisingIdentifierBtn = document.getElementById('setDisableAdvertisingIdentifier');
 let setDisableNetworkDataBtn = document.getElementById('setDisableNetworkData');
+let getCustomerUserIdBtn = document.getElementById('getCustomerUserId');
+let getHostNameBtn = document.getElementById('getHostName');
+let getHostPrefixBtn = document.getElementById('getHostPrefix');
+let getOutOfStoreBtn = document.getElementById('getOutOfStore');
+let getAttributionIdBtn = document.getElementById('getAttributionId');
+let isStoppedBtn = document.getElementById('isStopped');
+let isPreInstalledAppBtn = document.getElementById('isPreInstalledApp');
+let unsubscribeForDeepLinkBtn = document.getElementById('unsubscribeForDeepLink');
+let performDeepLinkingBtn = document.getElementById('performDeepLinking');
+let setDeepLinkTimeoutBtn = document.getElementById('setDeepLinkTimeout');
+let appendParametersToDeepLinkingURLBtn = document.getElementById('appendParametersToDeepLinkingURL');
+let logInviteBtn = document.getElementById('logInvite');
+let logLocationBtn = document.getElementById('logLocation');
+let logSessionBtn = document.getElementById('logSession');
+let onPauseBtn = document.getElementById('onPause');
 
 // Consent
 let setConsentBtn = document.getElementById('testSetConsent');
@@ -160,6 +175,51 @@ if (setDisableAdvertisingIdentifierBtn) {
 }
 if (setDisableNetworkDataBtn) {
     setDisableNetworkDataBtn.addEventListener('click', setDisableNetworkData, false);
+}
+if (getCustomerUserIdBtn) {
+    getCustomerUserIdBtn.addEventListener('click', getCustomerUserId, false);
+}
+if (getHostNameBtn) {
+    getHostNameBtn.addEventListener('click', getHostName, false);
+}
+if (getHostPrefixBtn) {
+    getHostPrefixBtn.addEventListener('click', getHostPrefix, false);
+}
+if (getOutOfStoreBtn) {
+    getOutOfStoreBtn.addEventListener('click', getOutOfStore, false);
+}
+if (getAttributionIdBtn) {
+    getAttributionIdBtn.addEventListener('click', getAttributionId, false);
+}
+if (isStoppedBtn) {
+    isStoppedBtn.addEventListener('click', isStopped, false);
+}
+if (isPreInstalledAppBtn) {
+    isPreInstalledAppBtn.addEventListener('click', isPreInstalledApp, false);
+}
+if (unsubscribeForDeepLinkBtn) {
+    unsubscribeForDeepLinkBtn.addEventListener('click', unsubscribeForDeepLink, false);
+}
+if (performDeepLinkingBtn) {
+    performDeepLinkingBtn.addEventListener('click', performDeepLinking, false);
+}
+if (setDeepLinkTimeoutBtn) {
+    setDeepLinkTimeoutBtn.addEventListener('click', setDeepLinkTimeout, false);
+}
+if (appendParametersToDeepLinkingURLBtn) {
+    appendParametersToDeepLinkingURLBtn.addEventListener('click', appendParametersToDeepLinkingURL, false);
+}
+if (logInviteBtn) {
+    logInviteBtn.addEventListener('click', logInvite, false);
+}
+if (logLocationBtn) {
+    logLocationBtn.addEventListener('click', logLocation, false);
+}
+if (logSessionBtn) {
+    logSessionBtn.addEventListener('click', logSession, false);
+}
+if (onPauseBtn) {
+    onPauseBtn.addEventListener('click', onPause, false);
 }
 
 function callBackFunction(id) {
@@ -411,6 +471,74 @@ function setDisableAdvertisingIdentifier() {
 
 function setDisableNetworkData() {
     window.plugins.appsFlyer.setDisableNetworkData(true);
+}
+
+function getCustomerUserId() {
+    window.plugins.appsFlyer.getCustomerUserId(function (result) { alert('getCustomerUserId: ' + result); }, callBackFunction);
+}
+
+function getHostName() {
+    window.plugins.appsFlyer.getHostName(function (result) { alert('getHostName: ' + result); }, callBackFunction);
+}
+
+function getHostPrefix() {
+    window.plugins.appsFlyer.getHostPrefix(function (result) { alert('getHostPrefix: ' + result); }, callBackFunction);
+}
+
+function getOutOfStore() {
+    window.plugins.appsFlyer.getOutOfStore(function (result) { alert('getOutOfStore: ' + result); }, callBackFunction);
+}
+
+function getAttributionId() {
+    window.plugins.appsFlyer.getAttributionId(function (result) { alert('getAttributionId: ' + result); }, callBackFunction);
+}
+
+function isStopped() {
+    window.plugins.appsFlyer.isStopped(function (result) { alert('isStopped: ' + result); }, callBackFunction);
+}
+
+function isPreInstalledApp() {
+    window.plugins.appsFlyer.isPreInstalledApp(function (result) { alert('isPreInstalledApp: ' + result); }, callBackFunction);
+}
+
+function unsubscribeForDeepLink() {
+    window.plugins.appsFlyer.unsubscribeForDeepLink();
+    alert('unsubscribeForDeepLink called');
+}
+
+function performDeepLinking() {
+    window.plugins.appsFlyer.performDeepLinking('https://example.com/deep', false);
+    alert('performDeepLinking called');
+}
+
+function setDeepLinkTimeout() {
+    window.plugins.appsFlyer.setDeepLinkTimeout(5000);
+    alert('setDeepLinkTimeout(5000) called');
+}
+
+function appendParametersToDeepLinkingURL() {
+    window.plugins.appsFlyer.appendParametersToDeepLinkingURL('example.com', { foo: 'bar', baz: 'qux' });
+    alert('appendParametersToDeepLinkingURL called');
+}
+
+function logInvite() {
+    window.plugins.appsFlyer.logInvite('test_channel', { param1: 'value1' });
+    alert('logInvite called');
+}
+
+function logLocation() {
+    window.plugins.appsFlyer.logLocation(32.0853, 34.7818);
+    alert('logLocation called');
+}
+
+function logSession() {
+    window.plugins.appsFlyer.logSession();
+    alert('logSession called');
+}
+
+function onPause() {
+    window.plugins.appsFlyer.onPause();
+    alert('onPause called');
 }
 
 function startSdk() {

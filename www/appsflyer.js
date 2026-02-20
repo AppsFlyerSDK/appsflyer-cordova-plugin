@@ -310,6 +310,123 @@ if (!window.CustomEvent) {
     };
 
     /**
+     * Get the customer user ID (previously set via setAppUserId).
+     */
+    AppsFlyer.prototype.getCustomerUserId = function (successCB, errorCB) {
+        argscheck.checkArgs('F', 'AppsFlyer.getCustomerUserId', arguments);
+        exec(function (result) { if (successCB) successCB(result); }, errorCB || null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getCustomerUserId', params: {} }]);
+    };
+
+    /**
+     * Get the host name.
+     */
+    AppsFlyer.prototype.getHostName = function (successCB, errorCB) {
+        argscheck.checkArgs('F', 'AppsFlyer.getHostName', arguments);
+        exec(function (result) { if (successCB) successCB(result); }, errorCB || null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getHostName', params: {} }]);
+    };
+
+    /**
+     * Get the host prefix.
+     */
+    AppsFlyer.prototype.getHostPrefix = function (successCB, errorCB) {
+        argscheck.checkArgs('F', 'AppsFlyer.getHostPrefix', arguments);
+        exec(function (result) { if (successCB) successCB(result); }, errorCB || null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getHostPrefix', params: {} }]);
+    };
+
+    /**
+     * Get the out-of-store source name.
+     */
+    AppsFlyer.prototype.getOutOfStore = function (successCB, errorCB) {
+        argscheck.checkArgs('F', 'AppsFlyer.getOutOfStore', arguments);
+        exec(function (result) { if (successCB) successCB(result); }, errorCB || null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getOutOfStore', params: {} }]);
+    };
+
+    /**
+     * Get the attribution ID.
+     */
+    AppsFlyer.prototype.getAttributionId = function (successCB, errorCB) {
+        argscheck.checkArgs('F', 'AppsFlyer.getAttributionId', arguments);
+        exec(function (result) { if (successCB) successCB(result); }, errorCB || null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getAttributionId', params: {} }]);
+    };
+
+    /**
+     * Check if the SDK is stopped.
+     */
+    AppsFlyer.prototype.isStopped = function (successCB, errorCB) {
+        argscheck.checkArgs('F', 'AppsFlyer.isStopped', arguments);
+        exec(function (result) { if (successCB) successCB(result); }, errorCB || null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'isStopped', params: {} }]);
+    };
+
+    /**
+     * Check if the app was pre-installed.
+     */
+    AppsFlyer.prototype.isPreInstalledApp = function (successCB, errorCB) {
+        argscheck.checkArgs('F', 'AppsFlyer.isPreInstalledApp', arguments);
+        exec(function (result) { if (successCB) successCB(result); }, errorCB || null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'isPreInstalledApp', params: {} }]);
+    };
+
+    /**
+     * Unsubscribe from deep link callbacks.
+     */
+    AppsFlyer.prototype.unsubscribeForDeepLink = function () {
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'unsubscribeForDeepLink', params: {} }]);
+    };
+
+    /**
+     * Perform deep linking with the given URL.
+     */
+    AppsFlyer.prototype.performDeepLinking = function (url, shouldTriggerSession) {
+        argscheck.checkArgs('S*', 'AppsFlyer.performDeepLinking', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'performDeepLinking', params: { url: url || '', shouldTriggerSession: !!shouldTriggerSession } }]);
+    };
+
+    /**
+     * Set deep link timeout in milliseconds.
+     */
+    AppsFlyer.prototype.setDeepLinkTimeout = function (timeout) {
+        argscheck.checkArgs('N', 'AppsFlyer.setDeepLinkTimeout', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDeepLinkTimeout', params: { timeout: timeout != null ? Number(timeout) : 0 } }]);
+    };
+
+    /**
+     * Append parameters to deep linking URLs that contain the given substring.
+     */
+    AppsFlyer.prototype.appendParametersToDeepLinkingURL = function (contains, parameters) {
+        argscheck.checkArgs('SO', 'AppsFlyer.appendParametersToDeepLinkingURL', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'appendParametersToDeepLinkingURL', params: { contains: contains || '', parameters: parameters || {} } }]);
+    };
+
+    /**
+     * Log an invite event.
+     */
+    AppsFlyer.prototype.logInvite = function (channel, eventParameters) {
+        argscheck.checkArgs('SO', 'AppsFlyer.logInvite', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logInvite', params: { channel: channel || '', eventParameters: eventParameters || null } }]);
+    };
+
+    /**
+     * Log location (latitude, longitude).
+     */
+    AppsFlyer.prototype.logLocation = function (latitude, longitude) {
+        argscheck.checkArgs('NN', 'AppsFlyer.logLocation', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logLocation', params: { latitude: Number(latitude), longitude: Number(longitude) } }]);
+    };
+
+    /**
+     * Manually log a session.
+     */
+    AppsFlyer.prototype.logSession = function () {
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logSession', params: {} }]);
+    };
+
+    /**
+     * Notify the SDK that the app has entered background (e.g. for platforms that manage lifecycle themselves).
+     */
+    AppsFlyer.prototype.onPause = function () {
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'onPause', params: {} }]);
+    };
+
+    /**
      * End User Opt-Out from AppsFlyer analytics (Anonymize user data).
      */
     AppsFlyer.prototype.anonymizeUser = function (isDisabled) {
