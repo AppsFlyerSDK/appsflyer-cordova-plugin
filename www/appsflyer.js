@@ -191,6 +191,70 @@ if (!window.CustomEvent) {
     };
 
     /**
+     * Set the minimum time between sessions (in seconds).
+     */
+    AppsFlyer.prototype.setMinTimeBetweenSessions = function (seconds) {
+        argscheck.checkArgs('N', 'AppsFlyer.setMinTimeBetweenSessions', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setMinTimeBetweenSessions', params: { seconds: seconds != null ? Math.max(0, parseInt(seconds, 10)) : 0 } }]);
+    };
+
+    /**
+     * Set the out-of-store source name.
+     */
+    AppsFlyer.prototype.setOutOfStore = function (sourceName) {
+        argscheck.checkArgs('S', 'AppsFlyer.setOutOfStore', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setOutOfStore', params: { sourceName: sourceName || '' } }]);
+    };
+
+    /**
+     * Set user emails with encryption type (e.g. SHA256, MD5).
+     */
+    AppsFlyer.prototype.setUserEmailsWithCryptType = function (cryptType, emails) {
+        argscheck.checkArgs('SA', 'AppsFlyer.setUserEmailsWithCryptType', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmailsWithCryptType', params: { cryptType: cryptType || '', emails: emails || [] } }]);
+    };
+
+    /**
+     * Set preinstall attribution (mediaSource, campaign, siteId).
+     */
+    AppsFlyer.prototype.setPreinstallAttribution = function (mediaSource, campaign, siteId) {
+        argscheck.checkArgs('SSS', 'AppsFlyer.setPreinstallAttribution', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPreinstallAttribution', params: { mediaSource: mediaSource || '', campaign: campaign || '', siteId: siteId || '' } }]);
+    };
+
+    /**
+     * Set SDK log level (e.g. NONE, ERROR, WARNING, INFO, DEBUG, VERBOSE).
+     */
+    AppsFlyer.prototype.setLogLevel = function (logLevel) {
+        argscheck.checkArgs('S', 'AppsFlyer.setLogLevel', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setLogLevel', params: { logLevel: logLevel || '' } }]);
+    };
+
+    /**
+     * Set whether the current launch is an app update.
+     */
+    AppsFlyer.prototype.setIsUpdate = function (isUpdate) {
+        argscheck.checkArgs('*', 'AppsFlyer.setIsUpdate', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setIsUpdate', params: { isUpdate: !!isUpdate } }]);
+    };
+
+    /**
+     * Set the app ID (e.g. iOS bundle ID or Android package name for cross-promotion).
+     */
+    AppsFlyer.prototype.setAppId = function (appId) {
+        argscheck.checkArgs('S', 'AppsFlyer.setAppId', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAppId', params: { appId: appId || '' } }]);
+    };
+
+    /**
+     * Set a custom install ID.
+     */
+    AppsFlyer.prototype.setInstallId = function (installId) {
+        argscheck.checkArgs('S', 'AppsFlyer.setInstallId', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setInstallId', params: { installId: installId || '' } }]);
+    };
+
+    /**
      * Public API - logAdRevenue function
      */
     AppsFlyer.prototype.logAdRevenue = function (afAdRevenueData, additionalParameters) {

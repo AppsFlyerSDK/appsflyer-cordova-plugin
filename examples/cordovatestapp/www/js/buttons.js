@@ -9,6 +9,14 @@ let setUserIdBtn = document.getElementById('setUserId');
 let setUserEmailsBtn = document.getElementById('setUserEmails');
 let setPhoneBtn = document.getElementById('setPhone');
 let setHostsBtn = document.getElementById('setHosts');
+let setMinTimeBetweenSessionsBtn = document.getElementById('setMinTimeBetweenSessions');
+let setOutOfStoreBtn = document.getElementById('setOutOfStore');
+let setUserEmailsWithCryptTypeBtn = document.getElementById('setUserEmailsWithCryptType');
+let setPreinstallAttributionBtn = document.getElementById('setPreinstallAttribution');
+let setLogLevelBtn = document.getElementById('setLogLevel');
+let setIsUpdateBtn = document.getElementById('setIsUpdate');
+let setAppIdBtn = document.getElementById('setAppId');
+let setInstallIdBtn = document.getElementById('setInstallId');
 let setSharingFilterForPartnersBtn = document.getElementById('setSharingFilterForPartners');
 let getUserIdBtn = document.getElementById('getUserId');
 let unregisterConversionDataListenerBtn = document.getElementById('unregisterConversionDataListener');
@@ -74,6 +82,30 @@ if (setPhoneBtn) {
 }
 if (setHostsBtn) {
     setHostsBtn.addEventListener('click', setHosts, false);
+}
+if (setMinTimeBetweenSessionsBtn) {
+    setMinTimeBetweenSessionsBtn.addEventListener('click', setMinTimeBetweenSessions, false);
+}
+if (setOutOfStoreBtn) {
+    setOutOfStoreBtn.addEventListener('click', setOutOfStore, false);
+}
+if (setUserEmailsWithCryptTypeBtn) {
+    setUserEmailsWithCryptTypeBtn.addEventListener('click', setUserEmailsWithCryptType, false);
+}
+if (setPreinstallAttributionBtn) {
+    setPreinstallAttributionBtn.addEventListener('click', setPreinstallAttribution, false);
+}
+if (setLogLevelBtn) {
+    setLogLevelBtn.addEventListener('click', setLogLevel, false);
+}
+if (setIsUpdateBtn) {
+    setIsUpdateBtn.addEventListener('click', setIsUpdate, false);
+}
+if (setAppIdBtn) {
+    setAppIdBtn.addEventListener('click', setAppId, false);
+}
+if (setInstallIdBtn) {
+    setInstallIdBtn.addEventListener('click', setInstallId, false);
 }
 if (setSharingFilterForPartnersBtn) {
     setSharingFilterForPartnersBtn.addEventListener('click', setSharingFilterForPartners, false);
@@ -166,6 +198,46 @@ function setHosts() {
     let prefix = "foo";
     let name = "bar";
     window.plugins.appsFlyer.setHost(prefix, name);
+}
+
+function setMinTimeBetweenSessions() {
+    window.plugins.appsFlyer.setMinTimeBetweenSessions(60);
+    alert('setMinTimeBetweenSessions(60) called');
+}
+
+function setOutOfStore() {
+    window.plugins.appsFlyer.setOutOfStore('test_source');
+    alert('setOutOfStore called');
+}
+
+function setUserEmailsWithCryptType() {
+    window.plugins.appsFlyer.setUserEmailsWithCryptType('SHA256', ['test@example.com']);
+    alert('setUserEmailsWithCryptType called');
+}
+
+function setPreinstallAttribution() {
+    window.plugins.appsFlyer.setPreinstallAttribution('media_source', 'campaign', 'site_id');
+    alert('setPreinstallAttribution called');
+}
+
+function setLogLevel() {
+    window.plugins.appsFlyer.setLogLevel('DEBUG');
+    alert('setLogLevel(DEBUG) called');
+}
+
+function setIsUpdate() {
+    window.plugins.appsFlyer.setIsUpdate(true);
+    alert('setIsUpdate(true) called');
+}
+
+function setAppId() {
+    window.plugins.appsFlyer.setAppId('id989523617');
+    alert('setAppId called');
+}
+
+function setInstallId() {
+    window.plugins.appsFlyer.setInstallId('custom_install_id');
+    alert('setInstallId called');
 }
 
 function setSharingFilterForPartners() {
