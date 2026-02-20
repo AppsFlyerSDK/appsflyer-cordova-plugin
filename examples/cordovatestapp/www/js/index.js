@@ -10,50 +10,43 @@ var app = {
 document.addEventListener(
     'deviceready',
     function () {
-        window.plugins.appsFlyer.registerOnAppOpenAttribution(function (res) {
-                console.log('onAppOpenAttribution 1 ~~>' + res);
-                alert('onAppOpenAttribution 1 ~~> ' + res);
-            },
-            function (err) {
-                console.log(err);
-            });
-
-        window.plugins.appsFlyer.registerOnAppOpenAttribution(function (res) {
-                console.log('onAppOpenAttribution 2 ~~>' + res);
-                alert('onAppOpenAttribution 2 ~~> ' + res);
-            },
-            function (err) {
-                console.log(err);
-            });
-        // if onDeepLinkListener: false or undefined, sdk will ignore registerOnDeepLink
         window.plugins.appsFlyer.registerDeepLink(function (res) {
-            console.log("DDL 1~~>" + res);
-            alert('DDL 1~~>' + res);
+            console.log("DDL ~~>" + res);
+            alert('DDL ~~>' + res);
         });
 
-        window.plugins.appsFlyer.registerDeepLink(function (res) {
-            console.log("DDL 2~~>" + res);
-            alert('DDL 2~~>' + res);
-        });
-
-        var options = {
+        const options = {
             devKey: 'fakeone',
             appId: 'id111111111',
-            isDebug: true,
-            onInstallConversionDataListener: true,
-            onDeepLinkListener: true, //if true, will override onAppOpenAttribution
             waitForATTUserAuthorization: 15, //--> Here you set the time for the sdk to wait before launch
         };
+        window.plugins.appsFlyer.initSdk(options);
 
-        window.plugins.appsFlyer.initSdk(options, function (res) {
-            console.log('GCD ~~>' + res);
-            alert('GCD ~~>' + res);
+        window.plugins.appsFlyer.registerConversionDataListener(function (res) {
+                console.log('onConversionDataSuccess ~~>' + res);
+                alert('onConversionDataSuccess ~~>' + res);
+            },
+            function (err) {
+                console.log('onConversionDataSuccess ~~>' + err);
+                alert('onConversionDataSuccess ~~>' + err);
+            })
 
-        }, function (err) {
-            console.log(`failed ~~> ${err}`);
-        });
+        window.plugins.appsFlyer.setCollectAndroidID(true);
+        window.plugins.appsFlyer.setDebugLog(true);
         window.plugins.appsFlyer.enableTCFDataCollection(true);
-        window.plugins.appsFlyer.startSdk();
+
+        window.plugins.appsFlyer.registerSessionReadyListener(function(event) {
+            window.plugins.appsFlyer.startSdk(
+                function (res) {
+                    console.log('startSdk success ~~>' + res);
+                    alert('startSdk success ~~>' + res);
+                },
+                function (err) {
+                    console.log('startSdk failed ~~>' + err);
+                    alert('startSdk failed ~~>' + err);
+                }
+            );
+        });
     },
     false
 );

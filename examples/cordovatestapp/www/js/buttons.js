@@ -1,20 +1,31 @@
 let startSdkBtn = document.getElementById('startSdk');
 let logEventBtn = document.getElementById('logEvent');
+let sendPushNotificationDataBtn = document.getElementById('sendPushNotificationData');
 let logCrossPromotionAndOpenStoreBtn = document.getElementById('logCrossPromotionAndOpenStore');
 let setCurrencyBtn = document.getElementById('setCurrency');
 let generateUserInviteBtn = document.getElementById('generateUserInvite');
+let logCrossPromotionImpressionBtn = document.getElementById('logCrossPromotionImpression');
 let setUserIdBtn = document.getElementById('setUserId');
 let setUserEmailsBtn = document.getElementById('setUserEmails');
 let setPhoneBtn = document.getElementById('setPhone');
 let setHostsBtn = document.getElementById('setHosts');
+let setSharingFilterForPartnersBtn = document.getElementById('setSharingFilterForPartners');
 let getUserIdBtn = document.getElementById('getUserId');
+let anonymizeUserBtn = document.getElementById('anonymizeUser');
+let stopBtn = document.getElementById('stop');
+let updateServerUninstallTokenBtn = document.getElementById('updateServerUninstallToken');
 let getSdkVBtn = document.getElementById('getSdkV');
 let customDomainsBtn = document.getElementById('customDomains');
 let enableFBBtn = document.getElementById('enableFB');
 let addPushNotificationPathBtn = document.getElementById('addPushNotificationPath');
+let setResolveDeepLinkURLsBtn = document.getElementById('setResolveDeepLinkURLs');
 let logAdRevenueBtn = document.getElementById('logAdRevenue');
 let disableAppSetIdBtn = document.getElementById('disableAppSetId');
-let validateAndLogV2Btn = document.getElementById('validateAndLogV2');
+let validateAndLogBtn = document.getElementById('validateAndLog');
+let setAdditionalDataBtn = document.getElementById('setAdditionalData');
+let setPartnerDataBtn = document.getElementById('setPartnerData');
+let setDisableAdvertisingIdentifierBtn = document.getElementById('setDisableAdvertisingIdentifier');
+let setDisableNetworkDataBtn = document.getElementById('setDisableNetworkData');
 
 // Consent
 let setConsentBtn = document.getElementById('testSetConsent');
@@ -36,8 +47,14 @@ if(setConsentBtn){
 if (generateUserInviteBtn) {
     generateUserInviteBtn.addEventListener('click', generateUserInvite, false);
 }
+if (logCrossPromotionImpressionBtn) {
+    logCrossPromotionImpressionBtn.addEventListener('click', logCrossPromotionImpression, false);
+}
 if (logEventBtn) {
     logEventBtn.addEventListener('click', logEvent, false);
+}
+if (sendPushNotificationDataBtn) {
+    sendPushNotificationDataBtn.addEventListener('click', sendPushNotificationData, false);
 }
 if (logCrossPromotionAndOpenStoreBtn) {
     logCrossPromotionAndOpenStoreBtn.addEventListener('click', logCrossPromotionAndOpenStore, false);
@@ -57,8 +74,23 @@ if (setPhoneBtn) {
 if (setHostsBtn) {
     setHostsBtn.addEventListener('click', setHosts, false);
 }
+if (setSharingFilterForPartnersBtn) {
+    setSharingFilterForPartnersBtn.addEventListener('click', setSharingFilterForPartners, false);
+}
 if (getUserIdBtn) {
     getUserIdBtn.addEventListener('click', getUserId, false);
+}
+if (anonymizeUserBtn) {
+    anonymizeUserBtn.addEventListener('click', anonymizeUser, false);
+}
+if (stopBtn) {
+    stopBtn.addEventListener('click', stop, false);
+}
+if (stopBtn) {
+    stopBtn.addEventListener('click', stop, false);
+}
+if (updateServerUninstallTokenBtn) {
+    updateServerUninstallTokenBtn.addEventListener('click', updateServerUninstallToken, false);
 }
 if (getSdkVBtn) {
     getSdkVBtn.addEventListener('click', getSdkVersion, false);
@@ -72,11 +104,26 @@ if (enableFBBtn) {
 if (addPushNotificationPathBtn) {
     addPushNotificationPathBtn.addEventListener('click', addPushNotificationDeepLinkPath, false);
 }
+if (setResolveDeepLinkURLsBtn) {
+    setResolveDeepLinkURLsBtn.addEventListener('click', setResolveDeepLinkURLs, false);
+}
 if (disableAppSetIdBtn) {
     disableAppSetIdBtn.addEventListener('click', disableAppSetId, false);
 }
-if (validateAndLogV2Btn) {
-    validateAndLogV2Btn.addEventListener('click', validateAndLogV2, false);
+if (validateAndLogBtn) {
+    validateAndLogBtn.addEventListener('click', validateAndLog, false);
+}
+if (setAdditionalDataBtn) {
+    setAdditionalDataBtn.addEventListener('click', setAdditionalData, false);
+}
+if (setPartnerDataBtn) {
+    setPartnerDataBtn.addEventListener('click', setPartnerData, false);
+}
+if (setDisableAdvertisingIdentifierBtn) {
+    setDisableAdvertisingIdentifierBtn.addEventListener('click', setDisableAdvertisingIdentifier, false);
+}
+if (setDisableNetworkDataBtn) {
+    setDisableNetworkDataBtn.addEventListener('click', setDisableNetworkData, false);
 }
 
 function callBackFunction(id) {
@@ -96,6 +143,16 @@ function generateUserInvite(){
     window.plugins.appsFlyer.generateInviteLink(args, callBackFunction, callBackFunction);
 }
 
+function logCrossPromotionImpression(){
+    window.plugins.appsFlyer.setAppInviteOneLinkID("em3J");
+    let args = {
+        "campaign": "testCampaign",
+        "appId": "testAppId"
+    };
+    window.plugins.appsFlyer.logCrossPromotionImpression(args, callBackFunction, callBackFunction);
+}
+
+
 function setCurrency(currencyId) {
     currencyId = 'USD';
     window.plugins.appsFlyer.setCurrencyCode(currencyId);
@@ -107,6 +164,10 @@ function setHosts() {
     window.plugins.appsFlyer.setHost(prefix, name);
 }
 
+function setSharingFilterForPartners() {
+    window.plugins.appsFlyer.setSharingFilterForPartners(["partner1", "partner2"]);
+}
+
 function setCustomDomains() {
     let domains = ["promotion.greatapp.com", "click.greatapp.com", "deals.greatapp.com"];
     window.plugins.appsFlyer.setOneLinkCustomDomains(domains, callBackFunction, callBackFunction);
@@ -115,6 +176,11 @@ function setCustomDomains() {
 function addPushNotificationDeepLinkPath() {
     let path = ["go", "to", "this", "path"];
     window.plugins.appsFlyer.addPushNotificationDeepLinkPath(path);
+}
+
+function setResolveDeepLinkURLs() {
+    let path = ["click.example.com", "link.partner.com"];
+    window.plugins.appsFlyer.setResolveDeepLinkURLs(path);
 }
 
 function setEmails() {
@@ -140,6 +206,18 @@ function getUserId() {
     window.plugins.appsFlyer.getAppsFlyerUID(callBackFunction);
 }
 
+function anonymizeUser() {
+    window.plugins.appsFlyer.anonymizeUser(true);
+}
+
+function stop() {
+    window.plugins.appsFlyer.Stop();
+}
+
+function updateServerUninstallToken() {
+    window.plugins.appsFlyer.updateServerUninstallToken("test_uninstall_token");
+}
+
 function getSdkVersion() {
     window.plugins.appsFlyer.getSdkVersion(callBackFunction);
 }
@@ -154,6 +232,18 @@ function logEvent(eventName, eventValues) {
         'af_revenue': '10',
     };
     window.plugins.appsFlyer.logEvent(eventName, eventValues, callBackFunction, callBackFunction);
+}
+
+function sendPushNotificationData() {
+    const data = {
+        campaign: 'test_campaign',
+        pid: '123',
+        isRetargeting: false,
+        additionalParameters: {
+            "key1": "value1",
+        }
+    }
+    window.plugins.appsFlyer.sendPushNotificationData(data);
 }
 
 function logCrossPromotionAndOpenStore() {
@@ -200,7 +290,7 @@ function disableAppSetId() {
     window.plugins.appsFlyer.disableAppSetId();
 }
 
-function validateAndLogV2() {
+function validateAndLog() {
     const afDetails = new AFPurchaseDetails("subscription", "abcd", "product1");
 
     const additionalParams = {
@@ -208,12 +298,38 @@ function validateAndLogV2() {
         param2: "value2"
     };
 
-    window.plugins.appsFlyer.validateAndLogInAppPurchaseV2(
+    window.plugins.appsFlyer.validateAndLogInAppPurchase(
         afDetails,
         additionalParams,
         callBackFunction,
         callBackFunction
     );
+}
+
+function setAdditionalData() {
+    const data = {
+        param1: "value1",
+        param2: "value2"
+    };
+
+    window.plugins.appsFlyer.setAdditionalData(data);
+}
+
+function setPartnerData() {
+    const data = {
+        param1: "value1",
+        param2: "value2"
+    };
+
+    window.plugins.appsFlyer.setPartnerData("partner_id", data);
+}
+
+function setDisableAdvertisingIdentifier() {
+    window.plugins.appsFlyer.setDisableAdvertisingIdentifier(true);
+}
+
+function setDisableNetworkData() {
+    window.plugins.appsFlyer.setDisableNetworkData(true);
 }
 
 function startSdk() {
