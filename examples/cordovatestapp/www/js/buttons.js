@@ -35,7 +35,6 @@ let setAdditionalDataBtn = document.getElementById('setAdditionalData');
 let setPartnerDataBtn = document.getElementById('setPartnerData');
 let setDisableAdvertisingIdentifierBtn = document.getElementById('setDisableAdvertisingIdentifier');
 let setDisableNetworkDataBtn = document.getElementById('setDisableNetworkData');
-let getCustomerUserIdBtn = document.getElementById('getCustomerUserId');
 let getHostNameBtn = document.getElementById('getHostName');
 let getHostPrefixBtn = document.getElementById('getHostPrefix');
 let getOutOfStoreBtn = document.getElementById('getOutOfStore');
@@ -175,9 +174,6 @@ if (setDisableAdvertisingIdentifierBtn) {
 }
 if (setDisableNetworkDataBtn) {
     setDisableNetworkDataBtn.addEventListener('click', setDisableNetworkData, false);
-}
-if (getCustomerUserIdBtn) {
-    getCustomerUserIdBtn.addEventListener('click', getCustomerUserId, false);
 }
 if (getHostNameBtn) {
     getHostNameBtn.addEventListener('click', getHostName, false);
@@ -471,10 +467,6 @@ function setDisableAdvertisingIdentifier() {
 
 function setDisableNetworkData() {
     window.plugins.appsFlyer.setDisableNetworkData(true);
-}
-
-function getCustomerUserId() {
-    window.plugins.appsFlyer.getCustomerUserId(function (result) { alert('getCustomerUserId: ' + result); }, callBackFunction);
 }
 
 function getHostName() {

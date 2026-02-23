@@ -310,14 +310,6 @@ if (!window.CustomEvent) {
     };
 
     /**
-     * Get the customer user ID (previously set via setAppUserId).
-     */
-    AppsFlyer.prototype.getCustomerUserId = function (successCB, errorCB) {
-        argscheck.checkArgs('F', 'AppsFlyer.getCustomerUserId', arguments);
-        exec(function (result) { if (successCB) successCB(result); }, errorCB || null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getCustomerUserId', params: {} }]);
-    };
-
-    /**
      * Get the host name.
      */
     AppsFlyer.prototype.getHostName = function (successCB, errorCB) {
