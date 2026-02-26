@@ -62,7 +62,7 @@ public class AppsFlyerPlugin extends CordovaPlugin {
 
     public boolean executeRpc(JSONArray args, final CallbackContext callbackContext) {
         try {
-            // 1. Extract method and params
+            // Extract method and params
             JSONObject options = args.length() > 0 ? args.getJSONObject(0) : new JSONObject();
             String method = options.optString("method", null);
             JSONObject paramsJson = options.optJSONObject("params");
@@ -70,28 +70,13 @@ public class AppsFlyerPlugin extends CordovaPlugin {
                 paramsJson = new JSONObject();
             }
 
-            // Methods that register callbacks
-            if ("registerSessionReadyListener".equals(method)) {
-                return handleRegisterSessionReadyListener(callbackContext);
-            }
-            if ("subscribeForDeepLink".equals(method)) {
-                mDeepLinkListener = callbackContext;
-            }
-            if ("registerConversionListener".equals(method)) {
-                mConversionListener = callbackContext;
-            }
-            if ("unregisterConversionListener".equals(method)) {
-                mConversionListener = null;
-            }
-            if ("unsubscribeForDeepLink".equals(method)) {
-                mDeepLinkListener = null;
-            }
+            applyCallbackRegistrationForMethod(method, callbackContext);
 
             if ("init".equals(method)) {
                 setPluginInfo();
             }
 
-            // 2. Build JSON-RPC request string and execute (all methods, including subscribeForDeepLink)
+            // Build JSON-RPC request string and execute (all methods, including subscribeForDeepLink)
             JSONObject jsonRequest = new JSONObject();
             jsonRequest.put("method", method);
             jsonRequest.put("params", paramsJson);
@@ -100,8 +85,9 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             AppsFlyerRpcHandler handler = getOrCreateRpcHandler();
             RpcResponse response = handler.execute(jsonRequestString);
 
-            // 3. Handle response
-            boolean isCallbackRegistrationOnly = "subscribeForDeepLink".equals(method)
+            // Handle response
+            boolean isCallbackRegistrationOnly = "registerSessionReadyListener".equals(method)
+                    || "subscribeForDeepLink".equals(method)
                     || "registerConversionListener".equals(method);
             handleRpcResponse(response, callbackContext, isCallbackRegistrationOnly);
         } catch (JSONException e) {
@@ -115,6 +101,31 @@ public class AppsFlyerPlugin extends CordovaPlugin {
             callbackContext.error("INTERNAL_ERROR" + (t.getMessage() != null ? t.getMessage() : "Unknown error"));
         }
         return true;
+    }
+
+    /**
+     * Updates or clears stored callback contexts for RPC methods that register or unregister listeners.
+     * Called before the request is sent to the bridge so that event delivery uses the correct callback.
+     */
+    private void applyCallbackRegistrationForMethod(String method, CallbackContext callbackContext) {
+        if ("registerSessionReadyListener".equals(method)) {
+            mSessionReadyListener = callbackContext;
+        }
+        if ("unregisterSessionReadyListener".equals(method)) {
+            mSessionReadyListener = null;
+        }
+        if ("subscribeForDeepLink".equals(method)) {
+            mDeepLinkListener = callbackContext;
+        }
+        if ("unsubscribeForDeepLink".equals(method)) {
+            mDeepLinkListener = null;
+        }
+        if ("registerConversionListener".equals(method)) {
+            mConversionListener = callbackContext;
+        }
+        if ("unregisterConversionListener".equals(method)) {
+            mConversionListener = null;
+        }
     }
 
     /**
@@ -221,30 +232,6 @@ public class AppsFlyerPlugin extends CordovaPlugin {
         } else {
             send.run();
         }
-    }
-
-    /**
-     * Registers a callback to be notified when the SDK is ready to trigger a new session.
-     * Invoked via RPC method "registerSessionReadyListener". When the session is ready,
-     * the JS callback receives an event with type {@link AppsFlyerConstants#AF_ON_SESSION_READY}.
-     */
-    private boolean handleRegisterSessionReadyListener(final CallbackContext callbackContext) {
-        mSessionReadyListener = callbackContext;
-        PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
-        result.setKeepCallback(true);
-        callbackContext.sendPluginResult(result);
-
-        AppsFlyerLib.getInstance().registerSessionReadyListener(() -> {
-            try {
-                JSONObject obj = new JSONObject();
-                obj.put("type", AF_ON_SESSION_READY);
-                obj.put("status", AF_SUCCESS);
-                sendEvent(obj);
-            } catch (JSONException e) {
-                Log.e("AppsFlyer", "SessionReadyListener failed", e);
-            }
-        });
-        return true;
     }
 
     /**

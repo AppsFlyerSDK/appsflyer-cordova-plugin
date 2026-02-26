@@ -4,7 +4,7 @@ repositories {
 
 dependencies {
 	implementation 'com.android.installreferrer:installreferrer:2.1'
-	implementation platform("com.appsflyer:af-android-sdk-bom:7.99.517")
+	implementation platform("com.appsflyer:af-android-sdk-bom:7.99.518")
     implementation "com.appsflyer:af-android-sdk"
     implementation "com.appsflyer:af-android-sdk-base"
     implementation "com.appsflyer:af-android-plugin-bridge"

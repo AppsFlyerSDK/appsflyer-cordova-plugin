@@ -443,23 +443,34 @@ if (!window.CustomEvent) {
     };
 
     /**
-     * (Android) Registers a callback to be notified when the SDK is ready to trigger a new session.
+     * Registers a callback to be notified when the SDK is ready to trigger a new session.
      * Call start() within the callback to ensure proper session initialization with all required data (e.g. deeplink parameters).
      * @param {function} successCB - Called when the session is ready; receives event object with type "onSessionReady".
      */
     AppsFlyer.prototype.registerSessionReadyListener = function (successCB) {
         argscheck.checkArgs('F', 'AppsFlyer.registerSessionReadyListener', arguments);
-        if (isAndroid()) {
-            exec(
-                function (result) { if (successCB) successCB(result); },
-                null,
-                'AppsFlyerPlugin',
-                'executeRpc',
-                [{ method: 'registerSessionReadyListener', params: {} }]
-            );
-        } else {
-            if (successCB) successCB({ type: 'onSessionReady', status: 'success' });
-        }
+        exec(
+            function (result) { if (successCB) successCB(result); },
+            null,
+            'AppsFlyerPlugin',
+            'executeRpc',
+            [{ method: 'registerSessionReadyListener', params: {} }]
+        );
+    };
+
+    /**
+     * Unregisters the session ready listener.
+     */
+    AppsFlyer.prototype.unregisterSessionReadyListener = function () {
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'unregisterSessionReadyListener', params: {} }]);
+    };
+
+    /**
+     * Returns whether the SDK session is ready (via successCB with boolean result).
+     */
+    AppsFlyer.prototype.isSessionReady = function (successCB, errorCB) {
+        argscheck.checkArgs('F', 'AppsFlyer.isSessionReady', arguments);
+        exec(function (result) { if (successCB) successCB(result); }, errorCB || null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'isSessionReady', params: {} }]);
     };
 
     /**

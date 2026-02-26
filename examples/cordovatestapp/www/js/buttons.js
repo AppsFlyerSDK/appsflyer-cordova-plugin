@@ -20,6 +20,8 @@ let setInstallIdBtn = document.getElementById('setInstallId');
 let setSharingFilterForPartnersBtn = document.getElementById('setSharingFilterForPartners');
 let getUserIdBtn = document.getElementById('getUserId');
 let unregisterConversionDataListenerBtn = document.getElementById('unregisterConversionDataListener');
+let unregisterSessionReadyListenerBtn = document.getElementById('unregisterSessionReadyListener');
+let isSessionReadyBtn = document.getElementById('isSessionReady');
 let anonymizeUserBtn = document.getElementById('anonymizeUser');
 let stopBtn = document.getElementById('stop');
 let updateServerUninstallTokenBtn = document.getElementById('updateServerUninstallToken');
@@ -129,6 +131,12 @@ if (getUserIdBtn) {
 }
 if (unregisterConversionDataListenerBtn) {
     unregisterConversionDataListenerBtn.addEventListener('click', unregisterConversionDataListener, false);
+}
+if (unregisterSessionReadyListenerBtn) {
+    unregisterSessionReadyListenerBtn.addEventListener('click', unregisterSessionReadyListener, false);
+}
+if (isSessionReadyBtn) {
+    isSessionReadyBtn.addEventListener('click', isSessionReady, false);
 }
 if (anonymizeUserBtn) {
     anonymizeUserBtn.addEventListener('click', anonymizeUser, false);
@@ -341,6 +349,18 @@ function getUserId() {
 function unregisterConversionDataListener() {
     window.plugins.appsFlyer.unregisterConversionDataListener();
     alert('Conversion data listener unregistered');
+}
+
+function unregisterSessionReadyListener() {
+    window.plugins.appsFlyer.unregisterSessionReadyListener();
+    alert('Session ready listener unregistered');
+}
+
+function isSessionReady() {
+    window.plugins.appsFlyer.isSessionReady(
+        function (result) { alert('isSessionReady: ' + result); },
+        callBackFunction
+    );
 }
 
 function anonymizeUser() {
