@@ -321,22 +321,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 }
 
 /**
-*   Sets new currency code. currencyId: ISO 4217 Currency Codes.
-*/
-- (void)enableTCFDataCollection:(CDVInvokedUrlCommand*)command
-{
-    if ([command.arguments count] == 0) {
-        return;
-    }
-    BOOL enable = NO;
-    id enableValue = nil;
-    enableValue = [command.arguments objectAtIndex:0];
-    if ([enableValue isKindOfClass:[NSNumber class]]) {
-       enable = [(NSNumber*)enableValue boolValue];
-    }
-    [[AppsFlyerLib shared] enableTCFDataCollection:enable];
-}
-/**
 *   Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs.
 */
 - (void)setAppUserId:(CDVInvokedUrlCommand *)command
@@ -414,45 +398,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     mDeepLinkListener = command.callbackId;
 }
 
-/**
-* Log rich in-app events
-* @param parameters eventName: custom event name, is presented in your dashboard.
-*                   eventValue: event details
-*                   callbackID: 'success' and 'failure' methods
-*/
-- (void)logEvent:(CDVInvokedUrlCommand*)command {
-
-    NSString* error = nil;
-    NSString* eventName = [command.arguments objectAtIndex:0];
-    NSDictionary* eventValues = [command.arguments objectAtIndex:1];
-
- if(eventName == nil || eventName.length == 0){
-        error = @"Event name is illegal";
-    }
-    if(eventValues == nil){
-        error = @"Event Values are illegal";
-    }
-
-    if(error != nil){
-    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: error];
-    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-    return;
-    }
-
-    [[AppsFlyerLib shared] logEventWithEventName:eventName eventValues:eventValues completionHandler:^(NSDictionary<NSString *,id> * _Nullable dictionary, NSError * _Nullable error) {
-        if(error != nil){
-            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: [error localizedDescription]];
-            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-            return;
-        }else{
-            CDVPluginResult *pluginResult = [ CDVPluginResult resultWithStatus: CDVCommandStatus_OK
-            messageAsString:eventName
-            ];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        }
-    }];
-
-}
 /**
 *   Allows to pass APN Tokens that where collected by third party plugins to the AppsFlyer server. Can be used for Log Uninstall.
 */

@@ -496,7 +496,7 @@ if (!window.CustomEvent) {
                 exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logEvent', params: params }]);
             }
         } else {
-            exec(successCB, errorCB, 'AppsFlyerPlugin', 'logEvent', [eventName, eventValue]);
+            exec(successCB, errorCB, 'AppsFlyerSwiftPlugin', 'logEvent', [eventName, eventValue]);
         }
     };
 
@@ -889,7 +889,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableTCFDataCollection', params: { shouldCollect: !!enable } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'enableTCFDataCollection', [enable]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'enableTCFDataCollection', [enable]);
         }
     };
 

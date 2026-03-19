@@ -16,7 +16,6 @@
 - (void)onAppOpenAttribution:(NSDictionary*) attributionData;
 - (void)onAppOpenAttributionFailure:(NSError *)_errorMessage;
 - (void)didResolveDeepLink:(AppsFlyerDeepLinkResult* _Nonnull) result;
-- (void)logEvent:(CDVInvokedUrlCommand*)command;
 - (void)registerUninstall:(CDVInvokedUrlCommand*)command;
 - (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
 - (void)anonymizeUser:(CDVInvokedUrlCommand *)command;
@@ -34,7 +33,6 @@
 - (void)setAdditionalData:(CDVInvokedUrlCommand*)command;
 - (void)setConsentData:(CDVInvokedUrlCommand*)command;
 - (void)logAdRevenue:(CDVInvokedUrlCommand*)command;
-- (void)enableTCFDataCollection:(CDVInvokedUrlCommand*)command;
 - (void)setSharingFilter:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
 - (void)setSharingFilterForAllPartners:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
 - (void)validateAndLogInAppPurchase: (CDVInvokedUrlCommand*)command;
