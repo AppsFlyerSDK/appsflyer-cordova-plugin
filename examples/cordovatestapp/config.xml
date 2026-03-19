@@ -15,8 +15,10 @@
         <param name="android-package" value="org.apache.cordova.testframework.TestFramework" />
     </feature>
     <platform name="ios">
+        <hook src="hooks/ios_pod_install.js" type="after_prepare" />
         <edit-config target="NSUserTrackingUsageDescription" file="*-Info.plist" mode="merge">
             <string>My tracking usage description</string>
         </edit-config>
     </platform>
+    <preference name="deployment-target" value="14.0" />
 </widget>
