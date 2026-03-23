@@ -99,7 +99,8 @@
             </config>
             <pods use-frameworks="true">
                <pod name="AppsFlyerFramework" spec="6.17.8"/>
-               <!-- TODO: AppsFlyerRPC: add `pod 'AppsFlyerRPC'-->
+                <!-- TODO: AppsFlyerRPC: add `pod 'AppsFlyerRPC'-->
+            </pods>
         </podspec>
     </platform>
 

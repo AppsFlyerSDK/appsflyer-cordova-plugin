@@ -14,6 +14,22 @@ import AppsFlyerRPC
 @objc(AppsFlyerSwiftPlugin)
 public class AppsFlyerSwiftPlugin: CDVPlugin {
 
+    private static let rpcLogPrefix = "[AppsFlyer RPC]"
+
+    /// Logs to Xcode / device console (`NSLog`). Filter: `AppsFlyer RPC`
+    private func logRpc(_ message: String) {
+        NSLog("%@ %@", Self.rpcLogPrefix, message)
+    }
+
+    private static func logRpc(_ message: String) {
+        NSLog("%@ %@", rpcLogPrefix, message)
+    }
+
+    private static func truncateForLog(_ string: String, max: Int = 800) -> String {
+        guard string.count > max else { return string }
+        return String(string.prefix(max)) + "…(\(string.count) chars total)"
+    }
+
     // MARK: - RPC client
 
     private lazy var rpcClient: AFRPCClient = {
@@ -38,19 +54,26 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
     // MARK: - Bridge events → JS
 
     private func handleRpcBridgeEvent(_ json: String) {
+        Self.logRpc("bridge event raw: \(Self.truncateForLog(json))")
+
         guard let data = json.data(using: .utf8),
         var payload = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else {
+            Self.logRpc("bridge event: failed to parse JSON as dictionary")
             return
         }
 
         let eventName = payload["event"] as? String ?? ""
-        payload["type"] = Self.mapBridgeEventNameToJsType(eventName)
+        let mappedType = Self.mapBridgeEventNameToJsType(eventName)
+        payload["type"] = mappedType
         payload["status"] = Self.afSuccess
+
+        Self.logRpc("bridge event: event=\(eventName) → type=\(mappedType)")
 
         guard let outData = try? JSONSerialization.data(withJSONObject: payload, options: []),
         let jsonStr = String(data: outData, encoding: .utf8)
         else {
+            Self.logRpc("bridge event: failed to re-encode payload for JS")
             return
         }
 
@@ -76,6 +99,8 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
 
     /// Delivers JSON to the correct listener callback
     private func deliverRpcEvent(_ jsonStr: String, jsType: String) {
+        Self.logRpc("deliver: jsType=\(jsType) payload=\(Self.truncateForLog(jsonStr))")
+
         let result = CDVPluginResult(status: CDVCommandStatus.ok, messageAs: jsonStr)
         result.keepCallback = true
 
@@ -85,37 +110,53 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
         "onAppOpenAttribution",
         "onAppOpenAttributionFailure":
             if let cb = conversionListenerCallbackId {
+                Self.logRpc("deliver: sending to conversion listener callbackId=\(cb)")
                 commandDelegate.send(result, callbackId: cb)
+            } else {
+                Self.logRpc("deliver: no conversionListenerCallbackId set — event dropped (register registerConversionListener first)")
             }
         case Self.afOnDeepLinking:
             if let cb = deepLinkListenerCallbackId {
+                Self.logRpc("deliver: sending to deep link listener callbackId=\(cb)")
                 commandDelegate.send(result, callbackId: cb)
+            } else {
+                Self.logRpc("deliver: no deepLinkListenerCallbackId — event dropped")
             }
         case Self.afOnSessionReady:
             if let cb = sessionReadyListenerCallbackId {
+                Self.logRpc("deliver: sending to session ready listener callbackId=\(cb)")
                 commandDelegate.send(result, callbackId: cb)
+            } else {
+                Self.logRpc("deliver: no sessionReadyListenerCallbackId — event dropped")
             }
         default:
-            break
+            Self.logRpc("deliver: unhandled jsType=\(jsType) — event dropped")
         }
     }
 
     // MARK: - Listener registration
 
     private func applyCallbackRegistrationForMethod(_ method: String, command: CDVInvokedUrlCommand) {
+        let cb = command.callbackId
         switch method {
         case "registerSessionReadyListener":
-            sessionReadyListenerCallbackId = command.callbackId
+            sessionReadyListenerCallbackId = cb
+            logRpc("registration: sessionReady listener → callbackId=\(cb ?? "nil")")
         case "unregisterSessionReadyListener":
             sessionReadyListenerCallbackId = nil
+            logRpc("registration: sessionReady listener cleared")
         case "subscribeForDeepLink", "registerDeeplinkListener":
-            deepLinkListenerCallbackId = command.callbackId
+            deepLinkListenerCallbackId = cb
+            logRpc("registration: deep link listener → callbackId=\(cb ?? "nil")")
         case "unsubscribeForDeepLink":
             deepLinkListenerCallbackId = nil
+            logRpc("registration: deep link listener cleared")
         case "registerConversionListener":
-            conversionListenerCallbackId = command.callbackId
+            conversionListenerCallbackId = cb
+            logRpc("registration: conversion listener → callbackId=\(cb ?? "nil")")
         case "unregisterConversionListener":
             conversionListenerCallbackId = nil
+            logRpc("registration: conversion listener cleared")
         default:
             break
         }
@@ -129,6 +170,8 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
         case "subscribeForDeepLink":
             return .invoke(method: "registerDeeplinkListener", params: params)
         case "unsubscribeForDeepLink":
+            return .localAckOnly
+        case "unregisterConversionListener":
             return .localAckOnly
         case "stop":
             let stopped = params["shouldStop"] as? Bool ?? false
@@ -172,7 +215,7 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
 
     private enum NormalizedRpcInvocation {
         case invoke(method: String, params: [String: Any])
-        /// iOS RPC has no deeplink unsubscribe — only clear the Cordova callback (already cleared in applyCallbackRegistration).
+        /// No RPC call: iOS AppsFlyerRPC has no unsubscribe APIs — Cordova callback is cleared in `applyCallbackRegistrationForMethod`
         case localAckOnly
     }
 
@@ -187,17 +230,21 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
 
     private func executeRpcAsync(_ command: CDVInvokedUrlCommand) async {
         guard let options = command.arguments.first as? [String: Any] else {
+            logRpc("executeRpc: error — missing options object")
             sendCordovaError(command, message: "PARSE_ERRORMissing options object")
             return
         }
 
         let rawMethod = options["method"] as? String
         if rawMethod == nil || rawMethod?.isEmpty == true {
+            logRpc("executeRpc: error — missing method")
             sendCordovaError(command, message: "INVALID_PARAMETERSMissing method")
             return
         }
 
         let method = rawMethod!
+        logRpc("executeRpc: begin method=\(method) callbackId=\(command.callbackId ?? "nil")")
+
         applyCallbackRegistrationForMethod(method, command: command)
 
         let paramsObject = normalizeRpcParams(options["params"])
@@ -205,27 +252,42 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
 
         switch normalized {
         case .localAckOnly:
+            logRpc("executeRpc: localAckOnly (no RPC call) for method=\(method)")
             sendRegistrationAck(command: command) { [weak self] result in
                 guard let self = self, let result = result else { return }
+                self.logRpc("executeRpc: sending localAckOnly result for callbackId=\(command.callbackId ?? "nil")")
                 self.commandDelegate.send(result, callbackId: command.callbackId)
             }
             return
         case let .invoke(rpcMethod, rpcParams):
+            if rpcMethod != method {
+                logRpc("executeRpc: normalized \(method) → RPC method=\(rpcMethod)")
+            }
             let requestJson: String
             do {
                 requestJson = try Self.buildJsonRpcEnvelope(method: rpcMethod, params: rpcParams)
             } catch {
+                logRpc("executeRpc: build envelope failed: \(error.localizedDescription)")
                 sendCordovaError(command, message: "PARSE_ERROR\(error.localizedDescription)")
                 return
             }
 
+            logRpc("executeRpc: request \(Self.truncateForLog(requestJson))")
+
             let responseJson = await rpcClient.execute(jsonRequest: requestJson)
+            logRpc("executeRpc: response \(Self.truncateForLog(responseJson))")
+
             Self.sendRpcEnvelopeToCordova(
                 responseJson,
                 originalMethod: method,
                 command: command
             ) { [weak self] result in
-                guard let self = self, let result = result else { return }
+                guard let self = self, let result = result else {
+                    Self.logRpc("executeRpc: sendRpcEnvelope callback with nil result")
+                    return
+                }
+                // CDVPluginResult.status is NSNumber in Cordova (not Swift enum).
+                self.logRpc("executeRpc: sending Cordova result status=\(result.status.intValue) for callbackId=\(command.callbackId ?? "nil")")
                 self.commandDelegate.send(result, callbackId: command.callbackId)
             }
         }
@@ -280,6 +342,7 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
         guard let data = responseJson.data(using: .utf8),
         let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else {
+            logRpc("sendRpcEnvelope: invalid JSON response")
             send(CDVPluginResult(status: CDVCommandStatus.error, messageAs: "INTERNAL_ERRORInvalid RPC response"))
             return
         }
@@ -287,6 +350,7 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
         if let transportError = obj["error"] as? [String: Any], !(transportError.isEmpty) {
             let code = transportError["code"] as? Int ?? 0
             let message = transportError["message"] as? String ?? "RPC error"
+            logRpc("sendRpcEnvelope: transport error code=\(code) message=\(message) method=\(originalMethod)")
             send(CDVPluginResult(status: CDVCommandStatus.error, messageAs: "\(code)\(message)"))
             return
         }
@@ -297,6 +361,7 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
             if let success = dict["success"] as? Bool, success == false {
                 let code = dict["errorCode"] as? Int ?? 0
                 let message = dict["message"] as? String ?? "RPC error"
+                logRpc("sendRpcEnvelope: handler failure success=false code=\(code) message=\(message) method=\(originalMethod)")
                 send(CDVPluginResult(status: CDVCommandStatus.error, messageAs: "\(code)\(message)"))
                 return
             }
@@ -305,6 +370,7 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
         let registrationOnly = isCallbackRegistrationOnlyMethod(originalMethod)
 
         if registrationOnly {
+            logRpc("sendRpcEnvelope: registration-only method=\(originalMethod) → NO_RESULT + keepCallback (listener stored for bridge events)")
             let ack = CDVPluginResult(status: CDVCommandStatus.noResult)
             ack.keepCallback = true
             send(ack)
@@ -324,6 +390,7 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
             payloadString = ""
         }
 
+        logRpc("sendRpcEnvelope: OK method=\(originalMethod) payload=\(truncateForLog(payloadString))")
         send(CDVPluginResult(status: CDVCommandStatus.ok, messageAs: payloadString))
     }
 

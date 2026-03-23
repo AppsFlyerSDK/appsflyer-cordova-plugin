@@ -8,7 +8,6 @@
 - (void)initSdk:(CDVInvokedUrlCommand*)command;
 - (void)startSdk:(CDVInvokedUrlCommand*)command;
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command;
-- (void)setCurrencyCode:(CDVInvokedUrlCommand*)command;
 - (void)setAppUserId:(CDVInvokedUrlCommand*)command;
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand*)command;
 - (void)onConversionDataSuccess:(NSDictionary*) installData;

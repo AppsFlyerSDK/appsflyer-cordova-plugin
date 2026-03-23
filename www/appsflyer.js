@@ -96,7 +96,7 @@ if (!window.CustomEvent) {
 
     /**
      * initialize the SDK.
-     * args: SDK configuration (devKey required; on Android uses RPC "init", start is separate)
+     * args: SDK configuration (devKey required)
      */
     AppsFlyer.prototype.initSdk = function (args) {
         argscheck.checkArgs('O', 'AppsFlyer.initSdk', arguments);
@@ -131,7 +131,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'isDebug', params: { isDebug: !!isEnabled } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'setDebugLog', [!!isEnabled]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'isDebug', params: { isDebug: !!isEnabled } }]);
         }
     };
 
@@ -157,7 +157,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'registerConversionListener', params: {} }]);
         } else {
-            exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'registerConversionListener', []);
+            exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'registerConversionListener', params: {} }]);
         }
     };
 
@@ -165,7 +165,11 @@ if (!window.CustomEvent) {
      * Unregister install conversion data listener. No further conversion data callbacks will be delivered.
      */
     AppsFlyer.prototype.unregisterConversionDataListener = function () {
-        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'unregisterConversionListener', params: {} }]);
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'unregisterConversionListener', params: {} }]);
+        } else {
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'unregisterConversionListener', params: {} }]);
+        }
     };
 
     /**
@@ -179,14 +183,13 @@ if (!window.CustomEvent) {
 
     /**
      * currencyId: ISO 4217 Currency Codes
-     * On Android uses RPC (executeRpc); on iOS uses legacy native action.
      */
     AppsFlyer.prototype.setCurrencyCode = function (currencyId) {
         argscheck.checkArgs('S', 'AppsFlyer.setCurrencyCode', arguments);
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCurrencyCode', params: { currencyCode: currencyId } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'setCurrencyCode', [currencyId]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setCurrencyCode', params: { currencyCode: currencyId } }]);
         }
     };
 
@@ -635,7 +638,6 @@ if (!window.CustomEvent) {
      * @param {object} additionalParameters optional map of additional parameters
      * @param successC Success callback
      * @param errorC Error callback
-     * On Android uses RPC (executeRpc) with method validateAndLogInAppPurchase; on iOS uses legacy native action.
      */
     AppsFlyer.prototype.validateAndLogInAppPurchase = function (afPurchaseDetails, additionalParameters, successC, errorC) {
         if (isAndroid()) {
@@ -681,7 +683,6 @@ if (!window.CustomEvent) {
      * If you don't want AppsFlyer to dynamically load this framework, set this property to true.
      * @param disableAdvertisingIdentifier - true OR false
      * @param successC - callback function
-     * On Android uses RPC (executeRpc); on iOS uses legacy native action.
      */
     AppsFlyer.prototype.setDisableAdvertisingIdentifier = function (disableAdvertisingIdentifier, successC) {
         if (isAndroid()) {
@@ -855,7 +856,6 @@ if (!window.CustomEvent) {
     /**
      * Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device.
      * @param disable - Defaults to false
-     * On Android uses RPC (executeRpc); on iOS uses legacy native action.
      */
     AppsFlyer.prototype.setDisableNetworkData = function (disable) {
         if (isAndroid()) {
