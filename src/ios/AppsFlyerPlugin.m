@@ -9,7 +9,6 @@
 
 @implementation AppsFlyerPlugin
 
-
 static NSString *const NO_DEVKEY_FOUND = @"AppsFlyer 'devKey' is missing or empty";
 static NSString *const NO_APPID_FOUND  = @"'appId' is missing or empty";
 static NSString *const SUCCESS         = @"Success";
@@ -18,124 +17,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
  NSString* mAttributionDataListener;
  NSString* mDeepLinkListener;
  NSString* mInviteListener;
- BOOL isDeepLinking = NO;
-
-- (void)pluginInitialize{}
-
-/**
-*   initialize the SDK.
-*   initSdkOptions: SDK configuration
-*/
-- (void)initSdk:(CDVInvokedUrlCommand*)command
-{
-    NSDictionary* initSdkOptions = [command argumentAtIndex:0 withDefault:[NSNull null]];
-
-    NSString* devKey = nil;
-    NSString* appId = nil;
-    NSNumber* waitForATTUserAuthorization;
-    id shouldStartSdkValue = nil;
-    id isDebugValue = nil;
-    id sandboxValue = nil;
-    id isDeepLinkingValue = nil;
-    BOOL isDebug = NO;
-    BOOL useUninstallSandbox = NO;
-    BOOL shouldStartSdk = YES;
-
-
-    if (![initSdkOptions isKindOfClass:[NSNull class]]) {
-        // Assign values to variables
-        devKey = (NSString*)[initSdkOptions objectForKey:afDevKey];
-        appId = (NSString*)[initSdkOptions objectForKey:afAppId];
-        waitForATTUserAuthorization = (NSNumber*)[initSdkOptions objectForKey:afwaitForATTUserAuthorization];
-        isDebugValue = [initSdkOptions objectForKey:afIsDebug];
-        shouldStartSdkValue = [initSdkOptions objectForKey:@"shouldStartSdk"];
-
-        if ([isDebugValue isKindOfClass:[NSNumber class]]) {
-            isDebug = [(NSNumber*)isDebugValue boolValue];
-        }
-
-        if ([shouldStartSdkValue isKindOfClass:[NSNumber class]]) {
-            shouldStartSdk = [(NSNumber*)shouldStartSdkValue boolValue];
-        }
-
-        [self setShouldStartSdk:shouldStartSdk];
-        sandboxValue = [initSdkOptions objectForKey:afSanboxUninstall];
-
-        if ([sandboxValue isKindOfClass:[NSNumber class]]) {
-            useUninstallSandbox = [(NSNumber*)sandboxValue boolValue];
-        }
-
-        isDeepLinkingValue = [initSdkOptions objectForKey:afOnDeepLinking];
-
-        if ([isDeepLinkingValue isKindOfClass:[NSNumber class]]) {
-            isDeepLinking = [(NSNumber*)isDeepLinkingValue boolValue];
-        }
-    }
-
-    NSString* error = nil;
-
-    // Verify dev key is not null/empty
-    if (!devKey || [devKey isEqualToString:@""]) {
-        error = NO_DEVKEY_FOUND;
-    }
-
-    if (!appId || [appId isEqualToString:@""]) {
-        error = NO_APPID_FOUND;
-    }
-
-    // Throw an exception if the error object is not nil
-    if (error != nil){
-        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:error];
-        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-        return;
-    } else {
-        if (isDeepLinking == YES) {
-            [AppsFlyerLib shared].deepLinkDelegate = self;
-        }
-
-        // Initialize the SDK
-        [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.17.8" additionalParams:nil];
-        [AppsFlyerLib shared].appleAppID = appId;
-        [AppsFlyerLib shared].appsFlyerDevKey = devKey;
-        [AppsFlyerLib shared].isDebug = isDebug;
-        [AppsFlyerLib shared].useUninstallSandbox = useUninstallSandbox;
-    }
-
-#ifndef AFSDK_NO_IDFA
-    // Here we set the time that the SDK will wait before it starts the launch. We take the time from the 'option' object in the app's index.js
-    if (@available(iOS 14, *)) {
-        if (waitForATTUserAuthorization != 0 && waitForATTUserAuthorization != nil) {
-            [[AppsFlyerLib shared] waitForATTUserAuthorizationWithTimeoutInterval:waitForATTUserAuthorization.intValue];
-        }
-    }
-#endif
-    if (shouldStartSdk) {
-        [self startSdk:command];
-    }
-
-    //post notification for the deep link object that the bridge is set and he can handle deep link
-        [AppsFlyerAttribution shared].isBridgeReady = YES;
-        [[NSNotificationCenter defaultCenter] postNotificationName:AF_BRIDGE_SET object:self];
-        // Register for background-foreground transitions natively instead of doing this in JavaScript
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(sendLaunch:)
-                                                     name:UIApplicationDidBecomeActiveNotification
-                                                   object:nil];
-        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:SUCCESS];
-        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-}
-
--(void)startSdk:(CDVInvokedUrlCommand*)command {
-    [self setShouldStartSdk:YES];
-    [[AppsFlyerLib shared] start];
-}
-
--(void)sendLaunch:(UIApplication *)application {
-    [[NSNotificationCenter defaultCenter] postNotificationName:AF_BRIDGE_SET object:self];
-    if ([self shouldStartSdk]) {
-        [[AppsFlyerLib shared] start];
-    }
-}
 
 /**
  Set the language of the device. The data will be displayed in Raw Data Reports

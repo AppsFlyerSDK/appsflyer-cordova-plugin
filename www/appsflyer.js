@@ -95,15 +95,27 @@ if (!window.CustomEvent) {
     global.AFPurchaseDetails = AFPurchaseDetails;
 
     /**
-     * initialize the SDK.
-     * args: SDK configuration (devKey required)
+     * initialize the SDK
      */
     AppsFlyer.prototype.initSdk = function (args) {
         argscheck.checkArgs('O', 'AppsFlyer.initSdk', arguments);
+        const params = {
+            devKey: args.devKey || '',
+            appId: args.appId || ''
+        };
         if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'init', params: { devKey: args.devKey || '' } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'init', params: params }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'initSdk', [args]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'init', params: params }]);
+        }
+    };
+
+    /**
+     * iOS: RPC `waitForATT` — timeout in seconds. Call when using ATT on iOS 14+.
+     */
+    AppsFlyer.prototype.waitForATT = function (timeoutSeconds) {
+        if (!isAndroid()) {
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'waitForATT', params: { timeout: timeoutSeconds } }]);
         }
     };
 
@@ -111,16 +123,20 @@ if (!window.CustomEvent) {
      * Starts the SDK. Optionally, pass success and error callbacks to be notified when start completes.
      */
     AppsFlyer.prototype.startSdk = function (successCB, errorCB) {
+        const hasCallback = (typeof successCB === 'function') || (typeof errorCB === 'function');
+        const params = { awaitResponse: hasCallback };
         if (isAndroid()) {
-            const hasCallback = (typeof successCB === 'function') || (typeof errorCB === 'function');
-            const params = { awaitResponse: hasCallback };
             if (hasCallback) {
                 exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'start', params: params }]);
             } else {
                 exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'start', params: params }]);
             }
         } else {
-            exec(successCB || null, errorCB || null, 'AppsFlyerPlugin', 'startSdk', []);
+            if (hasCallback) {
+                exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'start', params: params }]);
+            } else {
+                exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'start', params: params }]);
+            }
         }
     };
 
@@ -144,7 +160,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'subscribeForDeepLink', params: {} }]);
         } else {
-            exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'registerDeepLink', []);
+            exec(onDeepLinkListener, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'subscribeForDeepLink', params: {} }]);
         }
     };
 
@@ -802,8 +818,11 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setCurrentDeviceLanguage = function (language ){
         argscheck.checkArgs('S', 'AppsFlyer.setCurrentDeviceLanguage', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'setCurrentDeviceLanguage', [language]);
-
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCurrentDeviceLanguage', params: { language: language } }]);
+        } else {
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setCurrentDeviceLanguage', params: { language: language } }]);
+        }
     };
 
     /**
@@ -871,16 +890,16 @@ if (!window.CustomEvent) {
      * when GDPR applies to the user and your app does not use a CMP compatible with TCF v2.2, use this API to provide the consent data directly to the SDK.<br>
      */
     AppsFlyer.prototype.setConsentData = function (appsFlyerConsent) {
+        const params = {
+            isUserSubjectToGDPR: appsFlyerConsent.isUserSubjectToGDPR === true,
+            hasConsentForDataUsage: appsFlyerConsent.hasConsentForDataUsage,
+            hasConsentForAdsPersonalization: appsFlyerConsent.hasConsentForAdsPersonalization,
+            hasConsentForAdStorage: appsFlyerConsent.hasConsentForAdStorage
+        };
         if (isAndroid()) {
-            const params = {
-                isUserSubjectToGDPR: appsFlyerConsent.isUserSubjectToGDPR === true,
-                hasConsentForDataUsage: appsFlyerConsent.hasConsentForDataUsage,
-                hasConsentForAdsPersonalization: appsFlyerConsent.hasConsentForAdsPersonalization,
-                hasConsentForAdStorage: appsFlyerConsent.hasConsentForAdStorage
-            };
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setConsentData', params: params }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'setConsentData', [appsFlyerConsent]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setConsentData', params: params }]);
         }
     };
 
@@ -893,7 +912,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableTCFDataCollection', params: { shouldCollect: !!enable } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'enableTCFDataCollection', [enable]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'enableTCFDataCollection', params: { enable: !!enable } }]);
         }
     };
 

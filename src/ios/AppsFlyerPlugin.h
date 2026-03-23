@@ -4,9 +4,6 @@
 #import <objc/message.h>
 
 @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate, AppsFlyerDeepLinkDelegate>
-@property (readwrite, nonatomic) BOOL shouldStartSdk;
-- (void)initSdk:(CDVInvokedUrlCommand*)command;
-- (void)startSdk:(CDVInvokedUrlCommand*)command;
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command;
 - (void)setAppUserId:(CDVInvokedUrlCommand*)command;
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand*)command;

@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import AppsFlyerLib
+import UIKit
 import AppsFlyerRPC
 
 /// Swift plugin implementation. Exposed to Cordova as AppsFlyerSwiftPlugin.
@@ -15,6 +15,9 @@ import AppsFlyerRPC
 public class AppsFlyerSwiftPlugin: CDVPlugin {
 
     private static let rpcLogPrefix = "[AppsFlyer RPC]"
+
+    /// Cordova plugin version for RPC `setPluginInfo` (align with `package.json` / Android `AppsFlyerConstants.PLUGIN_VERSION`).
+    private static let cordovaPluginVersion = "6.17.8"
 
     /// Logs to Xcode / device console (`NSLog`). Filter: `AppsFlyer RPC`
     private func logRpc(_ message: String) {
@@ -38,6 +41,18 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
         }
     }()
 
+    /// Internal: fire-and-forget RPC `start` (same `AFRPCClient` as `executeRpc`). Posted on foreground after JS has started once.
+    private static let rpcStartFireAndForgetNotification = Notification.Name("AppsFlyerRpcStartFireAndForget")
+
+    /// Matches `AF_BRIDGE_SET` in `AppsFlyerAttribution.h` (`bridge is set`).
+    private static let appsFlyerBridgeSetNotification = Notification.Name("bridge is set")
+
+    /// After JS invokes RPC `start` once, `UIApplication.didBecomeActive` re-posts fire-and-forget `start` (replaces Obj-C `shouldStartSdk` / `sendLaunch:`).
+    private var shouldStartSdk = false
+
+    /// Ensures we only register `NotificationCenter` observers once per plugin instance.
+    private var didRegisterNotificationObservers = false
+
     /// Cordova callback IDs for streaming RPC events.
     private var conversionListenerCallbackId: String?
     private var deepLinkListenerCallbackId: String?
@@ -50,6 +65,280 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
     private static let afOnDeepLinking = "onDeepLinking"
     private static let afOnSessionReady = "onSessionReady"
     private static let afSuccess = "success"
+
+    // MARK: - Cordova plugin lifecycle
+
+    public override func pluginInitialize() {
+        super.pluginInitialize()
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+
+
+    // MARK: - executeRpc
+
+    /// Args: `[ { "method": "<name>", "params": { ... } } ]`
+    @objc public func executeRpc(_ command: CDVInvokedUrlCommand) {
+        Task { @MainActor in
+            await self.executeRpcAsync(command)
+        }
+    }
+
+    private func executeRpcAsync(_ command: CDVInvokedUrlCommand) async {
+        guard let options = command.arguments.first as? [String: Any] else {
+            logRpc("executeRpc: error — missing options object")
+            sendCordovaError(command, message: "PARSE_ERRORMissing options object")
+            return
+        }
+
+        let rawMethod = options["method"] as? String
+        if rawMethod == nil || rawMethod?.isEmpty == true {
+            logRpc("executeRpc: error — missing method")
+            sendCordovaError(command, message: "INVALID_PARAMETERSMissing method")
+            return
+        }
+
+        let method = rawMethod!
+        logRpc("executeRpc: begin method=\(method) callbackId=\(command.callbackId ?? "nil")")
+
+        applyCallbackRegistrationForMethod(method, command: command)
+
+        let paramsObject = normalizeRpcParams(options["params"])
+        let normalized = normalizeRpcInvocation(method: method, params: paramsObject)
+
+        switch normalized {
+        case .localAckOnly:
+            logRpc("executeRpc: localAckOnly (no RPC call) for method=\(method)")
+            sendRegistrationAck(command: command) { [weak self] result in
+                guard let self = self, let result = result else { return }
+                self.logRpc("executeRpc: sending localAckOnly result for callbackId=\(command.callbackId ?? "nil")")
+                self.commandDelegate.send(result, callbackId: command.callbackId)
+            }
+            return
+        case let .invoke(rpcMethod, rpcParams):
+            if rpcMethod != method {
+                logRpc("executeRpc: normalized \(method) → RPC method=\(rpcMethod)")
+            }
+
+            if rpcMethod == "init" {
+                setupAttributionBridgeAndForegroundObserversIfNeeded()
+                await sendPluginInfoBeforeInit()
+            }
+
+            if rpcMethod == "start" {
+                shouldStartSdk = true
+            }
+
+            let requestJson: String
+            do {
+                requestJson = try Self.buildJsonRpcEnvelope(method: rpcMethod, params: rpcParams)
+            } catch {
+                logRpc("executeRpc: build envelope failed: \(error.localizedDescription)")
+                sendCordovaError(command, message: "PARSE_ERROR\(error.localizedDescription)")
+                return
+            }
+
+            logRpc("executeRpc: request \(Self.truncateForLog(requestJson))")
+
+            let responseJson = await rpcClient.execute(jsonRequest: requestJson)
+            logRpc("executeRpc: response \(Self.truncateForLog(responseJson))")
+
+            Self.sendRpcEnvelopeToCordova(
+                responseJson,
+                originalMethod: method,
+                command: command
+            ) { [weak self] result in
+                guard let self = self, let result = result else {
+                    Self.logRpc("executeRpc: sendRpcEnvelope callback with nil result")
+                    return
+                }
+                // CDVPluginResult.status is NSNumber in Cordova (not Swift enum).
+                self.logRpc("executeRpc: sending Cordova result status=\(result.status.intValue) for callbackId=\(command.callbackId ?? "nil")")
+                self.commandDelegate.send(result, callbackId: command.callbackId)
+            }
+        }
+    }
+
+    /// `params` may be `nil`, `NSNull`, or a dictionary (Cordova / JS).
+    private func normalizeRpcParams(_ value: Any?) -> [String: Any] {
+        if value == nil || value is NSNull {
+            return [:]
+        }
+        if let dict = value as? [String: Any] {
+            return dict
+        }
+        return [:]
+    }
+
+    // MARK: - Cordova method names → iOS AFRPC
+
+    /// Normalizes JS RPC names and params to what `AppsFlyerRPC` expects.
+    private func normalizeRpcInvocation(method: String, params: [String: Any]) -> NormalizedRpcInvocation {
+        switch method {
+        case "subscribeForDeepLink":
+            return .invoke(method: "registerDeeplinkListener", params: params)
+        case "unsubscribeForDeepLink":
+            return .localAckOnly
+        case "unregisterConversionListener":
+            return .localAckOnly
+        case "unregisterSessionReadyListener":
+            return .localAckOnly
+        case "enableTCFDataCollection":
+            var p = params
+            if p["enable"] == nil {
+                if let sc = p["shouldCollect"] as? Bool {
+                    p["enable"] = sc
+                } else if let num = p["shouldCollect"] as? NSNumber {
+                    p["enable"] = num.boolValue
+                }
+            }
+            return .invoke(method: "enableTCFDataCollection", params: p)
+        case "stop":
+            let stopped = params["shouldStop"] as? Bool ?? false
+            return .invoke(method: "setStopped", params: ["stopped": stopped])
+        case "anonymizeUser":
+            let flag = params["shouldAnonymize"] as? Bool ?? false
+            return .invoke(method: "setAnonymizeUser", params: ["anonymize": flag])
+        case "setUserEmailsWithCryptType":
+            var p = params
+            if let ct = p["cryptType"] as? String {
+                let lower = ct.lowercased()
+                if lower == "sha256" {
+                    p["cryptType"] = "sha256"
+                } else if lower == "none" || lower.isEmpty {
+                    p["cryptType"] = "none"
+                }
+            }
+            return .invoke(method: "setUserEmails", params: p)
+        case "appendParametersToDeepLinkingURL":
+            var p: [String: Any] = [:]
+            if let c = params["contains"] as? String {
+                p["containsString"] = c
+            }
+            if let raw = params["parameters"] as? [String: Any] {
+                var stringMap: [String: String] = [:]
+                for (k, v) in raw {
+                    stringMap[k] = "\(v)"
+                }
+                p["params"] = stringMap
+            }
+            return .invoke(method: "appendParametersToDeeplinkURL", params: p)
+        case "performDeepLinking":
+            if let url = params["url"] as? String {
+                return .invoke(method: "performOnAppAttributionWithURL", params: ["url": url])
+            }
+            return .invoke(method: "performOnAppAttributionWithURL", params: params)
+        default:
+            return .invoke(method: method, params: params)
+        }
+    }
+
+    private enum NormalizedRpcInvocation {
+        case invoke(method: String, params: [String: Any])
+        /// No RPC call: iOS AppsFlyerRPC has no unsubscribe APIs — Cordova callback is cleared in `applyCallbackRegistrationForMethod`
+        case localAckOnly
+    }
+
+    // MARK: - Plugin info (before init)
+
+    /// Cordova host marker: RPC `setPluginInfo` before `init`.
+    /// Failures are logged only; `init` always proceeds afterward.
+    private func sendPluginInfoBeforeInit() async {
+        do {
+            let pluginInfoJson = try Self.buildJsonRpcEnvelope(
+                method: "setPluginInfo",
+                params: ["plugin": "cordova", "pluginVersion": Self.cordovaPluginVersion]
+            )
+            logRpc("sendPluginInfoBeforeInit: request \(Self.truncateForLog(pluginInfoJson))")
+            let pluginInfoResponse = await rpcClient.execute(jsonRequest: pluginInfoJson)
+            logRpc("sendPluginInfoBeforeInit: raw response \(pluginInfoResponse)")
+        } catch {
+            logRpc("sendPluginInfoBeforeInit: ignoring envelope error, proceeding with init — \(error.localizedDescription)")
+        }
+    }
+
+    private static func buildJsonRpcEnvelope(method: String, params: [String: Any]) throws -> String {
+        let envelope: [String: Any] = [
+            "method": method,
+            "params": params
+        ]
+        let data = try JSONSerialization.data(withJSONObject: envelope, options: [.sortedKeys])
+        guard let str = String(data: data, encoding: .utf8) else {
+            throw NSError(domain: "AppsFlyerSwiftPlugin", code: -1, userInfo: [NSLocalizedDescriptionKey: "UTF-8 encode failed"])
+        }
+        return str
+    }
+
+    /// `true` for RPC calls that only register a Cordova callback
+    private static func isCallbackRegistrationOnlyMethod(_ originalMethod: String) -> Bool {
+        switch originalMethod {
+        case "registerSessionReadyListener", "subscribeForDeepLink", "registerDeeplinkListener", "registerConversionListener":
+            return true
+        default:
+            return false
+        }
+    }
+
+    // MARK: - Attribution bridge (SDK `init` RPC)
+
+    /// Sets `isBridgeReady`, posts `AF_BRIDGE_SET`, registers `UIApplication.didBecomeActive` + internal fire-and-forget `start` observer.
+    private func setupAttributionBridgeAndForegroundObserversIfNeeded() {
+        guard !didRegisterNotificationObservers else { return }
+        didRegisterNotificationObservers = true
+
+        setAppsFlyerAttributionBridgeReady()
+        NotificationCenter.default.post(name: Self.appsFlyerBridgeSetNotification, object: self)
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleApplicationDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleRpcStartFireAndForgetNotification),
+            name: Self.rpcStartFireAndForgetNotification,
+            object: nil
+        )
+        Self.logRpc("setupAttributionBridge: bridge ready + foreground observers (init RPC)")
+    }
+
+    /// Sets `[AppsFlyerAttribution shared].isBridgeReady` without importing Obj‑C headers into the app’s Swift bridging header (Cordova often omits that import).
+    private func setAppsFlyerAttributionBridgeReady() {
+        guard let cls = NSClassFromString("AppsFlyerAttribution") else {
+            Self.logRpc("setAppsFlyerAttributionBridgeReady: AppsFlyerAttribution class not found — ensure AppsFlyerAttribution.m is in the iOS target")
+            return
+        }
+        guard let shared = (cls as AnyObject).perform(NSSelectorFromString("shared"))?.takeUnretainedValue() as? NSObject else {
+            Self.logRpc("setAppsFlyerAttributionBridgeReady: -[AppsFlyerAttribution shared] failed")
+            return
+        }
+        shared.setValue(true, forKey: "isBridgeReady")
+    }
+
+    /// Flush attribution bridge state; optionally re-run session `start` via RPC.
+    @objc private func handleApplicationDidBecomeActive() {
+        NotificationCenter.default.post(name: Self.appsFlyerBridgeSetNotification, object: self)
+        if shouldStartSdk {
+            NotificationCenter.default.post(name: Self.rpcStartFireAndForgetNotification, object: nil)
+        }
+    }
+
+    @objc private func handleRpcStartFireAndForgetNotification() {
+        Task { @MainActor in
+            do {
+                let json = try Self.buildJsonRpcEnvelope(method: "start", params: ["awaitResponse": false])
+                Self.logRpc("rpcStartFireAndForget: \(Self.truncateForLog(json))")
+                _ = await rpcClient.execute(jsonRequest: json)
+            } catch {
+                Self.logRpc("rpcStartFireAndForget: build envelope failed: \(error.localizedDescription)")
+            }
+        }
+    }
 
     // MARK: - Bridge events → JS
 
@@ -162,170 +451,6 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
         }
     }
 
-    // MARK: - Cordova method names → iOS AFRPC
-
-    /// Normalizes JS RPC names and params to what `AppsFlyerRPC` expects.
-    private func normalizeRpcInvocation(method: String, params: [String: Any]) -> NormalizedRpcInvocation {
-        switch method {
-        case "subscribeForDeepLink":
-            return .invoke(method: "registerDeeplinkListener", params: params)
-        case "unsubscribeForDeepLink":
-            return .localAckOnly
-        case "unregisterConversionListener":
-            return .localAckOnly
-        case "stop":
-            let stopped = params["shouldStop"] as? Bool ?? false
-            return .invoke(method: "setStopped", params: ["stopped": stopped])
-        case "anonymizeUser":
-            let flag = params["shouldAnonymize"] as? Bool ?? false
-            return .invoke(method: "setAnonymizeUser", params: ["anonymize": flag])
-        case "setUserEmailsWithCryptType":
-            var p = params
-            if let ct = p["cryptType"] as? String {
-                let lower = ct.lowercased()
-                if lower == "sha256" {
-                    p["cryptType"] = "sha256"
-                } else if lower == "none" || lower.isEmpty {
-                    p["cryptType"] = "none"
-                }
-            }
-            return .invoke(method: "setUserEmails", params: p)
-        case "appendParametersToDeepLinkingURL":
-            var p: [String: Any] = [:]
-            if let c = params["contains"] as? String {
-                p["containsString"] = c
-            }
-            if let raw = params["parameters"] as? [String: Any] {
-                var stringMap: [String: String] = [:]
-                for (k, v) in raw {
-                    stringMap[k] = "\(v)"
-                }
-                p["params"] = stringMap
-            }
-            return .invoke(method: "appendParametersToDeeplinkURL", params: p)
-        case "performDeepLinking":
-            if let url = params["url"] as? String {
-                return .invoke(method: "performOnAppAttributionWithURL", params: ["url": url])
-            }
-            return .invoke(method: "performOnAppAttributionWithURL", params: params)
-        default:
-            return .invoke(method: method, params: params)
-        }
-    }
-
-    private enum NormalizedRpcInvocation {
-        case invoke(method: String, params: [String: Any])
-        /// No RPC call: iOS AppsFlyerRPC has no unsubscribe APIs — Cordova callback is cleared in `applyCallbackRegistrationForMethod`
-        case localAckOnly
-    }
-
-    // MARK: - executeRpc
-
-    /// Args: `[ { "method": "<name>", "params": { ... } } ]`
-    @objc public func executeRpc(_ command: CDVInvokedUrlCommand) {
-        Task { @MainActor in
-            await self.executeRpcAsync(command)
-        }
-    }
-
-    private func executeRpcAsync(_ command: CDVInvokedUrlCommand) async {
-        guard let options = command.arguments.first as? [String: Any] else {
-            logRpc("executeRpc: error — missing options object")
-            sendCordovaError(command, message: "PARSE_ERRORMissing options object")
-            return
-        }
-
-        let rawMethod = options["method"] as? String
-        if rawMethod == nil || rawMethod?.isEmpty == true {
-            logRpc("executeRpc: error — missing method")
-            sendCordovaError(command, message: "INVALID_PARAMETERSMissing method")
-            return
-        }
-
-        let method = rawMethod!
-        logRpc("executeRpc: begin method=\(method) callbackId=\(command.callbackId ?? "nil")")
-
-        applyCallbackRegistrationForMethod(method, command: command)
-
-        let paramsObject = normalizeRpcParams(options["params"])
-        let normalized = normalizeRpcInvocation(method: method, params: paramsObject)
-
-        switch normalized {
-        case .localAckOnly:
-            logRpc("executeRpc: localAckOnly (no RPC call) for method=\(method)")
-            sendRegistrationAck(command: command) { [weak self] result in
-                guard let self = self, let result = result else { return }
-                self.logRpc("executeRpc: sending localAckOnly result for callbackId=\(command.callbackId ?? "nil")")
-                self.commandDelegate.send(result, callbackId: command.callbackId)
-            }
-            return
-        case let .invoke(rpcMethod, rpcParams):
-            if rpcMethod != method {
-                logRpc("executeRpc: normalized \(method) → RPC method=\(rpcMethod)")
-            }
-            let requestJson: String
-            do {
-                requestJson = try Self.buildJsonRpcEnvelope(method: rpcMethod, params: rpcParams)
-            } catch {
-                logRpc("executeRpc: build envelope failed: \(error.localizedDescription)")
-                sendCordovaError(command, message: "PARSE_ERROR\(error.localizedDescription)")
-                return
-            }
-
-            logRpc("executeRpc: request \(Self.truncateForLog(requestJson))")
-
-            let responseJson = await rpcClient.execute(jsonRequest: requestJson)
-            logRpc("executeRpc: response \(Self.truncateForLog(responseJson))")
-
-            Self.sendRpcEnvelopeToCordova(
-                responseJson,
-                originalMethod: method,
-                command: command
-            ) { [weak self] result in
-                guard let self = self, let result = result else {
-                    Self.logRpc("executeRpc: sendRpcEnvelope callback with nil result")
-                    return
-                }
-                // CDVPluginResult.status is NSNumber in Cordova (not Swift enum).
-                self.logRpc("executeRpc: sending Cordova result status=\(result.status.intValue) for callbackId=\(command.callbackId ?? "nil")")
-                self.commandDelegate.send(result, callbackId: command.callbackId)
-            }
-        }
-    }
-
-    /// `params` may be `nil`, `NSNull`, or a dictionary (Cordova / JS).
-    private func normalizeRpcParams(_ value: Any?) -> [String: Any] {
-        if value == nil || value is NSNull {
-            return [:]
-        }
-        if let dict = value as? [String: Any] {
-            return dict
-        }
-        return [:]
-    }
-
-    private static func buildJsonRpcEnvelope(method: String, params: [String: Any]) throws -> String {
-        let envelope: [String: Any] = [
-            "method": method,
-            "params": params
-        ]
-        let data = try JSONSerialization.data(withJSONObject: envelope, options: [.sortedKeys])
-        guard let str = String(data: data, encoding: .utf8) else {
-            throw NSError(domain: "AppsFlyerSwiftPlugin", code: -1, userInfo: [NSLocalizedDescriptionKey: "UTF-8 encode failed"])
-        }
-        return str
-    }
-
-    /// `true` for RPC calls that only register a Cordova callback
-    private static func isCallbackRegistrationOnlyMethod(_ originalMethod: String) -> Bool {
-        switch originalMethod {
-        case "registerSessionReadyListener", "subscribeForDeepLink", "registerDeeplinkListener", "registerConversionListener":
-            return true
-        default:
-            return false
-        }
-    }
-
     private func sendRegistrationAck(command: CDVInvokedUrlCommand, send: @escaping (CDVPluginResult?) -> Void) {
         let result = CDVPluginResult(status: CDVCommandStatus.noResult)
         result.keepCallback = true
@@ -397,18 +522,5 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
     private func sendCordovaError(_ command: CDVInvokedUrlCommand, message: String) {
         let result = CDVPluginResult(status: CDVCommandStatus.error, messageAs: message)
         self.commandDelegate.send(result, callbackId: command.callbackId)
-    }
-
-    // MARK: - TCF Data Collection (called directly from Cordova)
-
-    @objc public func enableTCFDataCollection(_ command: CDVInvokedUrlCommand) {
-        guard command.arguments.count > 0 else {
-            return
-        }
-        var enable = false
-        if let enableValue = command.arguments.first as? NSNumber {
-            enable = enableValue.boolValue
-        }
-        AppsFlyerLib.shared().enableTCFDataCollection(enable)
     }
 }

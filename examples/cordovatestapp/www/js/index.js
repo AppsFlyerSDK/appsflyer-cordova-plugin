@@ -18,9 +18,9 @@ document.addEventListener(
         const options = {
             devKey: 'fakeone',
             appId: 'id111111111',
-            waitForATTUserAuthorization: 15, //--> Here you set the time for the sdk to wait before launch
         };
         window.plugins.appsFlyer.initSdk(options);
+        window.plugins.appsFlyer.waitForATT(5); //--> Here you set the time for the sdk to wait before launch
 
         window.plugins.appsFlyer.registerConversionDataListener(function (res) {
                 console.log('onConversionDataSuccess ~~>' + res);
