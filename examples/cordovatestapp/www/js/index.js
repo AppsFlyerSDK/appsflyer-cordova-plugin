@@ -7,6 +7,11 @@ var app = {
         document.addEventListener('deviceready', this.onDeviceReady, false);
     },
 };
+
+function isAndroid() {
+    return typeof window.cordova !== 'undefined' && window.cordova.platformId === 'android';
+}
+
 document.addEventListener(
     'deviceready',
     function () {
@@ -16,11 +21,11 @@ document.addEventListener(
         });
 
         const options = {
-            devKey: 'fakeone',
-            appId: 'id111111111',
+            devKey: 'yD3hPCztAkriFj2qJNZsRG',
+            appId: 'id989523617',
         };
         window.plugins.appsFlyer.initSdk(options);
-        window.plugins.appsFlyer.waitForATT(5); //--> Here you set the time for the sdk to wait before launch
+        window.plugins.appsFlyer.waitForATT(3); //--> Here you set the time for the sdk to wait before launch
 
         window.plugins.appsFlyer.registerConversionDataListener(function (res) {
                 console.log('onConversionDataSuccess ~~>' + res);
@@ -34,8 +39,23 @@ document.addEventListener(
         window.plugins.appsFlyer.setCollectAndroidID(true);
         window.plugins.appsFlyer.setDebugLog(true);
         window.plugins.appsFlyer.enableTCFDataCollection(true);
+        window.plugins.appsFlyer.setCurrentDeviceLanguage("en-US");
 
-        window.plugins.appsFlyer.registerSessionReadyListener(function(event) {
+
+        if (isAndroid()) {
+            window.plugins.appsFlyer.registerSessionReadyListener(function (event) {
+                window.plugins.appsFlyer.startSdk(
+                    function (res) {
+                        console.log('startSdk success ~~>' + res);
+                        alert('startSdk success ~~>' + res);
+                    },
+                    function (err) {
+                        console.log('startSdk failed ~~>' + err);
+                        alert('startSdk failed ~~>' + err);
+                    }
+                );
+            });
+        } else {
             window.plugins.appsFlyer.startSdk(
                 function (res) {
                     console.log('startSdk success ~~>' + res);
@@ -46,7 +66,7 @@ document.addEventListener(
                     alert('startSdk failed ~~>' + err);
                 }
             );
-        });
+        }
     },
     false
 );

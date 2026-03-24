@@ -14,172 +14,11 @@ static NSString *const NO_APPID_FOUND  = @"'appId' is missing or empty";
 static NSString *const SUCCESS         = @"Success";
 static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT";
 
- NSString* mAttributionDataListener;
- NSString* mDeepLinkListener;
  NSString* mInviteListener;
-
-/**
- Set the language of the device. The data will be displayed in Raw Data Reports
-*/
-- (void)setCurrentDeviceLanguage:(CDVInvokedUrlCommand*)command
-{
-    if ([command.arguments count] == 0) {
-        return;
-    }
-    id isStringValue = nil;
-    NSString* language;
-    isStringValue = [command.arguments objectAtIndex:0];
-    if ([isStringValue isKindOfClass:[NSString class]]) {
-        language = ( NSString* ) isStringValue;
-        [[AppsFlyerLib shared] setCurrentDeviceLanguage:language];
-    }
-
-}
 
 - (void)sendPushNotificationData:(CDVInvokedUrlCommand*)command{
   NSDictionary* pushPayload = [command.arguments objectAtIndex:0];
   [[AppsFlyerLib shared] handlePushNotification:pushPayload];
-}
-
-- (AppsFlyerAdRevenueMediationNetworkType)getEnumValueFromString:(NSString *)mediationNetworkString {
-    NSDictionary<NSString *, NSNumber *> *stringToEnumMap = @{
-        @"googleadmob": @(AppsFlyerAdRevenueMediationNetworkTypeGoogleAdMob),
-        @"ironsource": @(AppsFlyerAdRevenueMediationNetworkTypeIronSource),
-        @"applovinmax": @(AppsFlyerAdRevenueMediationNetworkTypeApplovinMax),
-        @"fyber": @(AppsFlyerAdRevenueMediationNetworkTypeFyber),
-        @"appodeal": @(AppsFlyerAdRevenueMediationNetworkTypeAppodeal),
-        @"Admost": @(AppsFlyerAdRevenueMediationNetworkTypeAdmost),
-        @"Topon": @(AppsFlyerAdRevenueMediationNetworkTypeTopon),
-        @"Tradplus": @(AppsFlyerAdRevenueMediationNetworkTypeTradplus),
-        @"Yandex": @(AppsFlyerAdRevenueMediationNetworkTypeYandex),
-        @"chartboost": @(AppsFlyerAdRevenueMediationNetworkTypeChartBoost),
-        @"Unity": @(AppsFlyerAdRevenueMediationNetworkTypeUnity),
-        @"toponpte": @(AppsFlyerAdRevenueMediationNetworkTypeToponPte),
-        @"customMediation": @(AppsFlyerAdRevenueMediationNetworkTypeCustom),
-        @"directMonetizationNetwork": @(AppsFlyerAdRevenueMediationNetworkTypeDirectMonetization)
-    };
-
-    NSNumber *enumValueNumber = stringToEnumMap[mediationNetworkString];
-    if (enumValueNumber) {
-        return (AppsFlyerAdRevenueMediationNetworkType)[enumValueNumber integerValue];
-    } else {
-        return -1;
-    }
-}
-
-/**
-*    log AdRevenue event
-*/
-- (void)logAdRevenue:(CDVInvokedUrlCommand*)command
-{
-    if ([command.arguments count] == 0) {
-        return;
-    }
-
-    NSDictionary* afAdRevenueDataMap = [command argumentAtIndex:0 withDefault:[NSNull null]];
-    NSDictionary* additionalParametersMap = [command argumentAtIndex:1 withDefault:[NSNull null]];
-
-    id monetizationNetwork = nil;
-    AppsFlyerAdRevenueMediationNetworkType mediationNetwork;
-    id currencyIso4217Code = nil;
-    NSNumber *revenue = 0;
-
-    id monetizationNetworkValue = nil;
-    id mediationNetworkValue = nil;
-    id currencyIso4217CodeValue = nil;
-    id revenueValue = nil;
-
-    if(![afAdRevenueDataMap isKindOfClass:[NSNull class]]){
-        monetizationNetworkValue = [afAdRevenueDataMap objectForKey:@"monetizationNetwork"];
-        if (monetizationNetworkValue != nil && [monetizationNetworkValue isKindOfClass:[NSString class]]) {
-           monetizationNetwork = monetizationNetworkValue;
-        }
-
-        mediationNetworkValue = [afAdRevenueDataMap objectForKey:@"mediationNetwork"];
-        if (mediationNetworkValue != nil && [mediationNetworkValue isKindOfClass:[NSString class]]) {
-            if([self getEnumValueFromString: mediationNetworkValue] != -1){
-                mediationNetwork = [self getEnumValueFromString: mediationNetworkValue];
-            }
-            else{
-                NSLog(@"mediationNetwork param is not according to the Enum format");
-                return;
-            }
-        }
-
-        currencyIso4217CodeValue = [afAdRevenueDataMap objectForKey:@"currencyIso4217Code"];
-        if (currencyIso4217CodeValue != nil && [currencyIso4217CodeValue isKindOfClass:[NSString class]]) {
-           currencyIso4217Code = currencyIso4217CodeValue;
-        }
-
-        revenueValue = [afAdRevenueDataMap objectForKey:@"revenue"];
-        if (revenueValue != nil && [revenueValue isKindOfClass:[NSNumber class]]) {
-            revenue = revenueValue;
-        }
-        if(monetizationNetwork != nil && currencyIso4217Code != nil && revenue != nil){
-            AFAdRevenueData *adRevenueData = [[AFAdRevenueData alloc] initWithMonetizationNetwork:monetizationNetwork mediationNetwork:mediationNetwork currencyIso4217Code:currencyIso4217Code eventRevenue:revenue];
-            if([additionalParametersMap isKindOfClass:[NSNull class]]){
-                [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:nil];
-            }
-            else{
-                [[AppsFlyerLib shared] logAdRevenue:adRevenueData additionalParameters:additionalParametersMap];
-            }
-        }
-        else{
-            NSLog(@"one or more arguments are invalid or nil");
-        }
-    }
-    else{
-        NSLog(@"afAdRevenueDataMap is invalid or nil");
-    }
-}
-
-/**
- * Sets the manually provided user consent.
- */
-
-- (void)setConsentData:(CDVInvokedUrlCommand*)command
-{
-    if ([command.arguments count] == 0) {
-        NSLog(@"Error: No arguments provided.");
-        return;
-    }
-
-    NSDictionary *consentDataMap = (NSDictionary*)[command.arguments objectAtIndex:0];
-
-    // Extract values safely, allowing nil, YES, and NO
-    id isUserSubjectToGDPRValue = [consentDataMap objectForKey:@"isUserSubjectToGDPR"];
-    id hasConsentForDataUsageValue = [consentDataMap objectForKey:@"hasConsentForDataUsage"];
-    id hasConsentForAdsPersonalizationValue = [consentDataMap objectForKey:@"hasConsentForAdsPersonalization"];
-    id hasConsentForAdStorageValue = [consentDataMap objectForKey:@"hasConsentForAdStorage"];
-
-    // Convert to NSNumber explicitly (nil stays nil, but NO/YES are preserved)
-    NSNumber *isUserSubjectToGDPR = ([isUserSubjectToGDPRValue isKindOfClass:[NSNumber class]]) ? isUserSubjectToGDPRValue : nil;
-    NSNumber *hasConsentForDataUsage = ([hasConsentForDataUsageValue isKindOfClass:[NSNumber class]]) ? hasConsentForDataUsageValue : nil;
-    NSNumber *hasConsentForAdsPersonalization = ([hasConsentForAdsPersonalizationValue isKindOfClass:[NSNumber class]]) ? hasConsentForAdsPersonalizationValue : nil;
-    NSNumber *hasConsentForAdStorage = ([hasConsentForAdStorageValue isKindOfClass:[NSNumber class]]) ? hasConsentForAdStorageValue : nil;
-
-    AppsFlyerConsent *consentData = [[AppsFlyerConsent alloc] initWithIsUserSubjectToGDPR:isUserSubjectToGDPR
-                                                                       hasConsentForDataUsage:hasConsentForDataUsage
-                                                            hasConsentForAdsPersonalization:hasConsentForAdsPersonalization
-                                                                    hasConsentForAdStorage:hasConsentForAdStorage];
-
-    // Pass the consent data to AppsFlyer
-    [[AppsFlyerLib shared] setConsentData:consentData];
-
-    NSLog(@"AppsFlyerConsent set successfully.");
-}
-
-/**
-*   Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs.
-*/
-- (void)setAppUserId:(CDVInvokedUrlCommand *)command
-{
-    if ([command.arguments count] == 0) {
-        return;
-    }
-
-    NSString* userId = [command.arguments objectAtIndex:0];
-    [AppsFlyerLib shared].customerUserID  = userId;
 }
 
 /**
@@ -228,59 +67,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                     resultWithStatus    : CDVCommandStatus_OK
                                     messageAsString: userId
                                     ];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-/**
-*   Get the deeplink data. use 'success' and 'failure' callback methods.
-*/
-- (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command
-{
-    mAttributionDataListener = command.callbackId;
-}
-
-/**
- Register unified deep link callback
- */
-- (void)registerDeepLink:(CDVInvokedUrlCommand *)command
-{
-    mDeepLinkListener = command.callbackId;
-}
-
-/**
-*   Allows to pass APN Tokens that where collected by third party plugins to the AppsFlyer server. Can be used for Log Uninstall.
-*/
-- (void)registerUninstall:(CDVInvokedUrlCommand*)command {
-
-    NSString* deviceToken = [command.arguments objectAtIndex:0];
-    deviceToken = [deviceToken stringByReplacingOccurrencesOfString:@" " withString:@""];
-    NSMutableData *deviceTokenData= [[NSMutableData alloc] init];
-    unsigned char whole_byte;
-    char byte_chars[3] = {'\0','\0','\0'};
-    int i;
-    for (i=0; i < [deviceToken length]/2; i++) {
-        byte_chars[0] = [deviceToken characterAtIndex:i*2];
-        byte_chars[1] = [deviceToken characterAtIndex:i*2+1];
-        whole_byte = strtol(byte_chars, NULL, 16);
-        [deviceTokenData appendBytes:&whole_byte length:1];
-    }
-
-    if(deviceToken!=nil){
-        [[AppsFlyerLib shared] registerUninstall:deviceTokenData];
-    }else{
-        NSLog(@"Invalid device token");
-    }
-}
-
-/**
-*   Get the current SDK version
-*/
-- (void)getSdkVersion:(CDVInvokedUrlCommand*)command {
-    NSString* version = [[AppsFlyerLib shared] getSDKVersion];
-    CDVPluginResult *pluginResult = [CDVPluginResult
-                                        resultWithStatus: CDVCommandStatus_OK
-                                        messageAsString: version
-                                        ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
@@ -431,120 +217,17 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     (void)errorMessage;
 }
 
-/**
-*  Get the deeplink data
-*/
-- (void) onAppOpenAttribution:(NSDictionary*) attributionData {
-
-    NSDictionary* message = @{
-                              @"status": afSuccess,
-                              @"type": afOnAppOpenAttribution,
-                              @"data": attributionData
-                              };
-
-    [self performSelectorOnMainThread:@selector(handleCallback:) withObject:message waitUntilDone:NO];
+// App-open attribution & UDL are delivered to JS via AppsFlyerSwiftPlugin (AFRPC bridge events).
+- (void)onAppOpenAttribution:(NSDictionary*) attributionData {
+    (void)attributionData;
 }
 
-- (void) onAppOpenAttributionFailure:(NSError *)_errorMessage {
-
-    NSDictionary* errorMessage = @{
-                                   @"status": afFailure,
-                                   @"type": afOnAttributionFailure,
-                                   @"data": _errorMessage.localizedDescription
-                                   };
-
-    [self performSelectorOnMainThread:@selector(handleCallback:) withObject:errorMessage waitUntilDone:NO];
+- (void)onAppOpenAttributionFailure:(NSError *)_errorMessage {
+    (void)_errorMessage;
 }
 
-/**
- Unified deep link handler
- */
 - (void)didResolveDeepLink:(AppsFlyerDeepLinkResult* _Nonnull) result {
-    NSString *deepLinkStatus = nil;
-    switch(result.status) {
-        case AFSDKDeepLinkResultStatusFound:
-            deepLinkStatus = @"FOUND";
-            break;
-        case AFSDKDeepLinkResultStatusNotFound:
-            deepLinkStatus = @"NOT_FOUND";
-            break;
-        case AFSDKDeepLinkResultStatusFailure:
-            deepLinkStatus = @"Error";
-            break;
-        default:
-            [NSException raise:NSGenericException format:@"Unexpected FormatType."];
-    }
-    NSMutableDictionary* message = [[NSMutableDictionary alloc] initWithCapacity:4];
-    [message setObject:([deepLinkStatus isEqual:@"Error"] || [deepLinkStatus isEqual:@"NOT_FOUND"]) ? afFailure : afSuccess forKey:@"status"];
-    [message setObject:deepLinkStatus forKey:@"deepLinkStatus"];
-    [message setObject:afOnDeepLinking forKey:@"type"];
-    if([deepLinkStatus  isEqual: @"Error"]){
-        [message setObject:result.error.localizedDescription forKey:@"data"];
-    }else if([deepLinkStatus  isEqual: @"NOT_FOUND"]){
-        [message setObject:@"deep link not found" forKey:@"data"];
-    }else{
-        [message setObject:result.deepLink.clickEvent forKey:@"data"];
-    }
-
-    [self performSelectorOnMainThread:@selector(handleCallback:) withObject:message waitUntilDone:NO];
-}
-
-/**
-*   Helper function to handle callbacks from the sdk
-*/
--(void) handleCallback:(NSDictionary *) message{
-    NSError *error;
-
-    NSData *jsonMessage = [NSJSONSerialization dataWithJSONObject:message
-                                                          options:0
-                                                            error:&error];
-    if (jsonMessage) {
-        NSString *jsonMessageStr = [[NSString alloc] initWithBytes:[jsonMessage bytes] length:[jsonMessage length] encoding:NSUTF8StringEncoding];
-
-        NSString* status = (NSString*)[message objectForKey: @"status"];
-        NSString* type = (NSString*)[message objectForKey: @"type"];
-
-        if([status isEqualToString:afSuccess] || [type isEqualToString:afOnDeepLinking]){
-            [self reportOnSuccess:jsonMessageStr withType:type];
-        }
-        else{
-            [self reportOnFailure:jsonMessageStr withType:type];
-        }
-
-        NSLog(@"jsonMessageStr = %@",jsonMessageStr);
-    } else {
-        NSLog(@"%@",error);
-    }
-}
-
-/**
-*   Error callback - called when error occurs.
-*/
--(void) reportOnFailure:(NSString *)errorMessage withType:(NSString *)type{
-
-    if([type isEqualToString:afOnAttributionFailure]){
-        if(mAttributionDataListener != nil){
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:errorMessage];
-            [pluginResult setKeepCallback:[NSNumber numberWithBool:NO]];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:mAttributionDataListener];
-        }
-    }
-}
-
-/**
-*   Success callback - called after receiving data.
-*/
--(void) reportOnSuccess:(NSString *)data withType:(NSString *)type {
-
-    if([type isEqualToString:afOnAppOpenAttribution]){
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
-        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:mAttributionDataListener];
-    } else if([type isEqualToString:afOnDeepLinking]){
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:data];
-        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:mDeepLinkListener];
-    }
+    (void)result;
 }
 
 /**
@@ -557,43 +240,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     [[AppsFlyerLib shared] handleOpenUrl:url options:nil];
 }
 
-/**
-* Used by advertisers to exclude specified networks/integrated partners from getting data
-*/
-- (void)setSharingFilterForPartners:(CDVInvokedUrlCommand*)command {
-    NSArray* partners = [command argumentAtIndex:0];
-    if (partners == nil ||[partners count] == 0) {
-           return;
-       }
-    [[AppsFlyerLib shared] setSharingFilterForPartners:partners];
-
-}
-
-/**
-* Used by advertisers to exclude specified networks/integrated partners from getting data
-*/
-- (void)setSharingFilter:(CDVInvokedUrlCommand*)command {
-    NSArray* partners = [command argumentAtIndex:0];
-    if (partners == nil || [partners count] == 0) {
-           return;
-       }
-      [[AppsFlyerLib shared] setSharingFilter:partners];
-      CDVPluginResult *pluginResult = [CDVPluginResult
-                                        resultWithStatus: CDVCommandStatus_OK
-                                        ];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-/**
-* Used by advertisers to exclude ALL networks/integrated partners from getting data
-*/
-- (void)setSharingFilterForAllPartners:(CDVInvokedUrlCommand*)command {
-    [[AppsFlyerLib shared] setSharingFilterForAllPartners];
-    CDVPluginResult *pluginResult = [CDVPluginResult
-                                        resultWithStatus: CDVCommandStatus_OK
-                                        ];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
 /**
  * AppsFlyer SDK dynamically loads the Apple iAd.framework. This framework is required to record and measure the performance of Apple Search Ads in your app.
  * If you don't want AppsFlyer to dynamically load this framework, set this property to true.

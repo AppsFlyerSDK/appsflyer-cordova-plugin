@@ -5,14 +5,12 @@
 
 @interface AppsFlyerPlugin : CDVPlugin <UIApplicationDelegate, AppsFlyerLibDelegate, AppsFlyerDeepLinkDelegate>
 - (void)resumeSDK:(CDVInvokedUrlCommand *)command;
-- (void)setAppUserId:(CDVInvokedUrlCommand*)command;
 - (void)getAppsFlyerUID:(CDVInvokedUrlCommand*)command;
 - (void)onConversionDataSuccess:(NSDictionary*) installData;
 - (void)onConversionDataFail:(NSError *) error;
 - (void)onAppOpenAttribution:(NSDictionary*) attributionData;
 - (void)onAppOpenAttributionFailure:(NSError *)_errorMessage;
 - (void)didResolveDeepLink:(AppsFlyerDeepLinkResult* _Nonnull) result;
-- (void)registerUninstall:(CDVInvokedUrlCommand*)command;
 - (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
 - (void)anonymizeUser:(CDVInvokedUrlCommand *)command;
 - (void)Stop:(CDVInvokedUrlCommand *) command;
@@ -20,17 +18,10 @@
 - (void)generateInviteLink:(CDVInvokedUrlCommand*)command;
 - (void)logCrossPromotionImpression:(CDVInvokedUrlCommand *)command;
 - (void)logCrossPromotionAndOpenStore:(CDVInvokedUrlCommand *)command;
-- (void)registerOnAppOpenAttribution:(CDVInvokedUrlCommand *)command;
 - (void)setDisableAdvertisingIdentifier:(CDVInvokedUrlCommand *)command;
 - (void)disableCollectASA:(CDVInvokedUrlCommand *)command;
-- (void)getSdkVersion:(CDVInvokedUrlCommand *)command;
 - (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand *)command;
-- (void)setCurrentDeviceLanguage:(CDVInvokedUrlCommand*)command;
 - (void)setAdditionalData:(CDVInvokedUrlCommand*)command;
-- (void)setConsentData:(CDVInvokedUrlCommand*)command;
-- (void)logAdRevenue:(CDVInvokedUrlCommand*)command;
-- (void)setSharingFilter:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
-- (void)setSharingFilterForAllPartners:(CDVInvokedUrlCommand*)command __attribute__((deprecated));
 - (void)validateAndLogInAppPurchase: (CDVInvokedUrlCommand*)command;
 - (void)validateAndLogInAppPurchaseV2: (CDVInvokedUrlCommand*)command;
 - (void)setUseReceiptValidationSandbox:(CDVInvokedUrlCommand*)command;

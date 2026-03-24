@@ -231,6 +231,26 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
                 return .invoke(method: "performOnAppAttributionWithURL", params: ["url": url])
             }
             return .invoke(method: "performOnAppAttributionWithURL", params: params)
+        case "getSdkVersion":
+            return .invoke(method: "getSDKVersion", params: params)
+        case "setCustomerUserId":
+            var p = params
+            if p["customerUserId"] == nil, let cid = p["customerId"] {
+                p["customerUserId"] = cid
+            }
+            return .invoke(method: "setCustomerUserId", params: p)
+        case "logAdRevenue":
+            var p = params
+            if p["eventRevenue"] == nil {
+                if let r = p["revenue"] as? NSNumber {
+                    p["eventRevenue"] = r
+                } else if let r = p["revenue"] as? Double {
+                    p["eventRevenue"] = r
+                } else if let r = p["revenue"] as? Int {
+                    p["eventRevenue"] = r
+                }
+            }
+            return .invoke(method: "logAdRevenue", params: p)
         default:
             return .invoke(method: method, params: params)
         }

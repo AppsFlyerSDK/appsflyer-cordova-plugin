@@ -278,17 +278,17 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.logAdRevenue = function (afAdRevenueData, additionalParameters) {
         argscheck.checkArgs('OO', 'AppsFlyer.logAdRevenue', arguments);
+        const params = {
+            monetizationNetwork: afAdRevenueData.monetizationNetwork || '',
+            mediationNetwork: afAdRevenueData.mediationNetwork || '',
+            currencyIso4217Code: afAdRevenueData.currencyIso4217Code || '',
+            revenue: afAdRevenueData.revenue != null ? afAdRevenueData.revenue : 0,
+            additionalParameters: additionalParameters || null
+        };
         if (isAndroid()) {
-            const params = {
-                monetizationNetwork: afAdRevenueData.monetizationNetwork || '',
-                mediationNetwork: afAdRevenueData.mediationNetwork || '',
-                currencyIso4217Code: afAdRevenueData.currencyIso4217Code || '',
-                revenue: afAdRevenueData.revenue != null ? afAdRevenueData.revenue : 0,
-                additionalParameters: additionalParameters || null
-            };
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAdRevenue', params: params }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'logAdRevenue', [afAdRevenueData, additionalParameters]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'logAdRevenue', params: params }]);
         }
     };
 
@@ -300,7 +300,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: { customerId: customerUserId } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'setAppUserId', [customerUserId]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: { customerId: customerUserId } }]);
         }
     };
 
@@ -618,7 +618,11 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.registerUninstall = function (token) {
         argscheck.checkArgs('*', 'AppsFlyer.registerUninstall', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'registerUninstall', [token]);
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'registerUninstall', params: { deviceToken: token } }]);
+        } else {
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'registerUninstall', params: { deviceToken: token } }]);
+        }
     };
 
     /**
@@ -629,7 +633,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getSdkVersion', params: {} }]);
         } else {
-            exec(successCB, null, 'AppsFlyerPlugin', 'getSdkVersion', []);
+            exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'getSdkVersion', params: {} }]);
         }
     };
 
@@ -641,7 +645,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setSharingFilterForPartners', params: { partners: networks || [] } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'setSharingFilterForPartners', [networks]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setSharingFilterForPartners', params: { partners: networks || [] } }]);
         }
     };
 

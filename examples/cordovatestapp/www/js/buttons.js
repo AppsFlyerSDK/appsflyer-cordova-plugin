@@ -25,6 +25,7 @@ let isSessionReadyBtn = document.getElementById('isSessionReady');
 let anonymizeUserBtn = document.getElementById('anonymizeUser');
 let stopBtn = document.getElementById('stop');
 let updateServerUninstallTokenBtn = document.getElementById('updateServerUninstallToken');
+let registerUninstallBtn = document.getElementById('registerUninstall');
 let getSdkVBtn = document.getElementById('getSdkV');
 let customDomainsBtn = document.getElementById('customDomains');
 let enableFBBtn = document.getElementById('enableFB');
@@ -149,6 +150,9 @@ if (stopBtn) {
 }
 if (updateServerUninstallTokenBtn) {
     updateServerUninstallTokenBtn.addEventListener('click', updateServerUninstallToken, false);
+}
+if (registerUninstallBtn) {
+    registerUninstallBtn.addEventListener('click', testRegisterUninstall, false);
 }
 if (getSdkVBtn) {
     getSdkVBtn.addEventListener('click', getSdkVersion, false);
@@ -373,6 +377,15 @@ function stop() {
 
 function updateServerUninstallToken() {
     window.plugins.appsFlyer.updateServerUninstallToken("test_uninstall_token");
+}
+
+/**
+ * iOS: RPC `registerUninstall` expects hex-encoded APN device token (even length, no spaces).
+ * Replace with a real token from your push setup for meaningful server behavior.
+ */
+function testRegisterUninstall() {
+    var sampleApnHex = 'aabbccdd11223344aabbccdd11223344aabbccdd11223344aabbccdd11223344';
+    window.plugins.appsFlyer.registerUninstall(sampleApnHex);
 }
 
 function getSdkVersion() {
