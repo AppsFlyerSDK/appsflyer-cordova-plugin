@@ -21,9 +21,10 @@ document.addEventListener(
         });
 
         const options = {
-            devKey: 'yD3hPCztAkriFj2qJNZsRG',
-            appId: 'id989523617',
+            devKey: 'fakeone',
+            appId: 'id111111111',
         };
+        window.plugins.appsFlyer.disableSKAD(true);
         window.plugins.appsFlyer.initSdk(options);
         window.plugins.appsFlyer.waitForATT(3); //--> Here you set the time for the sdk to wait before launch
 

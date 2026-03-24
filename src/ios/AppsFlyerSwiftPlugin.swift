@@ -175,7 +175,7 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
 
     // MARK: - Cordova method names → iOS AFRPC
 
-    /// Normalizes JS RPC names and params to what `AppsFlyerRPC` expects.
+    /// Renames Cordova-only RPC method aliases and applies transforms that are not expressible as fixed key names in JS (`www/appsflyer.js` sends native RPC names/params for iOS where possible).
     private func normalizeRpcInvocation(method: String, params: [String: Any]) -> NormalizedRpcInvocation {
         switch method {
         case "subscribeForDeepLink":
@@ -186,74 +186,38 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
             return .localAckOnly
         case "unregisterSessionReadyListener":
             return .localAckOnly
-        case "enableTCFDataCollection":
+        case "validateAndLogInAppPurchaseV2":
             var p = params
-            if p["enable"] == nil {
-                if let sc = p["shouldCollect"] as? Bool {
-                    p["enable"] = sc
-                } else if let num = p["shouldCollect"] as? NSNumber {
-                    p["enable"] = num.boolValue
-                }
+            if var transaction = p["transaction"] as? [String: Any] {
+                transaction["purchaseType"] = Self.normalizePurchaseTypeForValidateAndLogV2(transaction["purchaseType"])
+                p["transaction"] = transaction
             }
-            return .invoke(method: "enableTCFDataCollection", params: p)
-        case "stop":
-            let stopped = params["shouldStop"] as? Bool ?? false
-            return .invoke(method: "setStopped", params: ["stopped": stopped])
-        case "anonymizeUser":
-            let flag = params["shouldAnonymize"] as? Bool ?? false
-            return .invoke(method: "setAnonymizeUser", params: ["anonymize": flag])
-        case "setUserEmailsWithCryptType":
-            var p = params
-            if let ct = p["cryptType"] as? String {
-                let lower = ct.lowercased()
-                if lower == "sha256" {
-                    p["cryptType"] = "sha256"
-                } else if lower == "none" || lower.isEmpty {
-                    p["cryptType"] = "none"
-                }
-            }
-            return .invoke(method: "setUserEmails", params: p)
-        case "appendParametersToDeepLinkingURL":
-            var p: [String: Any] = [:]
-            if let c = params["contains"] as? String {
-                p["containsString"] = c
-            }
-            if let raw = params["parameters"] as? [String: Any] {
-                var stringMap: [String: String] = [:]
-                for (k, v) in raw {
-                    stringMap[k] = "\(v)"
-                }
-                p["params"] = stringMap
-            }
-            return .invoke(method: "appendParametersToDeeplinkURL", params: p)
-        case "performDeepLinking":
-            if let url = params["url"] as? String {
-                return .invoke(method: "performOnAppAttributionWithURL", params: ["url": url])
-            }
-            return .invoke(method: "performOnAppAttributionWithURL", params: params)
-        case "getSdkVersion":
-            return .invoke(method: "getSDKVersion", params: params)
-        case "setCustomerUserId":
-            var p = params
-            if p["customerUserId"] == nil, let cid = p["customerId"] {
-                p["customerUserId"] = cid
-            }
-            return .invoke(method: "setCustomerUserId", params: p)
-        case "logAdRevenue":
-            var p = params
-            if p["eventRevenue"] == nil {
-                if let r = p["revenue"] as? NSNumber {
-                    p["eventRevenue"] = r
-                } else if let r = p["revenue"] as? Double {
-                    p["eventRevenue"] = r
-                } else if let r = p["revenue"] as? Int {
-                    p["eventRevenue"] = r
-                }
-            }
-            return .invoke(method: "logAdRevenue", params: p)
+            return .invoke(method: "validateAndLogInAppPurchaseV2", params: p)
         default:
             return .invoke(method: method, params: params)
         }
+    }
+
+    /// Maps Cordova `AFPurchaseDetails.purchaseType` strings to RPC `validateAndLogInAppPurchaseV2` values (`subscription` | `oneTimePurchase`).
+    private static func normalizePurchaseTypeForValidateAndLogV2(_ raw: Any?) -> String {
+        if raw == nil || raw is NSNull {
+            return "oneTimePurchase"
+        }
+        let string: String
+        if let s = raw as? String {
+            string = s
+        } else {
+            string = String(describing: raw as Any)
+        }
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return "oneTimePurchase"
+        }
+        let normalized = trimmed.lowercased().replacingOccurrences(of: "_", with: "")
+        if normalized == "subscription" {
+            return "subscription"
+        }
+        return "oneTimePurchase"
     }
 
     private enum NormalizedRpcInvocation {

@@ -12,7 +12,6 @@
 - (void)onAppOpenAttributionFailure:(NSError *)_errorMessage;
 - (void)didResolveDeepLink:(AppsFlyerDeepLinkResult* _Nonnull) result;
 - (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
-- (void)anonymizeUser:(CDVInvokedUrlCommand *)command;
 - (void)Stop:(CDVInvokedUrlCommand *) command;
 - (void)setAppInviteOneLinkID:(CDVInvokedUrlCommand *)command;
 - (void)generateInviteLink:(CDVInvokedUrlCommand*)command;
@@ -21,9 +20,7 @@
 - (void)setDisableAdvertisingIdentifier:(CDVInvokedUrlCommand *)command;
 - (void)disableCollectASA:(CDVInvokedUrlCommand *)command;
 - (void)setOneLinkCustomDomains:(CDVInvokedUrlCommand *)command;
-- (void)setAdditionalData:(CDVInvokedUrlCommand*)command;
 - (void)validateAndLogInAppPurchase: (CDVInvokedUrlCommand*)command;
-- (void)validateAndLogInAppPurchaseV2: (CDVInvokedUrlCommand*)command;
 - (void)setUseReceiptValidationSandbox:(CDVInvokedUrlCommand*)command;
 
 @end

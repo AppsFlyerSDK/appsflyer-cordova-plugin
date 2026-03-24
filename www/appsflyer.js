@@ -81,7 +81,7 @@ if (!window.CustomEvent) {
     /**
      * @class AFPurchaseDetails
      * @constructor
-     * @param {string} purchaseType - Type of the purchase can be: subscription or one_time_purchase.
+     * @param {string} purchaseType - `subscription`, or a one-time value such as `one_time_purchase` (iOS RPC uses `oneTimePurchase`).
      * @param {string} purchaseToken - Token of the purchase.
      * @param {string} productId - ID of the purchased product.
      */
@@ -278,16 +278,24 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.logAdRevenue = function (afAdRevenueData, additionalParameters) {
         argscheck.checkArgs('OO', 'AppsFlyer.logAdRevenue', arguments);
-        const params = {
-            monetizationNetwork: afAdRevenueData.monetizationNetwork || '',
-            mediationNetwork: afAdRevenueData.mediationNetwork || '',
-            currencyIso4217Code: afAdRevenueData.currencyIso4217Code || '',
-            revenue: afAdRevenueData.revenue != null ? afAdRevenueData.revenue : 0,
-            additionalParameters: additionalParameters || null
-        };
+        const revenueVal = afAdRevenueData.revenue != null ? afAdRevenueData.revenue : 0;
         if (isAndroid()) {
+            const params = {
+                monetizationNetwork: afAdRevenueData.monetizationNetwork || '',
+                mediationNetwork: afAdRevenueData.mediationNetwork || '',
+                currencyIso4217Code: afAdRevenueData.currencyIso4217Code || '',
+                revenue: revenueVal,
+                additionalParameters: additionalParameters || null
+            };
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAdRevenue', params: params }]);
         } else {
+            const params = {
+                monetizationNetwork: afAdRevenueData.monetizationNetwork || '',
+                mediationNetwork: afAdRevenueData.mediationNetwork || '',
+                currencyIso4217Code: afAdRevenueData.currencyIso4217Code || '',
+                eventRevenue: revenueVal,
+                additionalParameters: additionalParameters || null
+            };
             exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'logAdRevenue', params: params }]);
         }
     };
@@ -300,7 +308,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: { customerId: customerUserId } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: { customerId: customerUserId } }]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: { customerUserId: customerUserId } }]);
         }
     };
 
@@ -445,7 +453,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'anonymizeUser', params: { shouldAnonymize: isDisabled } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'anonymizeUser', [isDisabled]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setAnonymizeUser', params: { anonymize: Boolean(isDisabled) } }]);
         }
     };
 
@@ -633,7 +641,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getSdkVersion', params: {} }]);
         } else {
-            exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'getSdkVersion', params: {} }]);
+            exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'getSDKVersion', params: {} }]);
         }
     };
 
@@ -675,7 +683,17 @@ if (!window.CustomEvent) {
                 exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'validateAndLogInAppPurchase', params: params }]);
             }
         } else {
-            exec(successC, errorC, 'AppsFlyerPlugin', 'validateAndLogInAppPurchaseV2', [afPurchaseDetails, additionalParameters]);
+            const params = {
+                product: { productId: (afPurchaseDetails && afPurchaseDetails.productId) || '' },
+                transaction: {
+                    transactionId: (afPurchaseDetails && afPurchaseDetails.purchaseToken) || '',
+                    purchaseType: (afPurchaseDetails && afPurchaseDetails.purchaseType) || ''
+                }
+            };
+            if (additionalParameters != null && typeof additionalParameters === 'object') {
+                params.additionalParameters = additionalParameters;
+            }
+            exec(successC, errorC, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'validateAndLogInAppPurchaseV2', params: params }]);
         }
     };
 
@@ -777,7 +795,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setHost', params: { hostPrefixName: hostPrefix || null, hostName: hostName || '' } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'setHost', [hostPrefix, hostName]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setHost', params: { host: hostName || '', hostPrefix: hostPrefix || '' } }]);
         }
     };
 
@@ -809,11 +827,14 @@ if (!window.CustomEvent) {
     };
 
     /**
-     * enable or disable SKAD support. set True if you want to disable it!
-     * @param isDisabled
+     * Enable or disable SKAdNetwork support. Set true to disable SKAN (iOS only; call before initSdk).
+     * @param {boolean} isDisabled - true to disable SKAdNetwork measurement.
      */
     AppsFlyer.prototype.disableSKAD = function (isDisabled) {
-        exec(null, null, 'AppsFlyerPlugin', 'disableSKAD', [isDisabled]);
+        if (isAndroid()) {
+            return;
+        }
+        exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setDisableSKAdNetwork', params: { disable: Boolean(isDisabled) } }]);
     };
 
     /**
@@ -838,7 +859,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAdditionalData', params: { customData: additionalData || {} } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'setAdditionalData', [additionalData]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setAdditionalData', params: { additionalData: additionalData || {} } }]);
         }
     };
 
@@ -853,7 +874,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPartnerData', params: { partnerId: partnerId || '', data: data || {} } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'setPartnerData', [partnerId, data]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setPartnerData', params: { partnerId: partnerId || '', partnerInfo: data || {} } }]);
         }
     };
 

@@ -22,24 +22,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
 }
 
 /**
-*   End User Opt-Out from AppsFlyer analytics.
-*/
-- (void)anonymizeUser:(CDVInvokedUrlCommand *)command
-{
-    if ([command.arguments count] == 0) {
-        return;
-    }
-
-    BOOL isDisValueBool = NO;
-    id isDisValue = nil;
-    isDisValue = [command.arguments objectAtIndex:0];
-    if ([isDisValue isKindOfClass:[NSNumber class]]) {
-        isDisValueBool = [(NSNumber*)isDisValue boolValue];
-        [AppsFlyerLib shared].anonymizeUser  = isDisValueBool;
-    }
-}
-
-/**
 *   Shut down all SDK for sending logs
 */
 - (void)Stop:(CDVInvokedUrlCommand *)command
@@ -388,116 +370,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     }
 }
 
-/**
-* Receipt validation V2 is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported.
-* This method uses the new V2 API with purchase details object.
-* Learn more - https://dev.appsflyer.com/hc/docs/validate-and-log-purchase-ios
-*
-* @param purchase details, success and failure callbacks
-*/
-- (void)validateAndLogInAppPurchaseV2: (CDVInvokedUrlCommand*)command {
-    NSLog(@"[DEBUG] AppsFlyer: validateAndLogInAppPurchaseV2 called");
-
-    NSString* productId = nil;
-    NSString* transactionId = nil;
-    NSString* purchaseType = nil;
-    NSDictionary* additionalParameters = nil;
-
-    NSDictionary* purchaseDetails = [command.arguments objectAtIndex:0];
-    NSLog(@"[DEBUG] AppsFlyer: purchaseDetails: %@", purchaseDetails);
-
-    if(![purchaseDetails isKindOfClass: [NSNull class]]){
-        NSLog(@"[DEBUG] AppsFlyer: purchaseDetails is not null");
-
-        productId = (NSString*)[purchaseDetails objectForKey: afProductId];
-        transactionId = (NSString*)[purchaseDetails objectForKey: @"purchaseToken"];
-        purchaseType = (NSString*)[purchaseDetails objectForKey: afPurchaseType];
-
-        NSLog(@"[DEBUG] AppsFlyer: Extracted values:");
-        NSLog(@"[DEBUG] AppsFlyer: - productId: %@", productId);
-        NSLog(@"[DEBUG] AppsFlyer: - purchaseToken: %@", transactionId);
-        NSLog(@"[DEBUG] AppsFlyer: - purchaseType: %@", purchaseType);
-
-        // Get additional parameters if provided
-        if ([command.arguments count] > 1 && ![[command.arguments objectAtIndex:1] isKindOfClass:[NSNull class]]) {
-            additionalParameters = (NSDictionary*)[command.arguments objectAtIndex:1];
-            NSLog(@"[DEBUG] AppsFlyer: additionalParameters: %@", additionalParameters);
-        } else {
-            NSLog(@"[DEBUG] AppsFlyer: No additional parameters provided");
-        }
-
-        // Validate required parameters
-        BOOL hasProductId = productId && [productId length] > 0;
-        BOOL hasTransactionId = transactionId && [transactionId length] > 0;
-        BOOL hasPurchaseType = purchaseType && [purchaseType length] > 0;
-
-        if (!hasProductId || !hasTransactionId || !hasPurchaseType) {
-            NSLog(@"[DEBUG] AppsFlyer: Validation failed - missing required parameters");
-            CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: NO_PARAMETERS_ERROR];
-            [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-            return;
-        }
-
-        NSLog(@"[DEBUG] AppsFlyer: All parameters validated successfully, creating AFSDKPurchaseDetails");
-
-        // Create AFSDKPurchaseDetails object
-        AFSDKPurchaseType purchaseTypeEnum = AFSDKPurchaseTypeOneTimePurchase;
-        if ([purchaseType isEqualToString:@"subscription"]) {
-            purchaseTypeEnum = AFSDKPurchaseTypeSubscription;
-            NSLog(@"[DEBUG] AppsFlyer: Purchase type set to subscription");
-        } else {
-            NSLog(@"[DEBUG] AppsFlyer: Purchase type set to one-time purchase");
-        }
-
-        AFSDKPurchaseDetails *details = [[AFSDKPurchaseDetails alloc] initWithProductId:productId
-                                                                           transactionId:transactionId
-                                                                            purchaseType:purchaseTypeEnum];
-
-        // Use the actual V2 method with the correct signature
-        NSLog(@"[DEBUG] AppsFlyer: Calling AppsFlyerLib validateAndLogInAppPurchase V2 method");
-        [[AppsFlyerLib shared] validateAndLogInAppPurchase:details
-                                   purchaseAdditionalDetails:additionalParameters
-                                                completion:^(NSDictionary * _Nullable response, NSError * _Nullable error) {
-            NSLog(@"[DEBUG] AppsFlyer: V2 validation completion called");
-            if (error) {
-                NSLog(@"[DEBUG] AppsFlyer: V2 validation failed with error: %@", error.localizedDescription);
-                // Error case
-                NSDictionary *errorDict = @{
-                    @"error": error.localizedDescription ?: @"Unknown error",
-                    @"code": @(error.code)
-                };
-                NSError *jsonError;
-                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:errorDict options:0 error:&jsonError];
-                NSString *jsonString = @"";
-                if (!jsonError) {
-                    jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-                }
-
-                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:jsonString];
-                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-            } else {
-                NSLog(@"[DEBUG] AppsFlyer: V2 validation succeeded with response: %@", response);
-                // Success case
-                NSError *jsonError;
-                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:response options:0 error:&jsonError];
-                NSString *jsonString = @"";
-                if (!jsonError) {
-                    jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-                }
-
-                CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:jsonString];
-                [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-            }
-        }];
-
-    } else {
-        NSLog(@"[DEBUG] AppsFlyer: purchaseDetails is null or NSNull");
-        CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString: NO_PARAMETERS_ERROR];
-        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-        return;
-    }
-}
-
 - (void)setUseReceiptValidationSandbox:(CDVInvokedUrlCommand*)command {
     BOOL isSandbox = [command.arguments objectAtIndex:0];
     [AppsFlyerLib shared].useReceiptValidationSandbox = isSandbox;
@@ -506,14 +378,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
                                      resultWithStatus: CDVCommandStatus_OK messageAsString: isSandbox? @"Sandbox set to true" : @"Sandbox set to false"
                                      ];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void)setHost:(CDVInvokedUrlCommand*)command {
-    NSString* prefix = [command.arguments objectAtIndex:0];
-    NSString* name = [command.arguments objectAtIndex:1];
-    [[AppsFlyerLib shared] setHost:name withHostPrefix:prefix];
-    NSLog(@"[DEBUG] AppsFlyer: %@.%@",prefix, name);
-
 }
 
 - (void)addPushNotificationDeepLinkPath:(CDVInvokedUrlCommand*)command {
@@ -533,42 +397,6 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
     }
     [AppsFlyerLib shared].resolveDeepLinkURLs = urls;
     NSLog(@"[DEBUG] AppsFlyer: %@", urls);
-}
-
-- (void)disableSKAD:(CDVInvokedUrlCommand *)command
-{
-    if ([command.arguments count] == 0) {
-        return;
-    }
-
-    BOOL isDisValueBool = NO;
-    id isDisValue = nil;
-    isDisValue = [command.arguments objectAtIndex:0];
-    if ([isDisValue isKindOfClass:[NSNumber class]]) {
-        isDisValueBool = [(NSNumber*)isDisValue boolValue];
-        [AppsFlyerLib shared].disableSKAdNetwork = isDisValueBool;
-        if (isDisValueBool){
-            NSLog(@"[DEBUG] AppsFlyer: SKADNetwork is disabled");
-        }else{
-            NSLog(@"[DEBUG] AppsFlyer: SKADNetwork is enabled");
-        }
-    }
-}
-
-
-- (void)setAdditionalData:(CDVInvokedUrlCommand*)command{
-    NSDictionary *additionalData = (NSDictionary*)[command.arguments objectAtIndex: 0];
-    [[AppsFlyerLib shared] setAdditionalData:additionalData];
-}
-
-- (void)setPartnerData:(CDVInvokedUrlCommand*)command{
-    NSString *partnerId = (NSString*)[command.arguments objectAtIndex: 0];
-    NSDictionary *data = (NSDictionary*)[command.arguments objectAtIndex: 1];
-    [[AppsFlyerLib shared] setPartnerDataWithPartnerId:partnerId partnerInfo:data];
-}
-
-- (void)disableAppSetId:(CDVInvokedUrlCommand*)command{
-    NSLog(@"AppsFlyer: This feature is not available on iOS");
 }
 
 @end
