@@ -329,9 +329,9 @@ if (!window.CustomEvent) {
             exec(
                 function (result) { successCB(result); },
                 null,
-                'AppsFlyerPlugin',
-                'getAppsFlyerUID',
-                []
+                'AppsFlyerSwiftPlugin',
+                'executeRpc',
+                [{ method: 'getAppsFlyerUID', params: {} }]
             );
         }
     };
@@ -465,7 +465,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'stop', params: { shouldStop: isStop } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'Stop', [isStop]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setStopped', params: { stopped: Boolean(isStop) } }]);
         }
     };
 
@@ -552,7 +552,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAppInviteOneLink', params: { oneLinkId: args } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'setAppInviteOneLinkID', [args]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setAppInviteOneLinkID', params: { oneLinkID: args || '' } }]);
         }
     };
 
@@ -578,7 +578,18 @@ if (!window.CustomEvent) {
             };
             exec(successCB, errorCB, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'generateInviteLink', params: params }]);
         } else {
-            exec(successCB, errorCB, 'AppsFlyerPlugin', 'generateInviteLink', [args]);
+            const params = {
+                channel: args.channel || null,
+                campaign: args.campaign || null,
+                referrerName: args.referrerName || null,
+                referrerImageURL: args.referrerImageUrl || args.referrerImageURL || null,
+                referrerCustomerId: args.customerId || args.customerID || null,
+                baseDeeplink: args.baseDeepLink || args.baseDeeplink || null,
+                deeplinkPath: args.deeplinkPath || null,
+                brandDomain: args.brandDomain || null,
+                customParams: args.userParams || null
+            };
+            exec(successCB, errorCB, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'generateInviteUrl', params: params }]);
         }
     };
 
@@ -593,7 +604,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logCrossPromoteImpression', params: { appId: appId || '', campaign: campaign || '', userParams: userParams || null } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'logCrossPromotionImpression', [appId, campaign]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'logCrossPromoteImpression', params: { appID: appId || '', campaign: campaign || null, parameters: userParams || null } }]);
         }
     };
 
@@ -608,7 +619,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAndOpenStore', params: { promotedAppId: appId || '', campaign: campaign || '', userParams: params || null } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'logCrossPromotionAndOpenStore', [appId, campaign, params]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'logAndOpenStore', params: { appID: appId || '', campaign: campaign || null, parameters: params || null } }]);
         }
     };
 
@@ -726,7 +737,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableAdvertisingIdentifiers', params: { isDisable: !!disableAdvertisingIdentifier } }]);
         } else {
-            exec(successC, null, 'AppsFlyerPlugin', 'setDisableAdvertisingIdentifier', [disableAdvertisingIdentifier]);
+            exec(successC, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setDisableAdvertisingIdentifier', params: { disable: Boolean(disableAdvertisingIdentifier) } }]);
         }
     };
 
@@ -742,7 +753,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setOneLinkCustomDomain', params: { domains: domains || [] } }]);
         } else {
-            exec(successC, errorC, 'AppsFlyerPlugin', 'setOneLinkCustomDomains', [domains]);
+            exec(successC, errorC, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setOneLinkCustomDomains', params: { domains: domains || [] } }]);
         }
     };
 
@@ -756,7 +767,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableFacebookDeferredApplinks', params: { isEnabled: !!isEnabled } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'enableFacebookDeferredApplinks', [isEnabled]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'enableFacebookDeferredApplinks', params: { enable: Boolean(isEnabled) } }]);
         }
     };
 
@@ -769,7 +780,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPhoneNumber', params: { phoneNumber: phoneNumber || '' } }]);
         } else {
-            exec(successC, null, 'AppsFlyerPlugin', 'setPhoneNumber', [phoneNumber]);
+            exec(successC, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setPhoneNumber', params: { phoneNumber: phoneNumber || '' } }]);
         }
     };
 
@@ -779,10 +790,11 @@ if (!window.CustomEvent) {
      * @param successC success callback
      */
     AppsFlyer.prototype.setUserEmails = function (userEmails, successC) {
+        const emails = userEmails || [];
         if (isAndroid()) {
-            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmails', params: { emails: userEmails || [] } }]);
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmails', params: { emails: emails } }]);
         } else {
-            exec(successC, null, 'AppsFlyerPlugin', 'setUserEmails', [userEmails]);
+            exec(successC, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setUserEmails', params: { emails: emails, cryptType: 'sha256' } }]);
         }
     };
 
@@ -893,7 +905,8 @@ if (!window.CustomEvent) {
             };
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'sendPushNotificationData', params: params }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'sendPushNotificationData', [pushData]);
+            const payload = (pushData && typeof pushData === 'object') ? pushData : {};
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'handlePushNotification', params: { pushPayload: payload } }]);
         }
     };
 
