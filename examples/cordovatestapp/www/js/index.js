@@ -57,6 +57,8 @@ document.addEventListener(
                 );
             });
         } else {
+            window.plugins.appsFlyer.disableCollectASA(true)
+            window.plugins.appsFlyer.setUseReceiptValidationSandbox(true)
             window.plugins.appsFlyer.startSdk(
                 function (res) {
                     console.log('startSdk success ~~>' + res);

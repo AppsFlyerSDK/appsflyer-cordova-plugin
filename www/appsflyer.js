@@ -628,7 +628,12 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.handleOpenUrl = function (url) {
         argscheck.checkArgs('*', 'AppsFlyer.handleOpenUrl', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'handleOpenUrl', [url]);
+        const params = { url: url != null ? String(url) : '' };
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'handleOpenUrl', params: params }]);
+        } else {
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'handleOpenUrl', params: params }]);
+        }
     };
 
     /**
@@ -715,7 +720,12 @@ if (!window.CustomEvent) {
      * @param errorC Error callback
      */
     AppsFlyer.prototype.setUseReceiptValidationSandbox = function (isSandbox, successC, errorC) {
-        exec(successC, errorC, 'AppsFlyerPlugin', 'setUseReceiptValidationSandbox', [isSandbox]);
+        const params = { sandbox: Boolean(isSandbox) };
+        if (isAndroid()) {
+            exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUseReceiptValidationSandbox', params: params }]);
+        } else {
+            exec(successC, errorC, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setUseReceiptValidationSandbox', params: params }]);
+        }
     };
 
     /**
@@ -725,7 +735,12 @@ if (!window.CustomEvent) {
      * @param successC
      */
     AppsFlyer.prototype.disableCollectASA = function (collectASA, successC) {
-        exec(successC, null, 'AppsFlyerPlugin', 'disableCollectASA', [collectASA]);
+        const params = { disable: Boolean(collectASA) };
+        if (isAndroid()) {
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableCollectASA', params: params }]);
+        } else {
+            exec(successC, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setDisableCollectASA', params: params }]);
+        }
     };
     /**
      * AppsFlyer SDK dynamically loads the Apple adSupport.framework. This framework is required to collect IDFA for attribution purposes.
@@ -817,11 +832,14 @@ if (!window.CustomEvent) {
      * @param path an array of string that represents the path
      */
     AppsFlyer.prototype.addPushNotificationDeepLinkPath = function (path) {
+        const pathArr = Array.isArray(path) ? path : (path != null ? [path] : []);
+        if (pathArr.length === 0) {
+            return;
+        }
         if (isAndroid()) {
-            const deepLinkPath = Array.isArray(path) ? path : (path != null ? [path] : []);
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'addPushNotificationDeepLinkPath', params: { deepLinkPath: deepLinkPath } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'addPushNotificationDeepLinkPath', params: { deepLinkPath: pathArr } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'addPushNotificationDeepLinkPath', [path]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'addPushNotificationDeepLinkPath', params: { path: pathArr } }]);
         }
     };
 
@@ -830,11 +848,14 @@ if (!window.CustomEvent) {
      * @param urls
      */
     AppsFlyer.prototype.setResolveDeepLinkURLs = function (urls) {
+        const urlList = Array.isArray(urls) ? urls : (urls != null ? [urls] : []);
+        if (urlList.length === 0) {
+            return;
+        }
         if (isAndroid()) {
-            const urlList = Array.isArray(urls) ? urls : (urls != null ? [urls] : []);
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setResolveDeepLinkURLs', params: { urls: urlList } }]);
         } else {
-            exec(null, null, 'AppsFlyerPlugin', 'setResolveDeepLinkURLs', [urls]);
+            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setResolveDeepLinkURLs', params: { urls: urlList } }]);
         }
     };
 

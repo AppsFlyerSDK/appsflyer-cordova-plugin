@@ -10,9 +10,6 @@
 - (void)onAppOpenAttribution:(NSDictionary*) attributionData;
 - (void)onAppOpenAttributionFailure:(NSError *)_errorMessage;
 - (void)didResolveDeepLink:(AppsFlyerDeepLinkResult* _Nonnull) result;
-- (void)handleOpenUrl:(CDVInvokedUrlCommand *)url;
-- (void)disableCollectASA:(CDVInvokedUrlCommand *)command;
-- (void)setUseReceiptValidationSandbox:(CDVInvokedUrlCommand*)command;
 
 @end
 

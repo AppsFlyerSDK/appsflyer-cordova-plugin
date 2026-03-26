@@ -30,6 +30,7 @@ let getSdkVBtn = document.getElementById('getSdkV');
 let customDomainsBtn = document.getElementById('customDomains');
 let enableFBBtn = document.getElementById('enableFB');
 let addPushNotificationPathBtn = document.getElementById('addPushNotificationPath');
+let handleOpenUrlBtn = document.getElementById('handleOpenUrl');
 let setResolveDeepLinkURLsBtn = document.getElementById('setResolveDeepLinkURLs');
 let logAdRevenueBtn = document.getElementById('logAdRevenue');
 let disableAppSetIdBtn = document.getElementById('disableAppSetId');
@@ -145,9 +146,6 @@ if (anonymizeUserBtn) {
 if (stopBtn) {
     stopBtn.addEventListener('click', stop, false);
 }
-if (stopBtn) {
-    stopBtn.addEventListener('click', stop, false);
-}
 if (updateServerUninstallTokenBtn) {
     updateServerUninstallTokenBtn.addEventListener('click', updateServerUninstallToken, false);
 }
@@ -165,6 +163,9 @@ if (enableFBBtn) {
 }
 if (addPushNotificationPathBtn) {
     addPushNotificationPathBtn.addEventListener('click', addPushNotificationDeepLinkPath, false);
+}
+if (handleOpenUrlBtn) {
+    handleOpenUrlBtn.addEventListener('click', handleOpenUrlTest, false);
 }
 if (setResolveDeepLinkURLsBtn) {
     setResolveDeepLinkURLsBtn.addEventListener('click', setResolveDeepLinkURLs, false);
@@ -318,8 +319,19 @@ function setCustomDomains() {
 }
 
 function addPushNotificationDeepLinkPath() {
-    let path = ["go", "to", "this", "path"];
+    let path = ['go', 'to', 'this', 'path'];
     window.plugins.appsFlyer.addPushNotificationDeepLinkPath(path);
+    alert('addPushNotificationDeepLinkPath([' + path.join(', ') + ']) — call before init in production');
+}
+
+/**
+ * Simulates forwarding a URL into the SDK (Cordova apps that do not rely on swizzled AppDelegate).
+ * Uses a sample https URL; replace with your OneLink / app scheme URL for real tests.
+ */
+function handleOpenUrlTest() {
+    let url = 'https://example.onelink.me/test?pid=test&c=campaign';
+    window.plugins.appsFlyer.handleOpenUrl(url);
+    alert('handleOpenUrl("' + url + '")');
 }
 
 function setResolveDeepLinkURLs() {
@@ -372,7 +384,7 @@ function anonymizeUser() {
 }
 
 function stop() {
-    window.plugins.appsFlyer.Stop();
+    window.plugins.appsFlyer.Stop(true);
 }
 
 function updateServerUninstallToken() {
