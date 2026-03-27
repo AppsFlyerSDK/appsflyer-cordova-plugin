@@ -1,5 +1,5 @@
 //
-//  AppsFlyerSwiftPlugin.swift
+//  AppsFlyerPlugin.swift
 //  AppsFlyer Cordova Plugin
 //
 //  Swift plugin — RPC entry point mirrors Android `AppsFlyerPlugin.executeRpc`:
@@ -10,9 +10,9 @@ import Foundation
 import UIKit
 import AppsFlyerRPC
 
-/// Swift plugin implementation. Exposed to Cordova as AppsFlyerSwiftPlugin.
-@objc(AppsFlyerSwiftPlugin)
-public class AppsFlyerSwiftPlugin: CDVPlugin {
+/// iOS Cordova plugin: JSON-RPC via `AppsFlyerRPC` (`executeRpc`). Registered as `AppsFlyerPlugin` in plugin.xml.
+@objc(AppsFlyerPlugin)
+public class AppsFlyerPlugin: CDVPlugin {
 
     private static let rpcLogPrefix = "[AppsFlyer RPC]"
 
@@ -75,8 +75,6 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-
-
 
     // MARK: - executeRpc
 
@@ -251,7 +249,7 @@ public class AppsFlyerSwiftPlugin: CDVPlugin {
         ]
         let data = try JSONSerialization.data(withJSONObject: envelope, options: [.sortedKeys])
         guard let str = String(data: data, encoding: .utf8) else {
-            throw NSError(domain: "AppsFlyerSwiftPlugin", code: -1, userInfo: [NSLocalizedDescriptionKey: "UTF-8 encode failed"])
+            throw NSError(domain: "AppsFlyerPlugin", code: -1, userInfo: [NSLocalizedDescriptionKey: "UTF-8 encode failed"])
         }
         return str
     }

@@ -78,19 +78,15 @@ Inside the `<aplication>` tag,  add the following receiver:
 
 Copy:
 
--  `AppsFlyerPlugin.h`
--  `AppsFlyerPlugin.m`
--  `AppsFlyerCrossPromotionHelper.h`
--  `AppsFlyerLib.h`
--  `AppsFlyerLinkGenerator.h`
--  `AppsFlyerShareInviteHelper.h`
+-  `AppsFlyerPlugin.swift`
 -  `AppsFlyerX+AppController.h`
 -  `AppsFlyerX+AppController.m`
--  `libAppsFlyerLib.a`
 -  `AppsFlyerAttribution.h`
 -  `AppsFlyerAttribution.m`
 
-to `platforms/ios/<ProjectName>/Plugins`
+to `platforms/ios/<ProjectName>/Plugins`, and add the **AppsFlyerFramework** (and **AppsFlyerRPC**) iOS SDK via CocoaPods or SPM as in a normal Cordova+iOS setup. Public SDK headers such as `AppsFlyerLib.h` ship with the framework, not in this plugin.
+
+Legacy manual copies of `libAppsFlyerLib.a` and vendored `AppsFlyerLib*.h` from older plugin versions are no longer used.
 
 ##### <a id="manual-installation-android"> ****Android:****
 

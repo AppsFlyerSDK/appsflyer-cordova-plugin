@@ -225,10 +225,7 @@ Now you will get deep link information in the onAppOpenAttribution callback
   
 #### <a id="ios-universal"> If you are using Ionic+Capacitor or Ionic+Cordova:<br>  
 ##### import:<br>  
-`#import "AppsFlyerPlugin.h"` to `AppDelegate.m`   
-For plugin version **6.1.30** and less:  
-  
-`#import "AppsFlyerLib.h"` to `AppDelegate.m`  
+You typically do **not** need `#import "AppsFlyerPlugin.h"` in `AppDelegate` — the plugin includes `AppsFlyerX+AppController` for URL handling. For plugin version **6.1.30** and less, if you must import the SDK in `AppDelegate.m`, use the framework header: `#import <AppsFlyerLib/AppsFlyerLib.h>` (not a path inside the plugin).  
   
 In both cases, you need to add this code before the `@end` tag:<br>  
 ```  
@@ -301,7 +298,6 @@ Code sample for Classes/AppDelegate.m:
 ```objectivec  
 #import "AppDelegate.h"  
 #import "MainViewController.h"  
-#import "AppsFlyerPlugin.h"  
   
 @implementation AppDelegate  
   

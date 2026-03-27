@@ -103,11 +103,7 @@ if (!window.CustomEvent) {
             devKey: args.devKey || '',
             appId: args.appId || ''
         };
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'init', params: params }]);
-        } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'init', params: params }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'init', params: params }]);
     };
 
     /**
@@ -115,7 +111,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.waitForATT = function (timeoutSeconds) {
         if (!isAndroid()) {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'waitForATT', params: { timeout: timeoutSeconds } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'waitForATT', params: { timeout: timeoutSeconds } }]);
         }
     };
 
@@ -125,30 +121,14 @@ if (!window.CustomEvent) {
     AppsFlyer.prototype.startSdk = function (successCB, errorCB) {
         const hasCallback = (typeof successCB === 'function') || (typeof errorCB === 'function');
         const params = { awaitResponse: hasCallback };
-        if (isAndroid()) {
-            if (hasCallback) {
-                exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'start', params: params }]);
-            } else {
-                exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'start', params: params }]);
-            }
-        } else {
-            if (hasCallback) {
-                exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'start', params: params }]);
-            } else {
-                exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'start', params: params }]);
-            }
-        }
+        exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'start', params: params }]);
     };
 
     /**
      * Enable or disable debug logs. Call after initSdk if you need to change debug mode at runtime.
      */
     AppsFlyer.prototype.setDebugLog = function (isEnabled) {
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'isDebug', params: { isDebug: !!isEnabled } }]);
-        } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'isDebug', params: { isDebug: !!isEnabled } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'isDebug', params: { isDebug: !!isEnabled } }]);
     };
 
     /**
@@ -157,11 +137,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.registerDeepLink = function (onDeepLinkListener) {
         callbackMap.ddlSuc = onDeepLinkListener;
-        if (isAndroid()) {
-            exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'subscribeForDeepLink', params: {} }]);
-        } else {
-            exec(onDeepLinkListener, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'subscribeForDeepLink', params: {} }]);
-        }
+        exec(onDeepLinkListener, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'subscribeForDeepLink', params: {} }]);
     };
 
     /**
@@ -170,22 +146,14 @@ if (!window.CustomEvent) {
      * @param errorCB called with an error message on failure
      */
     AppsFlyer.prototype.registerConversionDataListener = function (successCB, errorCB) {
-        if (isAndroid()) {
-            exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'registerConversionListener', params: {} }]);
-        } else {
-            exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'registerConversionListener', params: {} }]);
-        }
+        exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'registerConversionListener', params: {} }]);
     };
 
     /**
      * Unregister install conversion data listener. No further conversion data callbacks will be delivered.
      */
     AppsFlyer.prototype.unregisterConversionDataListener = function () {
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'unregisterConversionListener', params: {} }]);
-        } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'unregisterConversionListener', params: {} }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'unregisterConversionListener', params: {} }]);
     };
 
     /**
@@ -202,11 +170,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setCurrencyCode = function (currencyId) {
         argscheck.checkArgs('S', 'AppsFlyer.setCurrencyCode', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCurrencyCode', params: { currencyCode: currencyId } }]);
-        } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setCurrencyCode', params: { currencyCode: currencyId } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCurrencyCode', params: { currencyCode: currencyId } }]);
     };
 
     /**
@@ -279,25 +243,20 @@ if (!window.CustomEvent) {
     AppsFlyer.prototype.logAdRevenue = function (afAdRevenueData, additionalParameters) {
         argscheck.checkArgs('OO', 'AppsFlyer.logAdRevenue', arguments);
         const revenueVal = afAdRevenueData.revenue != null ? afAdRevenueData.revenue : 0;
+        const params = {
+            monetizationNetwork: afAdRevenueData.monetizationNetwork || '',
+            mediationNetwork: isAndroid()
+                ? ((afAdRevenueData.mediationNetwork && String(afAdRevenueData.mediationNetwork).trim()) || 'custom')
+                : (afAdRevenueData.mediationNetwork || ''),
+            currencyIso4217Code: afAdRevenueData.currencyIso4217Code || '',
+            additionalParameters: additionalParameters || null
+        };
         if (isAndroid()) {
-            const params = {
-                monetizationNetwork: afAdRevenueData.monetizationNetwork || '',
-                mediationNetwork: afAdRevenueData.mediationNetwork || '',
-                currencyIso4217Code: afAdRevenueData.currencyIso4217Code || '',
-                revenue: revenueVal,
-                additionalParameters: additionalParameters || null
-            };
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAdRevenue', params: params }]);
+            params.revenue = revenueVal;
         } else {
-            const params = {
-                monetizationNetwork: afAdRevenueData.monetizationNetwork || '',
-                mediationNetwork: afAdRevenueData.mediationNetwork || '',
-                currencyIso4217Code: afAdRevenueData.currencyIso4217Code || '',
-                eventRevenue: revenueVal,
-                additionalParameters: additionalParameters || null
-            };
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'logAdRevenue', params: params }]);
+            params.eventRevenue = revenueVal;
         }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAdRevenue', params: params }]);
     };
 
     /**
@@ -305,11 +264,10 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setAppUserId = function (customerUserId) {
         argscheck.checkArgs('S', 'AppsFlyer.setAppUserId', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: { customerId: customerUserId } }]);
-        } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: { customerUserId: customerUserId } }]);
-        }
+        const uidParams = isAndroid()
+            ? { customerId: customerUserId }
+            : { customerUserId: customerUserId };
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: uidParams }]);
     };
 
     /**
@@ -317,23 +275,13 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.getAppsFlyerUID = function (successCB) {
         argscheck.checkArgs('F', 'AppsFlyer.getAppsFlyerUID', arguments);
-        if (isAndroid()) {
-            exec(
-                function (result) { successCB(result); },
-                null,
-                'AppsFlyerPlugin',
-                'executeRpc',
-                [{ method: 'getAppsFlyerUID', params: {} }]
-            );
-        } else {
-            exec(
-                function (result) { successCB(result); },
-                null,
-                'AppsFlyerSwiftPlugin',
-                'executeRpc',
-                [{ method: 'getAppsFlyerUID', params: {} }]
-            );
-        }
+        exec(
+            function (result) { successCB(result); },
+            null,
+            'AppsFlyerPlugin',
+            'executeRpc',
+            [{ method: 'getAppsFlyerUID', params: {} }]
+        );
     };
 
     /**
@@ -412,7 +360,11 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.appendParametersToDeepLinkingURL = function (contains, parameters) {
         argscheck.checkArgs('SO', 'AppsFlyer.appendParametersToDeepLinkingURL', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'appendParametersToDeepLinkingURL', params: { contains: contains || '', parameters: parameters || {} } }]);
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'appendParametersToDeepLinkingURL', params: { contains: contains || '', parameters: parameters || {} } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'appendParametersToDeeplinkURL', params: { containsString: contains || '', params: parameters || {} } }]);
+        }
     };
 
     /**
@@ -420,7 +372,11 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.logInvite = function (channel, eventParameters) {
         argscheck.checkArgs('SO', 'AppsFlyer.logInvite', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logInvite', params: { channel: channel || '', eventParameters: eventParameters || null } }]);
+        if (isAndroid()) {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logInvite', params: { channel: channel || '', eventParameters: eventParameters || null } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logInvite', params: { channel: channel || '', parameters: eventParameters || null } }]);
+        }
     };
 
     /**
@@ -451,9 +407,9 @@ if (!window.CustomEvent) {
     AppsFlyer.prototype.anonymizeUser = function (isDisabled) {
         argscheck.checkArgs('*', 'AppsFlyer.anonymizeUser', arguments);
         if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'anonymizeUser', params: { shouldAnonymize: isDisabled } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'anonymizeUser', params: { shouldAnonymize: Boolean(isDisabled) } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setAnonymizeUser', params: { anonymize: Boolean(isDisabled) } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAnonymizeUser', params: { anonymize: Boolean(isDisabled) } }]);
         }
     };
 
@@ -463,9 +419,9 @@ if (!window.CustomEvent) {
     AppsFlyer.prototype.Stop = function (isStop) {
         argscheck.checkArgs('*', 'AppsFlyer.Stop', arguments);
         if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'stop', params: { shouldStop: isStop } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'stop', params: { shouldStop: Boolean(isStop) } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setStopped', params: { stopped: Boolean(isStop) } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setStopped', params: { stopped: Boolean(isStop) } }]);
         }
     };
 
@@ -516,18 +472,10 @@ if (!window.CustomEvent) {
             awaitResponse: hasCallback
         };
         const rpcPayload = { method: 'logEvent', params: params };
-        if (isAndroid()) {
-            if (hasCallback) {
-                exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'executeRpc', [rpcPayload]);
-            } else {
-                exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [rpcPayload]);
-            }
+        if (hasCallback) {
+            exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerPlugin', 'executeRpc', [rpcPayload]);
         } else {
-            if (hasCallback) {
-                exec(successCB || function () {}, errorCB || function () {}, 'AppsFlyerSwiftPlugin', 'executeRpc', [rpcPayload]);
-            } else {
-                exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [rpcPayload]);
-            }
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [rpcPayload]);
         }
     };
 
@@ -536,11 +484,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.updateServerUninstallToken = function (token) {
         argscheck.checkArgs('S', 'AppsFlyer.updateServerUninstallToken', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'updateServerUninstallToken', params: { token: token } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'updateServerUninstallToken', [token]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'updateServerUninstallToken', params: { token: token } }]);
     };
 
     /**
@@ -550,9 +494,9 @@ if (!window.CustomEvent) {
     AppsFlyer.prototype.setAppInviteOneLinkID = function (args) {
         argscheck.checkArgs('S', 'AppsFlyer.setAppInviteOneLinkID', arguments);
         if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAppInviteOneLink', params: { oneLinkId: args } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAppInviteOneLink', params: { oneLinkId: args || '' } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setAppInviteOneLinkID', params: { oneLinkID: args || '' } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAppInviteOneLinkID', params: { oneLinkID: args || '' } }]);
         }
     };
 
@@ -564,32 +508,33 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.generateInviteLink = function (args, successCB, errorCB) {
         argscheck.checkArgs('O', 'AppsFlyer.generateInviteLink', arguments);
+        const a = args || {};
         if (isAndroid()) {
             const params = {
-                channel: args.channel || null,
-                campaign: args.campaign || null,
-                referrerName: args.referrerName || null,
-                referrerImageUrl: args.referrerImageUrl || args.referrerImageURL || null,
-                customerId: args.customerId || args.customerID || null,
-                baseDeepLink: args.baseDeepLink || null,
-                brandDomain: args.brandDomain || null,
-                userParams: args.userParams || null,
-                awaitResponse: args.awaitResponse !== false
+                channel: a.channel != null ? a.channel : null,
+                campaign: a.campaign != null ? a.campaign : null,
+                referrerName: a.referrerName != null ? a.referrerName : null,
+                referrerImageUrl: a.referrerImageUrl || a.referrerImageURL || null,
+                customerId: a.customerId || a.customerID || null,
+                baseDeepLink: a.baseDeepLink || a.baseDeeplink || null,
+                brandDomain: a.brandDomain != null ? a.brandDomain : null,
+                userParams: a.userParams || null,
+                awaitResponse: true
             };
             exec(successCB, errorCB, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'generateInviteLink', params: params }]);
         } else {
             const params = {
-                channel: args.channel || null,
-                campaign: args.campaign || null,
-                referrerName: args.referrerName || null,
-                referrerImageURL: args.referrerImageUrl || args.referrerImageURL || null,
-                referrerCustomerId: args.customerId || args.customerID || null,
-                baseDeeplink: args.baseDeepLink || args.baseDeeplink || null,
-                deeplinkPath: args.deeplinkPath || null,
-                brandDomain: args.brandDomain || null,
-                customParams: args.userParams || null
+                channel: a.channel || null,
+                campaign: a.campaign || null,
+                referrerName: a.referrerName || null,
+                referrerImageURL: a.referrerImageUrl || a.referrerImageURL || null,
+                referrerCustomerId: a.customerId || a.customerID || null,
+                baseDeeplink: a.baseDeepLink || a.baseDeeplink || null,
+                deeplinkPath: a.deeplinkPath || null,
+                brandDomain: a.brandDomain || null,
+                customParams: a.userParams || null
             };
-            exec(successCB, errorCB, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'generateInviteUrl', params: params }]);
+            exec(successCB, errorCB, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'generateInviteUrl', params: params }]);
         }
     };
 
@@ -604,7 +549,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logCrossPromoteImpression', params: { appId: appId || '', campaign: campaign || '', userParams: userParams || null } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'logCrossPromoteImpression', params: { appID: appId || '', campaign: campaign || null, parameters: userParams || null } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logCrossPromoteImpression', params: { appID: appId || '', campaign: campaign || null, parameters: userParams || null } }]);
         }
     };
 
@@ -619,7 +564,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAndOpenStore', params: { promotedAppId: appId || '', campaign: campaign || '', userParams: params || null } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'logAndOpenStore', params: { appID: appId || '', campaign: campaign || null, parameters: params || null } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAndOpenStore', params: { appID: appId || '', campaign: campaign || null, parameters: params || null } }]);
         }
     };
 
@@ -629,11 +574,7 @@ if (!window.CustomEvent) {
     AppsFlyer.prototype.handleOpenUrl = function (url) {
         argscheck.checkArgs('*', 'AppsFlyer.handleOpenUrl', arguments);
         const params = { url: url != null ? String(url) : '' };
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'handleOpenUrl', params: params }]);
-        } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'handleOpenUrl', params: params }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'handleOpenUrl', params: params }]);
     };
 
     /**
@@ -642,11 +583,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.registerUninstall = function (token) {
         argscheck.checkArgs('*', 'AppsFlyer.registerUninstall', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'registerUninstall', params: { deviceToken: token } }]);
-        } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'registerUninstall', params: { deviceToken: token } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'registerUninstall', params: { deviceToken: token } }]);
     };
 
     /**
@@ -654,11 +591,8 @@ if (!window.CustomEvent) {
      * successCB: Success callback that returns the SDK version
      */
     AppsFlyer.prototype.getSdkVersion = function (successCB) {
-        if (isAndroid()) {
-            exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getSdkVersion', params: {} }]);
-        } else {
-            exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'getSDKVersion', params: {} }]);
-        }
+        const method = isAndroid() ? 'getSdkVersion' : 'getSDKVersion';
+        exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: method, params: {} }]);
     };
 
     /**
@@ -666,11 +600,7 @@ if (!window.CustomEvent) {
      * networks Comma separated array of partners that need to be excluded
      */
     AppsFlyer.prototype.setSharingFilterForPartners = function (networks) {
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setSharingFilterForPartners', params: { partners: networks || [] } }]);
-        } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setSharingFilterForPartners', params: { partners: networks || [] } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setSharingFilterForPartners', params: { partners: networks || [] } }]);
     };
 
     /**
@@ -709,7 +639,7 @@ if (!window.CustomEvent) {
             if (additionalParameters != null && typeof additionalParameters === 'object') {
                 params.additionalParameters = additionalParameters;
             }
-            exec(successC, errorC, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'validateAndLogInAppPurchaseV2', params: params }]);
+            exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'validateAndLogInAppPurchaseV2', params: params }]);
         }
     };
 
@@ -721,11 +651,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setUseReceiptValidationSandbox = function (isSandbox, successC, errorC) {
         const params = { sandbox: Boolean(isSandbox) };
-        if (isAndroid()) {
-            exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUseReceiptValidationSandbox', params: params }]);
-        } else {
-            exec(successC, errorC, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setUseReceiptValidationSandbox', params: params }]);
-        }
+        exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUseReceiptValidationSandbox', params: params }]);
     };
 
     /**
@@ -736,11 +662,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.disableCollectASA = function (collectASA, successC) {
         const params = { disable: Boolean(collectASA) };
-        if (isAndroid()) {
-            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableCollectASA', params: params }]);
-        } else {
-            exec(successC, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setDisableCollectASA', params: params }]);
-        }
+        exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableCollectASA', params: params }]);
     };
     /**
      * AppsFlyer SDK dynamically loads the Apple adSupport.framework. This framework is required to collect IDFA for attribution purposes.
@@ -750,9 +672,9 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setDisableAdvertisingIdentifier = function (disableAdvertisingIdentifier, successC) {
         if (isAndroid()) {
-            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableAdvertisingIdentifiers', params: { isDisable: !!disableAdvertisingIdentifier } }]);
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableAdvertisingIdentifiers', params: { isDisable: Boolean(disableAdvertisingIdentifier) } }]);
         } else {
-            exec(successC, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setDisableAdvertisingIdentifier', params: { disable: Boolean(disableAdvertisingIdentifier) } }]);
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableAdvertisingIdentifier', params: { disable: Boolean(disableAdvertisingIdentifier) } }]);
         }
     };
 
@@ -765,11 +687,8 @@ if (!window.CustomEvent) {
      * @param errorC error callback
      */
     AppsFlyer.prototype.setOneLinkCustomDomains = function (domains, successC, errorC) {
-        if (isAndroid()) {
-            exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setOneLinkCustomDomain', params: { domains: domains || [] } }]);
-        } else {
-            exec(successC, errorC, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setOneLinkCustomDomains', params: { domains: domains || [] } }]);
-        }
+        const method = isAndroid() ? 'setOneLinkCustomDomain' : 'setOneLinkCustomDomains';
+        exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: method, params: { domains: domains || [] } }]);
     };
 
     /**
@@ -780,9 +699,9 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.enableFacebookDeferredApplinks = function (isEnabled) {
         if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableFacebookDeferredApplinks', params: { isEnabled: !!isEnabled } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableFacebookDeferredApplinks', params: { isEnabled: Boolean(isEnabled) } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'enableFacebookDeferredApplinks', params: { enable: Boolean(isEnabled) } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableFacebookDeferredApplinks', params: { enable: Boolean(isEnabled) } }]);
         }
     };
 
@@ -792,11 +711,7 @@ if (!window.CustomEvent) {
      * @param successC success callback
      */
     AppsFlyer.prototype.setPhoneNumber = function (phoneNumber, successC) {
-        if (isAndroid()) {
-            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPhoneNumber', params: { phoneNumber: phoneNumber || '' } }]);
-        } else {
-            exec(successC, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setPhoneNumber', params: { phoneNumber: phoneNumber || '' } }]);
-        }
+        exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPhoneNumber', params: { phoneNumber: phoneNumber || '' } }]);
     };
 
     /**
@@ -806,11 +721,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setUserEmails = function (userEmails, successC) {
         const emails = userEmails || [];
-        if (isAndroid()) {
-            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmails', params: { emails: emails } }]);
-        } else {
-            exec(successC, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setUserEmails', params: { emails: emails, cryptType: 'sha256' } }]);
-        }
+        exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmails', params: { emails: emails, cryptType: 'sha256' } }]);
     };
 
     /**
@@ -822,7 +733,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setHost', params: { hostPrefixName: hostPrefix || null, hostName: hostName || '' } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setHost', params: { host: hostName || '', hostPrefix: hostPrefix || '' } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setHost', params: { host: hostName || '', hostPrefix: hostPrefix || '' } }]);
         }
     };
 
@@ -839,7 +750,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'addPushNotificationDeepLinkPath', params: { deepLinkPath: pathArr } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'addPushNotificationDeepLinkPath', params: { path: pathArr } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'addPushNotificationDeepLinkPath', params: { path: pathArr } }]);
         }
     };
 
@@ -852,11 +763,7 @@ if (!window.CustomEvent) {
         if (urlList.length === 0) {
             return;
         }
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setResolveDeepLinkURLs', params: { urls: urlList } }]);
-        } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setResolveDeepLinkURLs', params: { urls: urlList } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setResolveDeepLinkURLs', params: { urls: urlList } }]);
     };
 
     /**
@@ -867,7 +774,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             return;
         }
-        exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setDisableSKAdNetwork', params: { disable: Boolean(isDisabled) } }]);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableSKAdNetwork', params: { disable: Boolean(isDisabled) } }]);
     };
 
     /**
@@ -876,11 +783,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setCurrentDeviceLanguage = function (language ){
         argscheck.checkArgs('S', 'AppsFlyer.setCurrentDeviceLanguage', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCurrentDeviceLanguage', params: { language: language } }]);
-        } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setCurrentDeviceLanguage', params: { language: language } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCurrentDeviceLanguage', params: { language: language } }]);
     };
 
     /**
@@ -892,7 +795,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAdditionalData', params: { customData: additionalData || {} } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setAdditionalData', params: { additionalData: additionalData || {} } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAdditionalData', params: { additionalData: additionalData || {} } }]);
         }
     };
 
@@ -907,7 +810,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPartnerData', params: { partnerId: partnerId || '', data: data || {} } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setPartnerData', params: { partnerId: partnerId || '', partnerInfo: data || {} } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPartnerData', params: { partnerId: partnerId || '', partnerInfo: data || {} } }]);
         }
     };
 
@@ -927,7 +830,7 @@ if (!window.CustomEvent) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'sendPushNotificationData', params: params }]);
         } else {
             const payload = (pushData && typeof pushData === 'object') ? pushData : {};
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'handlePushNotification', params: { pushPayload: payload } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'handlePushNotification', params: { pushPayload: payload } }]);
         }
     };
 
@@ -936,11 +839,7 @@ if (!window.CustomEvent) {
      * @param disable - Defaults to false
      */
     AppsFlyer.prototype.setDisableNetworkData = function (disable) {
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableNetworkData', params: { isDisable: !!disable } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'setDisableNetworkData', [disable]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableNetworkData', params: { isDisable: !!disable } }]);
     };
 
     /**
@@ -955,11 +854,7 @@ if (!window.CustomEvent) {
             hasConsentForAdsPersonalization: appsFlyerConsent.hasConsentForAdsPersonalization,
             hasConsentForAdStorage: appsFlyerConsent.hasConsentForAdStorage
         };
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setConsentData', params: params }]);
-        } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'setConsentData', params: params }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setConsentData', params: params }]);
     };
 
     /**
@@ -971,7 +866,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableTCFDataCollection', params: { shouldCollect: !!enable } }]);
         } else {
-            exec(null, null, 'AppsFlyerSwiftPlugin', 'executeRpc', [{ method: 'enableTCFDataCollection', params: { enable: !!enable } }]);
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableTCFDataCollection', params: { enable: !!enable } }]);
         }
     };
 
@@ -980,11 +875,7 @@ if (!window.CustomEvent) {
      * even if such dependency is added to the app.
      */
     AppsFlyer.prototype.disableAppSetId = function () {
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'disableAppSetId', params: {} }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'disableAppSetId', []);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'disableAppSetId', params: {} }]);
     };
 
     module.exports = new AppsFlyer();
