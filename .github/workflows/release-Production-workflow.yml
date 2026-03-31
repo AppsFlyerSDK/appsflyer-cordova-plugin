@@ -41,7 +41,7 @@ jobs:
           repo-token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
       - name: Determine release tag and release branch
         run: |
-          TAG=$(echo "${{ steps.vars.outputs.branch }}" | grep -Eo '[0-9].[0-9]+.[0-9]+')
+          TAG=$(echo "${{ steps.vars.outputs.branch }}" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
           echo "PLUGIN_VERSION=$TAG" >> $GITHUB_ENV
           echo "RELEASE_BRANCH_NAME=${{ steps.vars.outputs.branch }}" >> $GITHUB_ENV
           echo "push new release >> $TAG"
@@ -76,14 +76,22 @@ jobs:
       - name: Generate and send slack report
         env:
           SLACK_TOKEN: ${{ secrets.CI_SLACK_TOKEN }}
-          JIRA_TOKEN: ${{ secrets.CI_JIRA_TOKEN }}
-          JIRA_FIXED_VERSION: "Cordova SDK v${{env.PLUGIN_VERSION}}"
-          RELEASE_BRACH_NAME: ${{env.RELEASE_BRANCH_NAME}}
+          RELEASE_BRACH_NAME: ${{ env.RELEASE_BRANCH_NAME }}
         run: |
-          chmod +x .github/workflows/scripts/releaseNotesGenerator.sh
-          .github/workflows/scripts/releaseNotesGenerator.sh $JIRA_TOKEN "$JIRA_FIXED_VERSION"
-          android_sdk_version=$(cat README.md | grep 'Android AppsFlyerSDK' | grep -Eo '[0-9].[0-9]+.[0-9]+')
-          ios_sdk_version=$(cat README.md | grep 'iOS AppsFlyerSDK' | grep -Eo  '[0-9].[0-9]+.[0-9]+')
-          CHANGES=$(cat "$JIRA_FIXED_VERSION-releasenotes".txt)
-          curl -X POST -H 'Content-type: application/json' --data '{"jira_fixed_version": "'"${{env.JIRA_FIXED_VERSION}}"'", "deploy_type": "Production", "install_tag": "latest", "git_branch": "'"$RELEASE_BRACH_NAME"'", "changes_and_fixes": "'"$CHANGES"'", "android_dependency": "'"$android_sdk_version"'", "ios_dependency": "'"$ios_sdk_version"'"}' "$SLACK_TOKEN"
+          chmod +x .github/workflows/scripts/extractReleaseNotesSection.sh
+          .github/workflows/scripts/extractReleaseNotesSection.sh RELEASENOTES.md "${{ env.PLUGIN_VERSION }}" > release-notes-body.txt
+          android_sdk_version=$(grep 'Android AppsFlyerSDK' README.md | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          ios_sdk_version=$(grep 'iOS AppsFlyerSDK' README.md | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          release_label="Cordova SDK v${{ env.PLUGIN_VERSION }}"
+          CHANGES=$(cat release-notes-body.txt)
+          PAYLOAD=$(jq -n \
+            --arg jfv "$release_label" \
+            --arg dt "Production" \
+            --arg it "latest" \
+            --arg gb "$RELEASE_BRACH_NAME" \
+            --arg cf "$CHANGES" \
+            --arg ad "$android_sdk_version" \
+            --arg id "$ios_sdk_version" \
+            '{jira_fixed_version: $jfv, deploy_type: $dt, install_tag: $it, git_branch: $gb, changes_and_fixes: $cf, android_dependency: $ad, ios_dependency: $id}')
+          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_TOKEN"
 

@@ -1,3 +1,9 @@
+## 6.18.0
+ Release date: *2026-03-31*
+
+- Android AppsFlyer SDK **v6.18.0**
+- iOS AppsFlyer SDK **v6.18.0**
+
 ## 6.17.9
  Release date: *2026-03-17*
 

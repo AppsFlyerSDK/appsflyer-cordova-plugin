@@ -25,18 +25,14 @@ jobs:
           git config --global --add "credential.https://github.com.username" "x-access-token"
           echo "https://x-access-token:$MY_PERSONAL_ACCESS_TOKEN@github.com" > ~/.git-credentials
           
-      - name: Check if fixed version is on Jira
+      - name: Resolve version and validate RELEASENOTES.md
         env:
-          JIRA_TOKEN: ${{ secrets.CI_JIRA_TOKEN }}
-          BRANCH_NAME: ${{github.ref_name}}
+          BRANCH_NAME: ${{ github.ref_name }}
         run: |
-          fixed_version_found=false
-          plugin_version=$(echo "$BRANCH_NAME" | grep -Eo '[0-9].[0-9]+.[0-9]+')
-          jira_fixed_version="Cordova SDK v$plugin_version"
-          # echo "PLUGIN_VERSION=$plugin_version" >> $GITHUB_ENV
-          echo "JIRA_FIXED_VERSION=$jira_fixed_version" >> $GITHUB_ENV
-          chmod +x .github/workflows/scripts/releaseNotesGenerator.sh
-          .github/workflows/scripts/releaseNotesGenerator.sh $JIRA_TOKEN "$jira_fixed_version"
+          plugin_version=$(echo "$BRANCH_NAME" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          echo "PLUGIN_VERSION=$plugin_version" >> $GITHUB_ENV
+          chmod +x .github/workflows/scripts/extractReleaseNotesSection.sh
+          .github/workflows/scripts/extractReleaseNotesSection.sh RELEASENOTES.md "$plugin_version" > release-notes-body.txt
       - name: Update package.json file
         run: |
           plugin_rc_version=$(echo "${{github.ref_name}}" | grep -Eo '[0-9].[0-9]+.[0-9]+-rc[0-9]+')
@@ -58,9 +54,20 @@ jobs:
       - name: Generate and send slack report
         env:
           SLACK_TOKEN: ${{ secrets.CI_SLACK_TOKEN }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          ios_sdk_version=$(cat README.md | grep 'iOS AppsFlyerSDK' | grep -Eo  '[0-9].[0-9]+.[0-9]+')
-          echo "The ios sdk version is: $ios_sdk_version" 
-          android_sdk_version=$(cat README.md | grep 'Android AppsFlyerSDK' | grep -Eo '[0-9].[0-9]+.[0-9]+')
-          CHANGES=$(cat "${{env.JIRA_FIXED_VERSION}}-releasenotes".txt)
-          curl -X POST -H 'Content-type: application/json' --data '{"jira_fixed_version": "'"${{env.JIRA_FIXED_VERSION}}"'", "deploy_type": "QA", "install_tag": "QA", "git_branch": "'"${{github.ref_name}}"'", "changes_and_fixes": "'"$CHANGES"'", "android_dependency": "'"$android_sdk_version"'", "ios_dependency": "'"$ios_sdk_version"'"}' "$SLACK_TOKEN"
+          ios_sdk_version=$(grep 'iOS AppsFlyerSDK' README.md | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          echo "The ios sdk version is: $ios_sdk_version"
+          android_sdk_version=$(grep 'Android AppsFlyerSDK' README.md | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          release_label="Cordova SDK v${{ env.PLUGIN_VERSION }}"
+          CHANGES=$(cat release-notes-body.txt)
+          PAYLOAD=$(jq -n \
+            --arg jfv "$release_label" \
+            --arg dt "QA" \
+            --arg it "QA" \
+            --arg gb "$REF_NAME" \
+            --arg cf "$CHANGES" \
+            --arg ad "$android_sdk_version" \
+            --arg id "$ios_sdk_version" \
+            '{jira_fixed_version: $jfv, deploy_type: $dt, install_tag: $it, git_branch: $gb, changes_and_fixes: $cf, android_dependency: $ad, ios_dependency: $id}')
+          curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$SLACK_TOKEN"
