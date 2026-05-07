@@ -43,16 +43,15 @@ jobs:
           npm version $plugin_version --allow-same-version
           git push origin HEAD:${{ steps.vars.outputs.branch }} --force
 
-      - name: Update CHANGELOG.md
-        env:
-          JIRA_TOKEN: ${{ secrets.CI_JIRA_TOKEN }}
-          JIRA_FIXED_VERSION: "Cordova SDK v${{env.PLUGIN_VERSION}}"
+      - name: Validate RELEASENOTES.md has release section
         run: |
-          chmod +x .github/workflows/scripts/releaseNotesGenerator.sh
-          .github/workflows/scripts/releaseNotesGenerator.sh $JIRA_TOKEN "$JIRA_FIXED_VERSION"
-          NEW_VERSION_RELEASE_NOTES=$(cat "$JIRA_FIXED_VERSION-releasenotes".txt)
-          NEW_VERSION_SECTION="## ${{ env.PLUGIN_VERSION }}\n Release date: *$(date +%F)*\n\n$NEW_VERSION_RELEASE_NOTES\n"
-          echo -e "$NEW_VERSION_SECTION\n$(cat RELEASENOTES.md)" > RELEASENOTES.md
-          git add RELEASENOTES.md
-          git commit -m "Update RELEASENOTES.md"
-          git push origin HEAD:${{ env.GIT_BRANCH_RELEASE }} --force
+          RELEASE_NOTES=$(awk -v ver="${{ env.PLUGIN_VERSION }}" '
+            $0 ~ "^## " ver "$" { in_section=1; next }
+            in_section && /^## / { exit }
+            in_section { print }
+          ' RELEASENOTES.md | sed '/^[[:space:]]*$/d')
+
+          if [ -z "$RELEASE_NOTES" ]; then
+            echo "Missing release notes for version ${{ env.PLUGIN_VERSION }} in RELEASENOTES.md"
+            exit 1
+          fi

@@ -25,18 +25,29 @@ jobs:
           git config --global --add "credential.https://github.com.username" "x-access-token"
           echo "https://x-access-token:$MY_PERSONAL_ACCESS_TOKEN@github.com" > ~/.git-credentials
           
-      - name: Check if fixed version is on Jira
+      - name: Extract release notes for current release
         env:
-          JIRA_TOKEN: ${{ secrets.CI_JIRA_TOKEN }}
           BRANCH_NAME: ${{github.ref_name}}
         run: |
-          fixed_version_found=false
-          plugin_version=$(echo "$BRANCH_NAME" | grep -Eo '[0-9].[0-9]+.[0-9]+')
-          jira_fixed_version="Cordova SDK v$plugin_version"
-          # echo "PLUGIN_VERSION=$plugin_version" >> $GITHUB_ENV
-          echo "JIRA_FIXED_VERSION=$jira_fixed_version" >> $GITHUB_ENV
-          chmod +x .github/workflows/scripts/releaseNotesGenerator.sh
-          .github/workflows/scripts/releaseNotesGenerator.sh $JIRA_TOKEN "$jira_fixed_version"
+          plugin_version=$(echo "$BRANCH_NAME" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+          echo "PLUGIN_VERSION=$plugin_version" >> "$GITHUB_ENV"
+
+          release_notes=$(awk -v ver="$plugin_version" '
+            $0 ~ "^## " ver "$" { in_section=1; next }
+            in_section && /^## / { exit }
+            in_section { print }
+          ' RELEASENOTES.md | sed '/^[[:space:]]*$/d')
+
+          if [ -z "$release_notes" ]; then
+            echo "Release notes section for $plugin_version is missing or empty in RELEASENOTES.md"
+            exit 1
+          fi
+
+          {
+            echo "RELEASE_NOTES<<EOF"
+            echo "$release_notes"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
       - name: Update package.json file
         run: |
           plugin_rc_version=$(echo "${{github.ref_name}}" | grep -Eo '[0-9].[0-9]+.[0-9]+-rc[0-9]+')
@@ -62,5 +73,5 @@ jobs:
           ios_sdk_version=$(cat README.md | grep 'iOS AppsFlyerSDK' | grep -Eo  '[0-9].[0-9]+.[0-9]+')
           echo "The ios sdk version is: $ios_sdk_version" 
           android_sdk_version=$(cat README.md | grep 'Android AppsFlyerSDK' | grep -Eo '[0-9].[0-9]+.[0-9]+')
-          CHANGES=$(cat "${{env.JIRA_FIXED_VERSION}}-releasenotes".txt)
-          curl -X POST -H 'Content-type: application/json' --data '{"jira_fixed_version": "'"${{env.JIRA_FIXED_VERSION}}"'", "deploy_type": "QA", "install_tag": "QA", "git_branch": "'"${{github.ref_name}}"'", "changes_and_fixes": "'"$CHANGES"'", "android_dependency": "'"$android_sdk_version"'", "ios_dependency": "'"$ios_sdk_version"'"}' "$SLACK_TOKEN"
+          CHANGES="${{ env.RELEASE_NOTES }}"
+          curl -X POST -H 'Content-type: application/json' --data '{"jira_fixed_version": "'"${{env.PLUGIN_VERSION}}"'", "deploy_type": "QA", "install_tag": "QA", "git_branch": "'"${{github.ref_name}}"'", "changes_and_fixes": "'"$CHANGES"'", "android_dependency": "'"$android_sdk_version"'", "ios_dependency": "'"$ios_sdk_version"'"}' "$SLACK_TOKEN"

@@ -76,14 +76,18 @@ jobs:
       - name: Generate and send slack report
         env:
           SLACK_TOKEN: ${{ secrets.CI_SLACK_TOKEN }}
-          JIRA_TOKEN: ${{ secrets.CI_JIRA_TOKEN }}
-          JIRA_FIXED_VERSION: "Cordova SDK v${{env.PLUGIN_VERSION}}"
           RELEASE_BRACH_NAME: ${{env.RELEASE_BRANCH_NAME}}
         run: |
-          chmod +x .github/workflows/scripts/releaseNotesGenerator.sh
-          .github/workflows/scripts/releaseNotesGenerator.sh $JIRA_TOKEN "$JIRA_FIXED_VERSION"
+          CHANGES=$(awk -v ver="${{ env.PLUGIN_VERSION }}" '
+            $0 ~ "^## " ver "$" { in_section=1; next }
+            in_section && /^## / { exit }
+            in_section { print }
+          ' RELEASENOTES.md | sed '/^[[:space:]]*$/d')
+          if [ -z "$CHANGES" ]; then
+            echo "Missing release notes for version ${{ env.PLUGIN_VERSION }} in RELEASENOTES.md"
+            exit 1
+          fi
           android_sdk_version=$(cat README.md | grep 'Android AppsFlyerSDK' | grep -Eo '[0-9].[0-9]+.[0-9]+')
           ios_sdk_version=$(cat README.md | grep 'iOS AppsFlyerSDK' | grep -Eo  '[0-9].[0-9]+.[0-9]+')
-          CHANGES=$(cat "$JIRA_FIXED_VERSION-releasenotes".txt)
-          curl -X POST -H 'Content-type: application/json' --data '{"jira_fixed_version": "'"${{env.JIRA_FIXED_VERSION}}"'", "deploy_type": "Production", "install_tag": "latest", "git_branch": "'"$RELEASE_BRACH_NAME"'", "changes_and_fixes": "'"$CHANGES"'", "android_dependency": "'"$android_sdk_version"'", "ios_dependency": "'"$ios_sdk_version"'"}' "$SLACK_TOKEN"
+          curl -X POST -H 'Content-type: application/json' --data '{"jira_fixed_version": "'"${{env.PLUGIN_VERSION}}"'", "deploy_type": "Production", "install_tag": "latest", "git_branch": "'"$RELEASE_BRACH_NAME"'", "changes_and_fixes": "'"$CHANGES"'", "android_dependency": "'"$android_sdk_version"'", "ios_dependency": "'"$ios_sdk_version"'"}' "$SLACK_TOKEN"
 
