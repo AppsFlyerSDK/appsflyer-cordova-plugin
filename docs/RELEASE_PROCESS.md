@@ -7,10 +7,11 @@ This document describes the step-by-step process for performing a minor release 
 ## Overview
 
 The release process involves:
-1. **Creating a release branch** from the latest `master` commit
-2. **Pushing the branch** → triggers QA pipeline (build, deploy to QA, publish to NPM with `QA` tag)
-3. **Opening a PR** to `master` → triggers pre-release workflow (updates `package.json`, `RELEASENOTES.md`)
-4. **Merging the PR** to `master` → triggers production release (creates GitHub release, publishes to NPM as `latest`)
+
+1. **Creating a release branch** from the latest `master` commit (include version bumps and a new top section in `RELEASENOTES.md`)
+2. **Pushing the branch** → triggers QA pipeline (build, deploy to QA, publish to NPM with `QA` tag, Slack uses `RELEASENOTES.md`)
+3. **Opening a PR** to `master` → triggers pre-release workflow (updates `package.json` on the release branch via `npm version`)
+4. **Merging the PR** to `master` → triggers production release (creates GitHub release, publishes to NPM as `latest`, Slack uses `RELEASENOTES.md`)
 
 ---
 
@@ -18,7 +19,7 @@ The release process involves:
 
 Before starting a release:
 
-1. **Jira fixed version must exist**: The workflows expect a Jira fixed version named `Cordova SDK v{major}.{minor}.{patch}` (e.g., `Cordova SDK v6.17.9`). Create this in Jira and associate tickets with it before releasing.
+1. **`RELEASENOTES.md` must contain a section for the release semver** before you push the release branch. The heading must be exactly `## {major}.{minor}.{patch}` matching the version in the branch name (for example `6.18.0` for branch `.../6.18.0-rc1`). The section must include at least one line of body text (for example the release date line and/or bullets). QA and production read this section for Slack; the workflow does not fetch Jira.
 
 2. **Ensure you're on latest master**:
    ```bash
@@ -39,6 +40,7 @@ releases/{major}.x.x/{major}.{minor}.x/{major}.{minor}.{patch}-rc{rc_number}
 ```
 
 **Examples:**
+
 - `releases/6.x.x/6.17.x/6.17.8-rc1` — patch release 6.17.8, first release candidate
 - `releases/6.x.x/6.17.x/6.17.9-rc1` — patch release 6.17.9, first release candidate
 - `releases/6.x.x/6.18.x/6.18.0-rc1` — minor release 6.18.0, first release candidate
@@ -67,7 +69,7 @@ When you push to a release branch matching the pattern, **Release plugin to QA**
 - **Note**: Pushes that only change `**.md`, `**.yml`, `examples/**`, `hooks/**`, `resources/**`, `testsScripts/**`, or `docs/**` are ignored (paths-ignore)
 - **Actions**:
   1. Build sample apps
-  2. Deploy to QA (updates `package.json`/`plugin.xml` to RC version, publishes to NPM with `QA` tag, sends Slack report)
+  2. Deploy to QA (updates `package.json`/`plugin.xml` to RC version, publishes to NPM with `QA` tag, sends Slack report using the matching `RELEASENOTES.md` section)
 
 ---
 
@@ -78,8 +80,9 @@ Opening a PR from the release branch to `master` triggers the **Prepare plugin f
 - **Trigger**: PR `opened` targeting `master`, when `github.head_ref` starts with `releases/`
 - **Actions**:
   1. Updates `package.json` version via `npm version`
-  2. Fetches release notes from Jira and updates `RELEASENOTES.md`
-  3. Force-pushes changes back to the release branch
+  2. Force-pushes changes back to the release branch
+
+`RELEASENOTES.md` is **not** modified by CI; maintain it on the release branch when you prepare the version bump.
 
 ```bash
 # Create PR via GitHub UI: release branch → master
@@ -98,7 +101,7 @@ When the PR from the release branch is merged to `master`:
   1. Extracts version from PR branch name (e.g., `6.17.9` from `6.17.9-rc1`)
   2. Creates GitHub release with that tag
   3. Publishes to NPM as `latest`
-  4. Generates and sends Slack report with Jira release notes
+  4. Sends Slack report; **changes/fixes** text comes from the `RELEASENOTES.md` section for that version
 
 ---
 
@@ -128,7 +131,7 @@ When the PR from the release branch is merged to `master`:
 
 1. **QA pipeline didn't run**: Ensure the branch name exactly matches the pattern. Check that your push modified files outside `paths-ignore` (e.g., not only `.md` or `.yml`).
 
-2. **Jira fixed version not found**: Create `Cordova SDK v{major}.{minor}.{patch}` in Jira and associate tickets before releasing.
+2. **QA or production fails on release notes**: Ensure `RELEASENOTES.md` has a `## {version}` section matching the semver from the branch (without `-rc`), with non-empty body text under that heading.
 
 3. **Multiple RCs**: For a second release candidate (e.g., after QA feedback), create a new branch: `releases/6.x.x/6.17.x/6.17.9-rc2` from the same base, or from the previous RC branch.
 
@@ -136,7 +139,7 @@ When the PR from the release branch is merged to `master`:
 
 ## Summary: Minimal Release Checklist
 
-- [ ] Jira fixed version `Cordova SDK v{major}.{minor}.{patch}` exists
+- [ ] New top section in `RELEASENOTES.md` for `## {major}.{minor}.{patch}` with body text
 - [ ] `git checkout master && git pull origin master`
 - [ ] Create branch: `git checkout -b releases/{major}.x.x/{major}.{minor}.x/{major}.{minor}.{patch}-rc{rc}`
 - [ ] Push: `git push -u origin releases/...`

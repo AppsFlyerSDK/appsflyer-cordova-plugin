@@ -34,7 +34,7 @@ jobs:
           repo-token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
       - name: Update package.json file
         run: |
-          plugin_version=$(echo "${{ steps.vars.outputs.branch }}" | grep -Eo '[0-9].[0-9]+.[0-9]+')
+          plugin_version=$(echo "${{ steps.vars.outputs.branch }}" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
           # we export plugin_version and release branch name as env so we can use them in the next step
           echo "PLUGIN_VERSION=$plugin_version" >> $GITHUB_ENV
           echo "GIT_BRANCH_RELEASE=${{ steps.vars.outputs.branch }}" >> $GITHUB_ENV
@@ -42,17 +42,3 @@ jobs:
           echo "The plugin version is ${plugin_version}"
           npm version $plugin_version --allow-same-version
           git push origin HEAD:${{ steps.vars.outputs.branch }} --force
-
-      - name: Update CHANGELOG.md
-        env:
-          JIRA_TOKEN: ${{ secrets.CI_JIRA_TOKEN }}
-          JIRA_FIXED_VERSION: "Cordova SDK v${{env.PLUGIN_VERSION}}"
-        run: |
-          chmod +x .github/workflows/scripts/releaseNotesGenerator.sh
-          .github/workflows/scripts/releaseNotesGenerator.sh $JIRA_TOKEN "$JIRA_FIXED_VERSION"
-          NEW_VERSION_RELEASE_NOTES=$(cat "$JIRA_FIXED_VERSION-releasenotes".txt)
-          NEW_VERSION_SECTION="## ${{ env.PLUGIN_VERSION }}\n Release date: *$(date +%F)*\n\n$NEW_VERSION_RELEASE_NOTES\n"
-          echo -e "$NEW_VERSION_SECTION\n$(cat RELEASENOTES.md)" > RELEASENOTES.md
-          git add RELEASENOTES.md
-          git commit -m "Update RELEASENOTES.md"
-          git push origin HEAD:${{ env.GIT_BRANCH_RELEASE }} --force
