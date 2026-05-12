@@ -48,7 +48,6 @@ jobs:
 
       - name: Ensure CocoaPods
         run: |
-          set -euo pipefail
           if ! command -v pod >/dev/null 2>&1; then
             sudo gem install cocoapods -N
           fi
@@ -61,7 +60,6 @@ jobs:
         env:
           ENV_FILE: ${{ secrets.ENV_FILE }}
         run: |
-          set -euo pipefail
           PLUGIN_ROOT="${GITHUB_WORKSPACE}"
           E2E_DIR="$(dirname "${PLUGIN_ROOT}")/$(basename "${PLUGIN_ROOT}")-e2e"
           mkdir -p "${E2E_DIR}"
@@ -73,7 +71,6 @@ jobs:
 
       - name: Build Cordova E2E (iOS)
         run: |
-          set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
           chmod +x scripts/*.sh
           ./scripts/e2e-cordova-build.sh ios
@@ -81,7 +78,6 @@ jobs:
       - name: Shutdown simulators and boot iPhone
         if: ${{ inputs.run_scenarios }}
         run: |
-          set -euo pipefail
           xcrun simctl shutdown all || true
           UDID="$(
             xcrun simctl list devices available -j | jq -r '
@@ -103,7 +99,6 @@ jobs:
         env:
           SCENARIO_PHASE: ${{ inputs.scenario_phase }}
         run: |
-          set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
           chmod +x scripts/*.sh
           if [ -n "${SCENARIO_PHASE:-}" ]; then

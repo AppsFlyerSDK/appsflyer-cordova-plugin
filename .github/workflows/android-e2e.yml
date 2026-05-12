@@ -128,21 +128,10 @@ jobs:
           # Keep action defaults (gpu + no-boot-anim) and add DNS; overriding `emulator-options`
           # replaces the default entirely — without `-gpu`/`-no-boot-anim` the guest is slower.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -dns-server 8.8.8.8,1.1.1.1
-          # android-emulator-runner invokes this block with `sh -c` (dash on Ubuntu): no
-          # `pipefail`, no `[[`, no bash arrays — use POSIX-only constructs.
-          script: |
-            set -eu
-            cd "$GITHUB_WORKSPACE"
-            chmod +x scripts/*.sh
-            nslookup appsflyersdk.com || true
-            adb devices
-            if [ -n "${SCENARIO_PHASE:-}" ]; then
-              ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose --phase "${SCENARIO_PHASE}" \
-                || ./scripts/dump-android-logs.sh
-            else
-              ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose \
-                || ./scripts/dump-android-logs.sh
-            fi
+          # android-emulator-runner runs EACH LINE of `script:` as its own `sh -c` (see job log:
+          # `/usr/bin/sh -c set -eu`, then `/usr/bin/sh -c cd ...`). Multi-line if/fi therefore
+          # breaks with "expecting fi". Delegate to one bash script (single `script` line).
+          script: bash "${GITHUB_WORKSPACE}/scripts/ci-android-e2e-scenario.sh"
 
       - name: Upload af-scenario-runner reports
         if: always()
