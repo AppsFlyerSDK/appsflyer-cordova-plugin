@@ -104,6 +104,10 @@ jobs:
           sudo udevadm control --reload-rules && sudo udevadm trigger || true
           sudo chgrp kvm /dev/kvm 2>/dev/null || true
           sudo chmod g+rwx /dev/kvm 2>/dev/null || true
+          # Runner user is often not in group `kvm`; group perms alone keep `-accel off` (TCG) and
+          # ~10m boots. World-writable /dev/kvm matches GitHub runner-image guidance so KVM works.
+          sudo chmod 666 /dev/kvm 2>/dev/null || true
+          ls -la /dev/kvm || true
 
       - name: Run af-scenario-runner (Android)
         if: ${{ inputs.run_scenarios }}
@@ -116,7 +120,14 @@ jobs:
           target: google_apis
           avd-name: cordova-e2e
           force-avd-creation: true
-          emulator-options: -no-window -no-snapshot -no-audio -dns-server 8.8.8.8,1.1.1.1
+          # Prefer KVM; with `auto`, a missed `/dev/kvm` open falls back to TCG and ~10m boots.
+          disable-linux-hw-accel: false
+          # Default action timeout is 600s — slow TCG boots burn the whole window. KVM cold boot
+          # is usually well under 5m; fail earlier if the guest never becomes ready.
+          emulator-boot-timeout: 420
+          # Keep action defaults (gpu + no-boot-anim) and add DNS; overriding `emulator-options`
+          # replaces the default entirely — without `-gpu`/`-no-boot-anim` the guest is slower.
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -dns-server 8.8.8.8,1.1.1.1
           # android-emulator-runner invokes this block with `sh -c` (dash on Ubuntu): no
           # `pipefail`, no `[[`, no bash arrays — use POSIX-only constructs.
           script: |
