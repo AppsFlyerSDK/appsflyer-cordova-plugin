@@ -1,0 +1,10 @@
+{
+  "ios": {
+    "debug": {
+      "buildFlag": "-destination generic/platform=iOS Simulator"
+    },
+    "release": {
+      "buildFlag": "-destination generic/platform=iOS Simulator"
+    }
+  }
+}
