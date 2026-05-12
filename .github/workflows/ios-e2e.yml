@@ -106,11 +106,11 @@ jobs:
           set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
           chmod +x scripts/*.sh
-          PHASE_ARGS=()
-          if [[ -n "${SCENARIO_PHASE:-}" ]]; then
-            PHASE_ARGS=(--phase "${SCENARIO_PHASE}")
+          if [ -n "${SCENARIO_PHASE:-}" ]; then
+            ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json --verbose --phase "${SCENARIO_PHASE}"
+          else
+            ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json --verbose
           fi
-          ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json --verbose "${PHASE_ARGS[@]:-}"
 
       - name: Upload af-scenario-runner reports
         if: always()
