@@ -117,18 +117,21 @@ jobs:
           avd-name: cordova-e2e
           force-avd-creation: true
           emulator-options: -no-window -no-snapshot -no-audio -dns-server 8.8.8.8,1.1.1.1
+          # android-emulator-runner invokes this block with `sh -c` (dash on Ubuntu): no
+          # `pipefail`, no `[[`, no bash arrays — use POSIX-only constructs.
           script: |
-            set -euo pipefail
-            cd "${GITHUB_WORKSPACE}"
+            set -eu
+            cd "$GITHUB_WORKSPACE"
             chmod +x scripts/*.sh
             nslookup appsflyersdk.com || true
             adb devices
-            PHASE_ARGS=()
-            if [[ -n "${SCENARIO_PHASE:-}" ]]; then
-              PHASE_ARGS=(--phase "${SCENARIO_PHASE}")
+            if [ -n "${SCENARIO_PHASE:-}" ]; then
+              ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose --phase "${SCENARIO_PHASE}" \
+                || ./scripts/dump-android-logs.sh
+            else
+              ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose \
+                || ./scripts/dump-android-logs.sh
             fi
-            ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose "${PHASE_ARGS[@]:-}" \
-              || ./scripts/dump-android-logs.sh
 
       - name: Upload af-scenario-runner reports
         if: always()
