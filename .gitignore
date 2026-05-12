@@ -26,5 +26,8 @@ examples/cordova-unit-tests-app/platforms/
 .af-e2e/reports/
 .af-smoke/reports/
 
-# CI-synthesized RC smoke copy of the example app (not committed)
-examples/cordovatestapp_rc_smoke/
+# CI-synthesized RC smoke copy of test-app/ (not committed)
+test-app_rc_smoke/
+
+# E2E sibling copy path (written by scripts/sync-test-app-e2e-copy.sh)
+.af-e2e/e2e_copy_dest.txt

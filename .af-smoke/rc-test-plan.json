@@ -3,7 +3,7 @@
     "plan_id": "cordova-rc-smoke",
     "plugin": "cordova",
     "version": "1.0.0",
-    "description": "Post-publish smoke plan for the AppsFlyer Cordova plugin. SMOKE-001..003 against examples/cordovatestapp_rc_smoke/ (CI-synthesized, npm-pinned cordova-plugin-appsflyer-sdk)",
+    "description": "Post-publish smoke plan for the AppsFlyer Cordova plugin. SMOKE-001..003 against test-app_rc_smoke/ (CI-synthesized; build_cmd runs scripts/smoke-cordova-build.sh which rsyncs test-app/ then pins cordova-plugin-appsflyer-sdk to the npm version from root package.json or SMOKE_PLUGIN_VERSION).",
     "platforms": [
       "android",
       "ios"
@@ -15,13 +15,13 @@
     "android": {
       "package_name": "com.appsflyer.qa.cordova",
       "activity": ".MainActivity",
-      "apk_path": "examples/cordovatestapp_rc_smoke/platforms/android/app/build/outputs/apk/debug/app-debug.apk",
-      "build_cmd": "cd examples/cordovatestapp_rc_smoke && npm ci && cordova build android --debug"
+      "apk_path": "test-app_rc_smoke/platforms/android/app/build/outputs/apk/debug/app-debug.apk",
+      "build_cmd": "./scripts/smoke-cordova-build.sh android"
     },
     "ios": {
       "bundle_id": "com.appsflyer.qa.cordova",
-      "app_path": "examples/cordovatestapp_rc_smoke/platforms/ios/build/Debug-iphonesimulator/cordovaTestApp.app",
-      "build_cmd": "cd examples/cordovatestapp_rc_smoke && npm ci && cordova build ios --debug"
+      "app_path": "test-app_rc_smoke/platforms/ios/build/Debug-iphonesimulator/AFQACordova.app",
+      "build_cmd": "./scripts/smoke-cordova-build.sh ios"
     }
   },
   "phases": [

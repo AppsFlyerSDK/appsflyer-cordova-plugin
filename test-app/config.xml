@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.appsflyer.qa.cordova" version="1.0.0"
+    xmlns="http://www.w3.org/ns/widgets"
+    xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>AFQACordova</name>
+    <description>Minimal AppsFlyer Cordova test shell for af-scenario-runner (E2E + smoke). Manual sample remains under examples/cordovatestapp/.</description>
+    <author email="dev@appsflyer.com" href="https://www.appsflyer.com">AppsFlyer</author>
+    <content src="index.html" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <!-- Reference tree only: run Cordova from the sibling copy (see test-app/README.md). -->
+    <plugin name="cordova-plugin-appsflyer-sdk" spec=".." />
+    <platform name="ios">
+        <!-- AppsFlyerFramework (plugin pod) requires iOS 12+; Cordova default is lower and breaks `pod install`. -->
+        <preference name="deployment-target" value="12.0" />
+        <edit-config target="NSUserTrackingUsageDescription" file="*-Info.plist" mode="merge">
+            <string>AppsFlyer QA automation</string>
+        </edit-config>
+    </platform>
+</widget>

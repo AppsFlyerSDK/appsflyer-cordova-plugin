@@ -3,7 +3,7 @@
     "plan_id": "cordova-e2e",
     "plugin": "cordova",
     "version": "1.0.0",
-    "description": "End-to-end test plan for the AppsFlyer Cordova plugin. Runs against plugin source (path/file dependency) in examples/cordovatestapp/. Covers E2E-001..E2E-006 per appsflyer-mobile-plugin-tooling/contracts/e2e-test-contract.md.",
+    "description": "End-to-end test plan for the AppsFlyer Cordova plugin. build_cmd syncs test-app/ to a sibling directory (../appsflyer-cordova-plugin-e2e by default) then builds with file: plugin path. Covers E2E-001..E2E-006 per appsflyer-mobile-plugin-tooling/contracts/e2e-test-contract.md.",
     "platforms": [
       "android",
       "ios"
@@ -15,13 +15,13 @@
     "android": {
       "package_name": "com.appsflyer.qa.cordova",
       "activity": ".MainActivity",
-      "apk_path": "examples/cordovatestapp/platforms/android/app/build/outputs/apk/debug/app-debug.apk",
-      "build_cmd": "cd examples/cordovatestapp && npm ci && cordova build android --debug"
+      "apk_path": "../appsflyer-cordova-plugin-e2e/platforms/android/app/build/outputs/apk/debug/app-debug.apk",
+      "build_cmd": "./scripts/e2e-cordova-build.sh android"
     },
     "ios": {
       "bundle_id": "com.appsflyer.qa.cordova",
-      "app_path": "examples/cordovatestapp/platforms/ios/build/Debug-iphonesimulator/cordovaTestApp.app",
-      "build_cmd": "cd examples/cordovatestapp && npm ci && cordova build ios --debug"
+      "app_path": "../appsflyer-cordova-plugin-e2e/platforms/ios/build/Debug-iphonesimulator/AFQACordova.app",
+      "build_cmd": "./scripts/e2e-cordova-build.sh ios"
     }
   },
   "phases": [
