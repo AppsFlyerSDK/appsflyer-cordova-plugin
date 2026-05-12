@@ -1,0 +1,26 @@
+{
+  "name": "com.appsflyer.qa.cordova.testapp",
+  "displayName": "AF QA Cordova",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal Cordova app for af-scenario-runner E2E/smoke. See test-app/README.md.",
+  "scripts": {},
+  "keywords": [
+    "cordova",
+    "appsflyer",
+    "qa"
+  ],
+  "author": "AppsFlyer",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "cordova-android": "^13.0.0",
+    "cordova-ios": "^7.1.1",
+    "cordova-plugin-appsflyer-sdk": "file:.."
+  },
+  "cordova": {
+    "platforms": [],
+    "plugins": {
+      "cordova-plugin-appsflyer-sdk": {}
+    }
+  }
+}

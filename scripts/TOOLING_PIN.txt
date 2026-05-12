@@ -1,0 +1,8 @@
+# Source of vendored af-scenario-runner.sh (appsflyer-mobile-plugin-tooling)
+# Update this file whenever scripts/af-scenario-runner.sh is refreshed.
+REPO=https://github.com/AppsFlyerSDK/appsflyer-mobile-plugin-tooling.git
+COMMIT=c99620093d4f9e8eac385936217cab422575b2ff
+
+# This repo may carry Cordova-specific comment + log-capture tweaks on top of
+# the same upstream file. When refreshing from tooling, merge or re-apply
+# those tweaks after copying — do not overwrite blindly.

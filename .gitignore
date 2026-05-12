@@ -19,3 +19,15 @@ examples/demoA/node_modules/
 examples/cordova-unit-tests-app/node_modules/
 examples/cordova-unit-tests-app/platforms/
 #/examples/demoA/www/lib/
+
+# Scenario runner + contract test app (secrets & machine-local reports)
+.env
+.env.local
+.af-e2e/reports/
+.af-smoke/reports/
+
+# CI-synthesized RC smoke copy of test-app/ (not committed)
+test-app_rc_smoke/
+
+# E2E sibling copy path (written by scripts/sync-test-app-e2e-copy.sh)
+.af-e2e/e2e_copy_dest.txt

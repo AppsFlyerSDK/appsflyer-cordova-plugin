@@ -1,0 +1,121 @@
+# Cordova plugin: build E2E sibling app + optional af-scenario-runner on a booted iOS Simulator.
+# Trigger: workflow_dispatch (manual) or workflow_call (e.g. from rc-release in Phase 6).
+
+name: iOS E2E (scenario runner)
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_scenarios:
+        description: After a successful Cordova build, run af-scenario-runner on the simulator
+        type: boolean
+        default: true
+      scenario_phase:
+        description: Optional --phase id (e.g. phase_1). Leave empty to run all phases.
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      run_scenarios:
+        type: boolean
+        default: true
+        required: false
+      scenario_phase:
+        type: string
+        required: false
+        default: ''
+    secrets:
+      ENV_FILE:
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-e2e:
+    runs-on: macos-14
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ensure CocoaPods
+        run: |
+          set -euo pipefail
+          if ! command -v pod >/dev/null 2>&1; then
+            sudo gem install cocoapods -N
+          fi
+          pod --version
+
+      - name: Install Cordova CLI
+        run: npm install -g cordova
+
+      - name: Write E2E sibling .env
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          set -euo pipefail
+          PLUGIN_ROOT="${GITHUB_WORKSPACE}"
+          E2E_DIR="$(dirname "${PLUGIN_ROOT}")/$(basename "${PLUGIN_ROOT}")-e2e"
+          mkdir -p "${E2E_DIR}"
+          if [[ -z "${ENV_FILE:-}" ]]; then
+            echo "::notice::ENV_FILE secret is unset; scenario phases that need DEV_KEY/APP_ID will fail until the repository (or caller) secret is configured."
+          else
+            printf '%s\n' "${ENV_FILE}" > "${E2E_DIR}/.env"
+          fi
+
+      - name: Build Cordova E2E (iOS)
+        run: |
+          set -euo pipefail
+          cd "${GITHUB_WORKSPACE}"
+          chmod +x scripts/*.sh
+          ./scripts/e2e-cordova-build.sh ios
+
+      - name: Shutdown simulators and boot iPhone
+        if: ${{ inputs.run_scenarios }}
+        run: |
+          set -euo pipefail
+          xcrun simctl shutdown all || true
+          UDID="$(
+            xcrun simctl list devices available -j | jq -r '
+              [(.devices // {}) | to_entries[] | .value[]
+                | select(.isAvailable == true and ((.name // "") | contains("iPhone")))]
+              | if length == 0 then "" else .[0].udid end'
+          )"
+          if [[ -z "${UDID}" ]]; then
+            echo "::error::No available iPhone simulator"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "Booting ${UDID}"
+          xcrun simctl boot "${UDID}"
+          xcrun simctl bootstatus "${UDID}" -b
+
+      - name: Run af-scenario-runner (iOS)
+        if: ${{ inputs.run_scenarios }}
+        env:
+          SCENARIO_PHASE: ${{ inputs.scenario_phase }}
+        run: |
+          set -euo pipefail
+          cd "${GITHUB_WORKSPACE}"
+          chmod +x scripts/*.sh
+          PHASE_ARGS=()
+          if [[ -n "${SCENARIO_PHASE:-}" ]]; then
+            PHASE_ARGS=(--phase "${SCENARIO_PHASE}")
+          fi
+          ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json --verbose "${PHASE_ARGS[@]:-}"
+
+      - name: Upload af-scenario-runner reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: af-e2e-reports-ios-${{ github.run_id }}
+          path: .af-e2e/reports/
+          if-no-files-found: warn

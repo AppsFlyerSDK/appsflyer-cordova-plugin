@@ -1,0 +1,139 @@
+# Cordova plugin: build E2E sibling app + optional af-scenario-runner on an Android emulator.
+# Mirrors Flutter appsflyer-flutter-plugin android-e2e layout (KVM, DNS, nslookup, ENV_FILE → sibling .env).
+# Trigger: workflow_dispatch (manual) or workflow_call (e.g. from rc-release in Phase 6).
+
+name: Android E2E (scenario runner)
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_scenarios:
+        description: After a successful Cordova build, run af-scenario-runner on the emulator
+        type: boolean
+        default: true
+      scenario_phase:
+        description: Optional --phase id (e.g. phase_1). Leave empty to run all phases.
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      run_scenarios:
+        type: boolean
+        default: true
+        required: false
+      scenario_phase:
+        type: string
+        required: false
+        default: ''
+    secrets:
+      ENV_FILE:
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: >-
+            platforms;android-34
+            platform-tools
+            build-tools;34.0.0
+
+      - name: Install Cordova CLI
+        run: npm install -g cordova
+
+      - name: Write E2E sibling .env
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          set -euo pipefail
+          PLUGIN_ROOT="${GITHUB_WORKSPACE}"
+          E2E_DIR="$(dirname "${PLUGIN_ROOT}")/$(basename "${PLUGIN_ROOT}")-e2e"
+          mkdir -p "${E2E_DIR}"
+          if [[ -z "${ENV_FILE:-}" ]]; then
+            echo "::notice::ENV_FILE secret is unset; scenario phases that need DEV_KEY/APP_ID will fail until the repository (or caller) secret is configured."
+          else
+            printf '%s\n' "${ENV_FILE}" > "${E2E_DIR}/.env"
+          fi
+
+      - name: Build Cordova E2E (Android)
+        env:
+          CORDOVA_E2E_ANDROID_JAVA_HOME: ${{ env.JAVA_HOME }}
+        run: |
+          set -euo pipefail
+          cd "${GITHUB_WORKSPACE}"
+          chmod +x scripts/*.sh
+          ./scripts/e2e-cordova-build.sh android
+
+      # Some `ubuntu-latest` runner images ship `/dev/kvm` owned by group
+      # `kvm` without adding the runner user to that group. When this
+      # happens, reactivecircus/android-emulator-runner falls back to
+      # `-accel off` (software TCG), which boots in ~9 minutes instead of
+      # ~30s and brings up slirp networking unreliably -- leading to
+      # "Emulator has no IP connectivity" even with `-dns-server` set.
+      # The udev rule below grants 0666 perms on /dev/kvm so the action's
+      # ProbeKVM check finds it accessible and uses `-accel kvm`. This is
+      # the fix recommended by GitHub's actions/runner-images team and
+      # the one printed by the action's own diagnostic message.
+      - name: Enable KVM group perms (Linux emulator)
+        if: ${{ inputs.run_scenarios }}
+        run: |
+          set -euo pipefail
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm-perms.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger || true
+          sudo chgrp kvm /dev/kvm 2>/dev/null || true
+          sudo chmod g+rwx /dev/kvm 2>/dev/null || true
+
+      - name: Run af-scenario-runner (Android)
+        if: ${{ inputs.run_scenarios }}
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          SCENARIO_PHASE: ${{ inputs.scenario_phase }}
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          avd-name: cordova-e2e
+          force-avd-creation: true
+          emulator-options: -no-window -no-snapshot -no-audio -dns-server 8.8.8.8,1.1.1.1
+          script: |
+            set -euo pipefail
+            cd "${GITHUB_WORKSPACE}"
+            chmod +x scripts/*.sh
+            nslookup appsflyersdk.com || true
+            adb devices
+            PHASE_ARGS=()
+            if [[ -n "${SCENARIO_PHASE:-}" ]]; then
+              PHASE_ARGS=(--phase "${SCENARIO_PHASE}")
+            fi
+            ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose "${PHASE_ARGS[@]:-}" \
+              || ./scripts/dump-android-logs.sh
+
+      - name: Upload af-scenario-runner reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: af-e2e-reports-android-${{ github.run_id }}
+          path: .af-e2e/reports/
+          if-no-files-found: warn
