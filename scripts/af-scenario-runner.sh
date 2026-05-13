@@ -253,8 +253,8 @@ android_collect_logs() {
 }
 
 android_background_app() {
-  log_info "Backgrounding app (HOME key)..."
-  adb shell input keyevent KEYCODE_HOME
+  log_info "Backgrounding app (launcher HOME intent + 2s on device)..."
+  adb shell "am start -a android.intent.action.MAIN -c android.intent.category.HOME && sleep 2"
 }
 
 android_trigger_deeplink() {
@@ -590,7 +590,9 @@ validate_check() {
       local minimum
       minimum=$(echo "$check_json" | jq -r '.minimum // 1')
       local count
-      count=$(grep -cE "$pattern" "$log_file" 2>/dev/null || echo "0")
+      count=$(grep -cE "$pattern" "$log_file" 2>/dev/null || true)
+      count=$(printf '%s' "$count" | tr -d '\n\r')
+      [[ "$count" =~ ^[0-9]+$ ]] || count=0
       if [[ "$count" -ge "$minimum" ]]; then
         echo "{\"status\":\"PASS\",\"evidence\":\"Found ${count} matches (minimum: ${minimum})\"}"
       else
@@ -606,7 +608,12 @@ validate_check() {
       while IFS= read -r forbidden_pattern; do
         forbidden_pattern=$(echo "$forbidden_pattern" | jq -r '.')
         local found
-        found=$(grep -F "$forbidden_pattern" "$log_file" 2>/dev/null | head -1 || true)
+        # `response code:4` / `:5` substring-match unrelated vendor noise (e.g. `response code:590`).
+        if [[ "$forbidden_pattern" == "response code:4" || "$forbidden_pattern" == "response code:5" ]]; then
+          found=$(grep -Ei 'appsflyer|\[AF_QA\]|appsflyersdk' "$log_file" 2>/dev/null | grep -F "$forbidden_pattern" | head -1 || true)
+        else
+          found=$(grep -F "$forbidden_pattern" "$log_file" 2>/dev/null | head -1 || true)
+        fi
         if [[ -n "$found" ]]; then
           status="FAIL"
           evidence="Forbidden pattern found: ${forbidden_pattern} -> $(echo "$found" | head -c 200)"

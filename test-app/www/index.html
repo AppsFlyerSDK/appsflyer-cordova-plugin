@@ -7,10 +7,39 @@
         <meta name="msapplication-tap-highlight" content="no" />
         <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover" />
         <title>AF QA Cordova</title>
+        <style type="text/css">
+            #af-qa-log-wrap { margin-top: 10px; }
+            #af-qa-log-wrap summary { cursor: pointer; font-weight: 600; margin-bottom: 6px; }
+            #af-qa-log-view {
+                box-sizing: border-box;
+                width: 100%;
+                margin: 0;
+                padding: 8px;
+                max-height: 50vh;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                font-size: 11px;
+                line-height: 1.35;
+                white-space: pre-wrap;
+                word-break: break-word;
+                background: #1a1a1a;
+                color: #e0e0e0;
+                border-radius: 6px;
+                border: 1px solid #333;
+            }
+        </style>
     </head>
     <body>
-        <p>AppsFlyer Cordova QA shell — contract logging and SDK wiring land in Phase 3.</p>
+        <p>AppsFlyer Cordova QA shell — auto-run contract (Phase 3).</p>
+        <div id="af-qa-log-wrap">
+            <details open>
+                <summary>QA log (on-device, local testing)</summary>
+                <pre id="af-qa-log-view" aria-live="polite" aria-relevant="additions"></pre>
+            </details>
+        </div>
         <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="af-qa-env.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
     </body>
 </html>

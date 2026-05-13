@@ -56,23 +56,16 @@ jobs:
       - name: Install Cordova CLI
         run: npm install -g cordova
 
-      - name: Write E2E sibling .env
+      - name: Build Cordova E2E (iOS)
         env:
           ENV_FILE: ${{ secrets.ENV_FILE }}
         run: |
-          PLUGIN_ROOT="${GITHUB_WORKSPACE}"
-          E2E_DIR="$(dirname "${PLUGIN_ROOT}")/$(basename "${PLUGIN_ROOT}")-e2e"
-          mkdir -p "${E2E_DIR}"
-          if [[ -z "${ENV_FILE:-}" ]]; then
-            echo "::notice::ENV_FILE secret is unset; scenario phases that need DEV_KEY/APP_ID will fail until the repository (or caller) secret is configured."
-          else
-            printf '%s\n' "${ENV_FILE}" > "${E2E_DIR}/.env"
-          fi
-
-      - name: Build Cordova E2E (iOS)
-        run: |
+          set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
           chmod +x scripts/*.sh
+          if [[ -z "${ENV_FILE:-}" ]]; then
+            echo "::notice::ENV_FILE secret is unset; scenario phases that need DEV_KEY/APP_ID will fail until the repository (or caller) secret is configured."
+          fi
           ./scripts/e2e-cordova-build.sh ios
 
       - name: Shutdown simulators and boot iPhone

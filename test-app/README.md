@@ -4,7 +4,25 @@ This folder is the **source of truth** for the small Cordova app used by **`.af-
 
 - **`examples/cordovatestapp/`** stays the **manual / legacy** sample; scenario runner targets **`test-app`** contract work, not that tree.
 - **`widget id`** is **`com.appsflyer.qa.cordova`** (D5). HQ app + **`.env`** — see repo **`docs/SCENARIO_RUNNER_ADOPTION_WORKPLAN.md`** §0.5.
-- **Phase 3** adds the full [**test-app contract**](https://github.com/AppsFlyerSDK/appsflyer-mobile-plugin-tooling/blob/main/contracts/test-app-contract.md).
+- **Phase 3 (contract)** is implemented in **`www/js/index.js`**: **`[AF_QA]`** structured logs, **`shouldStartSdk: false`** + **`startSdk()`**, three standard events + **`af_qa_custom_purchase`** + identity + **`Stop(true/false)`** cycle, marker **`[AF_QA][AUTO_APIS] --- Auto run complete ---`**. Normative doc: [**test-app contract**](https://github.com/AppsFlyerSDK/appsflyer-mobile-plugin-tooling/blob/main/contracts/test-app-contract.md).
+
+### `.env` and `www/af-qa-env.js`
+
+- **Where the hook looks:** **`hooks/emit-af-qa-env.js`** runs on **`cordova prepare`** / **`build`**, reads **the Cordova project root’s** **`.env`**, and writes **`www/af-qa-env.js`** (`window.__AF_QA_ENV__`). **`www/index.html`** loads that file before **`js/index.js`**. For E2E, the project root is the **sibling** (path in **`.af-e2e/e2e_copy_dest.txt`**), not `test-app/` in the plugin repo unless you build there.
+- **Credentials:** **`./scripts/e2e-cordova-build.sh`** runs **`scripts/write-e2e-env-to-dir.sh`** after sync and **before** **`npm install` / `cordova build`**, writing the E2E sibling **`.env`**: **`ENV_FILE`** env (GitHub: **`secrets.ENV_FILE`** on the build step), else **`.af-e2e/.env.local`**, else **`test-app/.env`**. **`hooks/emit-af-qa-env.js`** runs on **`before_prepare`** and writes **`www/af-qa-env.js`** so keys are present when www is copied into native projects.
+- **E2E sibling only (no `test-app/.env`):** template **`.af-e2e/env.example`**. Run **`./scripts/bootstrap-e2e-env.sh`** once to seed **`$(cat .af-e2e/e2e_copy_dest.txt)/.env`** (from plugin repo root) if missing, then edit. Paste the same two **`KEY=value`** lines into the GitHub Actions secret **`ENV_FILE`** (multiline).
+- Never commit **`.env`**. If you still see **`[AF_QA][CONFIG] DEV_KEY missing`**, the sibling **`.env`** was empty or missing at **`cordova prepare`** time — re-sync (or edit sibling **`.env`**) and rebuild.
+
+### Plugins used by the QA shell only
+
+- **`cordova-plugin-file`** — append **`[AF_QA]`** lines to **`af_qa_logs.txt`** under **`cordova.file.dataDirectory`** (iOS Documents / Android `files/`) so **`af-scenario-runner.sh`** can read the same markers as **`simctl log`** / **`adb logcat`**.
+- **`cordova-plugin-customurlscheme`** — registers **`afqa-cordova://`** for deep-link phases (see **`.af-e2e`** `deep_link_url` values).
+
+### iOS deep link: `simctl launch … -deepLinkURL`
+
+E2E **phase_2+** uses **`xcrun simctl launch <UDID> <BUNDLE_ID> -deepLinkURL "<url>"`** so CI avoids the iOS Simulator **“Open in …?”** sheet that **`simctl openurl`** shows for custom schemes. That launch flag does **not** call `application:openURL:options:`.
+
+**Flutter parity:** the Flutter **example** app patches **`AppDelegate.swift`** to read **`-deepLinkURL`** from **`ProcessInfo`** (and optionally **`UserDefaults` `deepLinkURL`**) and, after a **5s** delay, replay through **`application(_:open:options:)`**. This repo’s **`test-app`** does the same in **`hooks/afqa-ios-simctl-deeplink-replay.js`**: on **`after_prepare`**, it injects a small block into the generated **`platforms/ios/**/AppDelegate.m`** that schedules **`[[AppsFlyerAttribution shared] handleOpenUrl:… options:@{}]`** — the same queue the AppsFlyer Cordova plugin uses for real URL opens. Re-run **`cordova prepare ios`** (or **`e2e-cordova-build.sh ios`**) after upgrading **cordova-ios** if the stock **`AppDelegate.m`** template changes (the hook looks for a specific `return [super application:…]` line).
 
 ## Why you should not `cordova build` here
 
