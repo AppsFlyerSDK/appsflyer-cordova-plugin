@@ -72,6 +72,25 @@ jobs:
         with:
           ref: ${{ github.event_name == 'schedule' && github.ref || (inputs.ref != '' && inputs.ref || github.ref) }}
 
+      # Speed up npm install (global cordova + E2E sibling) and Gradle wrapper / dependency downloads.
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-cordova-e2e-${{ runner.os }}-${{ hashFiles('test-app/package.json') }}
+          restore-keys: |
+            npm-cordova-e2e-${{ runner.os }}-
+
+      - name: Cache Gradle user home
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-cordova-e2e-${{ runner.os }}-${{ hashFiles('test-app/package.json', 'test-app/config.xml') }}
+          restore-keys: |
+            gradle-cordova-e2e-${{ runner.os }}-
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'

@@ -71,6 +71,24 @@ jobs:
         with:
           ref: ${{ github.event_name == 'schedule' && github.ref || (inputs.ref != '' && inputs.ref || github.ref) }}
 
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-cordova-e2e-${{ runner.os }}-${{ hashFiles('test-app/package.json') }}
+          restore-keys: |
+            npm-cordova-e2e-${{ runner.os }}-
+
+      - name: Cache CocoaPods (specs + downloads)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cocoapods
+            ~/Library/Caches/CocoaPods
+          key: cocoapods-cordova-e2e-${{ runner.os }}-${{ hashFiles('test-app/package.json', 'test-app/config.xml') }}
+          restore-keys: |
+            cocoapods-cordova-e2e-${{ runner.os }}-
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
