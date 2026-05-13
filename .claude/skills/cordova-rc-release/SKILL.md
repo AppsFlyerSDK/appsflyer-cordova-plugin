@@ -28,7 +28,7 @@ Use when:
 
 | Stage | Target workflow (Flutter parity) | Cordova repo **today** |
 |-------|----------------------------------|-------------------------|
-| Lint / unit / build gate | `lint-test-build` composite | Legacy **`pre-release-workflow.yml`** / **`mac-os-unit-test-runner.yml`** — not yet unified |
+| Lint / unit / build gate | `lint-test-build` composite | Legacy **`pre-release-workflow.yml`** only — old **`mac-os-unit-test-runner.yml`** / **`build-apps-workflow.yml`** removed; not yet unified with Flutter `lint-test-build` |
 | Pre-publish E2E | `android-e2e.yml`, `ios-e2e.yml` | **Present** — callable via `workflow_dispatch` / `workflow_call` |
 | RC publish + tagging | `rc-release.yml` | **Not present** — see `release-Production-workflow.yml` / historical flows |
 | Post-publish smoke | `rc-smoke.yml` + npm resolve | **Not present** |
