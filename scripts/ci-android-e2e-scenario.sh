@@ -14,9 +14,9 @@ nslookup appsflyersdk.com || true
 adb devices
 
 if [[ -n "${SCENARIO_PHASE:-}" ]]; then
-  ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose --phase "${SCENARIO_PHASE}" \
+  ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --phase "${SCENARIO_PHASE}" \
     || ./scripts/dump-android-logs.sh
 else
-  ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose \
+  ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json \
     || ./scripts/dump-android-logs.sh
 fi

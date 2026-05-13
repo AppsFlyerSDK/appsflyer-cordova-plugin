@@ -104,7 +104,7 @@
           "id": "http_200_count",
           "description": "At least 3 HTTP 200 responses from AppsFlyer servers",
           "type": "count_matches",
-          "pattern": "response code:200 OK|response_status=200",
+          "pattern": "response code:\\s*200(\\s*OK)?|response_status=200",
           "minimum": 3,
           "fail_action": "fail"
         },
@@ -283,7 +283,7 @@
           "id": "custom_event_http_200",
           "description": "Custom event request returns HTTP 200",
           "type": "count_matches",
-          "pattern": "response code:200 OK|response_status=200",
+          "pattern": "response code:\\s*200(\\s*OK)?|response_status=200",
           "minimum": 1,
           "fail_action": "fail"
         },
@@ -357,7 +357,7 @@
           "id": "identity_event_http_200",
           "description": "Identity check event receives HTTP 200",
           "type": "count_matches",
-          "pattern": "response code:200 OK|response_status=200",
+          "pattern": "response code:\\s*200(\\s*OK)?|response_status=200",
           "minimum": 1,
           "fail_action": "fail"
         }
@@ -399,7 +399,7 @@
           "id": "resumed_event_http_200",
           "description": "After stop(false), af_qa_resumed produces HTTP 200",
           "type": "count_matches",
-          "pattern": "response code:200 OK|response_status=200",
+          "pattern": "response code:\\s*200(\\s*OK)?|response_status=200",
           "minimum": 1,
           "fail_action": "fail"
         },

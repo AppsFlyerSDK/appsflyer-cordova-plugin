@@ -76,7 +76,7 @@
           "id": "http_200_count",
           "description": "At least 3 HTTP 200 responses from AppsFlyer servers",
           "type": "count_matches",
-          "pattern": "response code:200 OK|response_status=200",
+          "pattern": "response code:\\s*200(\\s*OK)?|response_status=200",
           "minimum": 3,
           "fail_action": "fail"
         },

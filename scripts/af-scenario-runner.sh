@@ -219,7 +219,9 @@ android_get_pid() {
 
 android_collect_logs() {
   local log_file="$1"
-  local tail_lines="${ANDROID_LOGCAT_TAIL_LINES:-2000}"
+  # Long Cordova/WebView sessions can push native SDK HTTP lines out of a short
+  # tail; CI emulators are also chatty. Override with ANDROID_LOGCAT_TAIL_LINES.
+  local tail_lines="${ANDROID_LOGCAT_TAIL_LINES:-8000}"
 
   # Always start from an empty file so each phase capture is self-contained.
   : > "$log_file"
@@ -247,9 +249,12 @@ android_collect_logs() {
 
   # Strategy 2: Always also append logcat. Picks up AppsFlyer native SDK lines
   # (HTTP response codes, etc.), Cordova/Chromium **`[AF_QA]`** `console.log`
-  # output, and other markers used by `count_matches`. Limit to the recent tail
-  # so CI does not dump the whole emulator buffer every phase.
-  adb logcat -d -t "$tail_lines" 2>&1 | grep -E "${LOG_TAG}|AppsFlyer|chromium|Console|Cordova|WebView|response code:|preparing data:" >> "$log_file" || true
+  # output, and other markers used by `count_matches`. Use **-i** and spellings
+  # aligned with iOS collection: some Android builds log `appsflyer` / AFLogger
+  # tags or `response_status=` without the exact `response code:200 OK` substring
+  # on the same line as the `AppsFlyer` brand string — a case-only `AppsFlyer`
+  # filter drops them entirely.
+  adb logcat -d -t "$tail_lines" 2>&1 | grep -Ei "${LOG_TAG}|AppsFlyer|appsflyer|AF-AFLogger|chromium|Console|Cordova|WebView|response code|response_status|preparing data:" >> "$log_file" || true
 }
 
 android_background_app() {
@@ -701,6 +706,11 @@ run_phase() {
     # sleeping the full ceiling. Use a slower interval here because each ADB
     # `run-as cat` is costly on GitHub's emulator.
     wait_for_qa_marker "[AF_QA][AUTO_APIS] --- Auto run complete ---" "$wait_sec" 10
+    # Native HTTP success lines sometimes land slightly after the JS file marker.
+    if [[ "$PLATFORM" == "android" ]]; then
+      log_info "Android: brief settle after auto-run marker before deep link / log capture..."
+      sleep 5
+    fi
   fi
 
   # Pre-actions (deep link phases: background the app, etc.)
