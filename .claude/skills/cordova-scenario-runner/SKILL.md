@@ -21,7 +21,7 @@ Use when:
 | E2E plan | `.af-e2e/test-plan.json` — build uses **sibling** `../<repo-basename>-e2e/` (default `../appsflyer-cordova-plugin-e2e/`) via `scripts/e2e-cordova-build.sh` |
 | Smoke plan | `.af-smoke/rc-test-plan.json` — paths under `test-app_rc_smoke/` via `scripts/smoke-cordova-build.sh` |
 | Reference app (do not `cordova build` here with `file:..`) | `test-app/` |
-| Android CI scenario entry | **`.github/workflows/android-e2e.yml`** — one-line `script:` (see below) |
+| Android CI scenario entry | `scripts/ci-android-e2e-scenario.sh` (single `bash …/ci-android-e2e-scenario.sh` line inside `android-emulator-runner`; see below) |
 | Reports | `.af-e2e/reports/`, `.af-smoke/reports/` |
 
 ## Preconditions
@@ -73,7 +73,7 @@ jq -r '
 
 ## CI: Android `script:` must be one line
 
-`reactivecircus/android-emulator-runner` runs **each line** of `with: script:` as a **separate** `sh -c` invocation (same as **appsflyer-flutter-plugin** `android-e2e.yml`). Multi-line `if`/`fi` **breaks**. **`android-e2e.yml`** keeps **one physical line**: `set -euo pipefail;` … `nslookup` … `adb devices` … optional `--phase` … `af-scenario-runner` \|\| `dump-android-logs`.
+`reactivecircus/android-emulator-runner` runs **each line** of `with: script:` as a **separate** `/usr/bin/sh -c` invocation (on Ubuntu **`sh` is dash**). Multi-line `if`/`fi` in YAML **breaks**; **`set -o pipefail` is invalid in dash**. **`android-e2e.yml`** uses one line: **`bash "${GITHUB_WORKSPACE}/scripts/ci-android-e2e-scenario.sh"`** so bash-only options live in that script.
 
 ## Rules
 

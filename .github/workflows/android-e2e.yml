@@ -167,10 +167,9 @@ jobs:
           # replaces the default entirely — without `-gpu`/`-no-boot-anim` the guest is slower.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -dns-server 8.8.8.8,1.1.1.1
           # reactivecircus/android-emulator-runner@v2 runs each newline-separated line of `script:` as its
-          # own `sh -c` invocation. Keep this block to
-          # ONE physical line so if/fi and set -e stay in one shell.
-          script: |
-            set -euo pipefail; cd "${GITHUB_WORKSPACE}"; chmod +x scripts/*.sh; nslookup appsflyersdk.com || true; adb devices; if [ -n "${SCENARIO_PHASE:-}" ]; then ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose --phase "${SCENARIO_PHASE}" || ./scripts/dump-android-logs.sh; else ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose || ./scripts/dump-android-logs.sh; fi
+          # own `sh -c` invocation. Use a single `bash …/ci-android-e2e-scenario.sh` line (bash supports
+          # `set -o pipefail` inside the script; dash does not).
+          script: bash "${GITHUB_WORKSPACE}/scripts/ci-android-e2e-scenario.sh"
 
       - name: Upload E2E reports
         if: always()
