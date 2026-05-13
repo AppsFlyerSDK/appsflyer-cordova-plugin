@@ -1,0 +1,45 @@
+# pull_request does not populate the workflow inputs context; keep PR wiring separate from e2e.yml.
+# Fork PRs skip reusable E2E jobs (no repository secrets such as ENV_FILE).
+
+name: E2E (pull request)
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'test-app/**'
+      - 'src/**'
+      - 'plugin.xml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/**'
+      - '.af-e2e/**'
+      - '.github/workflows/android-e2e.yml'
+      - '.github/workflows/ios-e2e.yml'
+      - '.github/workflows/e2e-pull-request.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-pr-${{ github.repository }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-e2e-android:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    uses: ./.github/workflows/android-e2e.yml
+    secrets: inherit
+
+  run-e2e-ios:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    uses: ./.github/workflows/ios-e2e.yml
+    secrets: inherit
+
+  fork-pr-skip-notice:
+    if: github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notice
+        run: echo "::notice::E2E not run on fork PR (repository secrets such as ENV_FILE are unavailable)."

@@ -1,11 +1,30 @@
-# Cordova plugin: build E2E sibling app + optional af-scenario-runner on a booted iOS Simulator.
-# Trigger: workflow_dispatch (manual) or workflow_call (e.g. from rc-release in Phase 6).
+# =============================================================================
+# iOS E2E — integration tests (pre-publish)
+# =============================================================================
+#
+# Stage: RC-E2E.
+# Runs .af-e2e/test-plan.json via scripts/af-scenario-runner.sh on an iOS Simulator.
+#
+# Triggers:
+# - workflow_call from e2e.yml or future rc-release.yml
+# - workflow_dispatch for manual reruns
+# - Weekly cron (Sunday 02:00 UTC); checks out default branch
+#
+# Schedule note: `inputs` is undefined on `schedule`; expressions below avoid reading `inputs.*` on schedule.
+#
+# Secrets: ENV_FILE (multiline .env — see docs/github-actions-ENV_FILE.md).
+# =============================================================================
 
-name: iOS E2E (scenario runner)
+name: iOS E2E
 
 on:
   workflow_dispatch:
     inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out (default: workflow ref)'
+        required: false
+        type: string
+        default: ''
       run_scenarios:
         description: After a successful Cordova build, run af-scenario-runner on the simulator
         type: boolean
@@ -16,6 +35,11 @@ on:
         default: ''
   workflow_call:
     inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out. Defaults to the calling workflow ref.'
+        required: false
+        type: string
+        default: ''
       run_scenarios:
         type: boolean
         default: true
@@ -27,20 +51,25 @@ on:
     secrets:
       ENV_FILE:
         required: false
+  schedule:
+    - cron: '0 2 * * 0'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ios-e2e-${{ github.workflow }}-${{ github.ref }}
+  group: e2e-ios-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  ios-e2e:
+  e2e-ios:
+    name: E2E Tests (iOS)
     runs-on: macos-14
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'schedule' && github.ref || (inputs.ref != '' && inputs.ref || github.ref) }}
 
       - uses: actions/setup-node@v4
         with:
@@ -69,7 +98,7 @@ jobs:
           ./scripts/e2e-cordova-build.sh ios
 
       - name: Shutdown simulators and boot iPhone
-        if: ${{ inputs.run_scenarios }}
+        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         run: |
           xcrun simctl shutdown all || true
           UDID="$(
@@ -88,9 +117,9 @@ jobs:
           xcrun simctl bootstatus "${UDID}" -b
 
       - name: Run af-scenario-runner (iOS)
-        if: ${{ inputs.run_scenarios }}
+        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         env:
-          SCENARIO_PHASE: ${{ inputs.scenario_phase }}
+          SCENARIO_PHASE: ${{ github.event_name != 'schedule' && inputs.scenario_phase || '' }}
         run: |
           cd "${GITHUB_WORKSPACE}"
           chmod +x scripts/*.sh
@@ -100,10 +129,10 @@ jobs:
             ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json --verbose
           fi
 
-      - name: Upload af-scenario-runner reports
+      - name: Upload E2E reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: af-e2e-reports-ios-${{ github.run_id }}
+          name: ios-e2e-${{ github.run_number }}
           path: .af-e2e/reports/
           if-no-files-found: warn

@@ -1,0 +1,90 @@
+# =============================================================================
+# Android + iOS E2E — parallel scenario runner
+# =============================================================================
+#
+# Calls ./.github/workflows/android-e2e.yml and ios-e2e.yml.
+#
+# Triggers:
+# - workflow_dispatch (manual)
+# - workflow_call (e.g. future rc-release.yml quality gate)
+#
+# PR-triggered E2E: use e2e-pull-request.yml (pull_request cannot use inputs context).
+# =============================================================================
+
+name: Android + iOS E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out for both platforms (empty = default ref)'
+        required: false
+        type: string
+        default: ''
+      skip_e2e:
+        description: Skip all E2E jobs (emergency only; blocks real verification)
+        type: boolean
+        default: false
+      run_scenarios:
+        description: Run af-scenario-runner after Cordova build (both platforms)
+        type: boolean
+        default: true
+      scenario_phase:
+        description: Optional --phase for both platforms (e.g. phase_1). Empty = all phases.
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out for both platforms'
+        required: false
+        type: string
+        default: ''
+      skip_e2e:
+        type: boolean
+        default: false
+        required: false
+      run_scenarios:
+        type: boolean
+        default: true
+        required: false
+      scenario_phase:
+        type: string
+        required: false
+        default: ''
+    secrets:
+      ENV_FILE:
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-orchestrator-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-e2e-android:
+    if: ${{ !inputs.skip_e2e }}
+    uses: ./.github/workflows/android-e2e.yml
+    with:
+      ref: ${{ inputs.ref }}
+      run_scenarios: ${{ inputs.run_scenarios }}
+      scenario_phase: ${{ inputs.scenario_phase }}
+    secrets: inherit
+
+  run-e2e-ios:
+    if: ${{ !inputs.skip_e2e }}
+    uses: ./.github/workflows/ios-e2e.yml
+    with:
+      ref: ${{ inputs.ref }}
+      run_scenarios: ${{ inputs.run_scenarios }}
+      scenario_phase: ${{ inputs.scenario_phase }}
+    secrets: inherit
+
+  e2e-skipped-notice:
+    if: ${{ inputs.skip_e2e }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notice
+        run: echo "::notice::Android + iOS E2E skipped (skip_e2e=true). No scenario jobs ran."

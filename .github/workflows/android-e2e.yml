@@ -1,12 +1,31 @@
-# Cordova plugin: build E2E sibling app + optional af-scenario-runner on an Android emulator.
-# Mirrors Flutter appsflyer-flutter-plugin android-e2e layout (KVM, DNS, nslookup, ENV_FILE on build step → write-e2e-env-to-dir).
-# Trigger: workflow_dispatch (manual) or workflow_call (e.g. from rc-release in Phase 6).
+# =============================================================================
+# Android E2E — integration tests (pre-publish)
+# =============================================================================
+#
+# Stage: RC-E2E
+# Runs .af-e2e/test-plan.json via scripts/af-scenario-runner.sh on an Android emulator.
+#
+# Triggers:
+# - workflow_call from e2e.yml or future rc-release.yml
+# - workflow_dispatch for manual reruns
+# - Weekly cron (Sunday 03:00 UTC); checks out default branch
+#
+# Schedule note: `inputs` is undefined on `schedule`, so checkout / step `if` / SCENARIO_PHASE avoid
+# reading `inputs.*` unless the event is not `schedule` (see expressions below).
+#
+# Secrets: ENV_FILE (multiline .env — see docs/github-actions-ENV_FILE.md).
+# =============================================================================
 
-name: Android E2E (scenario runner)
+name: Android E2E
 
 on:
   workflow_dispatch:
     inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out (default: workflow ref)'
+        required: false
+        type: string
+        default: ''
       run_scenarios:
         description: After a successful Cordova build, run af-scenario-runner on the emulator
         type: boolean
@@ -17,6 +36,11 @@ on:
         default: ''
   workflow_call:
     inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out. Defaults to the calling workflow ref.'
+        required: false
+        type: string
+        default: ''
       run_scenarios:
         type: boolean
         default: true
@@ -28,20 +52,25 @@ on:
     secrets:
       ENV_FILE:
         required: false
+  schedule:
+    - cron: '0 3 * * 0'
 
 permissions:
   contents: read
 
 concurrency:
-  group: android-e2e-${{ github.workflow }}-${{ github.ref }}
+  group: e2e-android-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  android-e2e:
+  e2e-android:
+    name: E2E Tests (Android)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'schedule' && github.ref || (inputs.ref != '' && inputs.ref || github.ref) }}
 
       - uses: actions/setup-node@v4
         with:
@@ -87,7 +116,7 @@ jobs:
       # the fix recommended by GitHub's actions/runner-images team and
       # the one printed by the action's own diagnostic message.
       - name: Enable KVM group perms (Linux emulator)
-        if: ${{ inputs.run_scenarios }}
+        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         run: |
           set -euo pipefail
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm-perms.rules
@@ -100,10 +129,10 @@ jobs:
           ls -la /dev/kvm || true
 
       - name: Run af-scenario-runner (Android)
-        if: ${{ inputs.run_scenarios }}
+        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          SCENARIO_PHASE: ${{ inputs.scenario_phase }}
+          SCENARIO_PHASE: ${{ github.event_name != 'schedule' && inputs.scenario_phase || '' }}
         with:
           api-level: 34
           arch: x86_64
@@ -123,10 +152,10 @@ jobs:
           # breaks with "expecting fi". Delegate to one bash script (single `script` line).
           script: bash "${GITHUB_WORKSPACE}/scripts/ci-android-e2e-scenario.sh"
 
-      - name: Upload af-scenario-runner reports
+      - name: Upload E2E reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: af-e2e-reports-android-${{ github.run_id }}
+          name: android-e2e-${{ github.run_number }}
           path: .af-e2e/reports/
           if-no-files-found: warn
