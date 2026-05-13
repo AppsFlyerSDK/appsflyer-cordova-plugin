@@ -128,7 +128,7 @@ jobs:
           sudo chmod 666 /dev/kvm 2>/dev/null || true
           ls -la /dev/kvm || true
 
-      - name: Run af-scenario-runner (Android)
+      - name: Run Android E2E
         if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         uses: reactivecircus/android-emulator-runner@v2
         env:
@@ -147,10 +147,11 @@ jobs:
           # Keep action defaults (gpu + no-boot-anim) and add DNS; overriding `emulator-options`
           # replaces the default entirely — without `-gpu`/`-no-boot-anim` the guest is slower.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -dns-server 8.8.8.8,1.1.1.1
-          # android-emulator-runner runs EACH LINE of `script:` as its own `sh -c` (see job log:
-          # `/usr/bin/sh -c set -eu`, then `/usr/bin/sh -c cd ...`). Multi-line if/fi therefore
-          # breaks with "expecting fi". Delegate to one bash script (single `script` line).
-          script: bash "${GITHUB_WORKSPACE}/scripts/ci-android-e2e-scenario.sh"
+          # reactivecircus/android-emulator-runner@v2 runs each newline-separated line of `script:` as its
+          # own `sh -c` invocation. Keep this block to
+          # ONE physical line so if/fi and set -e stay in one shell.
+          script: |
+            set -euo pipefail; cd "${GITHUB_WORKSPACE}"; chmod +x scripts/*.sh; nslookup appsflyersdk.com || true; adb devices; if [ -n "${SCENARIO_PHASE:-}" ]; then ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose --phase "${SCENARIO_PHASE}" || ./scripts/dump-android-logs.sh; else ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose || ./scripts/dump-android-logs.sh; fi
 
       - name: Upload E2E reports
         if: always()

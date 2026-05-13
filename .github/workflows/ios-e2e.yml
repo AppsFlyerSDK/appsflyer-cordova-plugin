@@ -116,7 +116,7 @@ jobs:
           xcrun simctl boot "${UDID}"
           xcrun simctl bootstatus "${UDID}" -b
 
-      - name: Run af-scenario-runner (iOS)
+      - name: Run iOS E2E
         if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         env:
           SCENARIO_PHASE: ${{ github.event_name != 'schedule' && inputs.scenario_phase || '' }}
@@ -124,9 +124,9 @@ jobs:
           cd "${GITHUB_WORKSPACE}"
           chmod +x scripts/*.sh
           if [ -n "${SCENARIO_PHASE:-}" ]; then
-            ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json --verbose --phase "${SCENARIO_PHASE}"
+            ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json --phase "${SCENARIO_PHASE}"
           else
-            ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json --verbose
+            ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json
           fi
 
       - name: Upload E2E reports

@@ -5,7 +5,7 @@ description: >-
   the tooling smoke/E2E story. Use when editing .github/workflows/*e2e*, rc-smoke (when added),
   or debugging scenario CI.
 globs: >-
-  .github/workflows/android-e2e.yml,.github/workflows/ios-e2e.yml,scripts/ci-android-e2e-scenario.sh,
+  .github/workflows/android-e2e.yml,.github/workflows/ios-e2e.yml,
   scripts/af-scenario-runner.sh,scripts/e2e-cordova-build.sh,scripts/smoke-cordova-build.sh,
   scripts/sync-test-app-e2e-copy.sh,scripts/sync-test-app-rc-smoke.sh,.af-e2e/**,.af-smoke/**
 ---
@@ -22,7 +22,7 @@ Use when:
 
 | Workflow | Role |
 |----------|------|
-| `.github/workflows/android-e2e.yml` | Ubuntu: Java 17, Android SDK, `e2e-cordova-build.sh android`, then emulator + `ci-android-e2e-scenario.sh` |
+| `.github/workflows/android-e2e.yml` | Ubuntu: Java 17, Android SDK, `e2e-cordova-build.sh android`, then emulator + **one-line** `script:` (nslookup, adb, `af-scenario-runner` \|\| `dump-android-logs`) — same pattern as Flutter |
 | `.github/workflows/ios-e2e.yml` | macOS: CocoaPods, `e2e-cordova-build.sh ios`, boot iPhone sim, `af-scenario-runner.sh` |
 
 Triggers: `workflow_dispatch`, `workflow_call`. Secrets: **`ENV_FILE`** (optional but required for real SDK checks).
@@ -38,7 +38,7 @@ Triggers: `workflow_dispatch`, `workflow_call`. Secrets: **`ENV_FILE`** (optiona
 
 ## Android emulator runner quirks
 
-- **`script:` must be a single line** — use `bash "${GITHUB_WORKSPACE}/scripts/ci-android-e2e-scenario.sh"`.
+- **`script:` must be a single physical line** inside `android-emulator-runner` (each newline = new `sh -c`). Inline shell in **`android-e2e.yml`**; do not split `if`/`fi` across lines.
 - **KVM:** udev + `chmod 666 /dev/kvm` so the job does not fall back to **`-accel off`** (multi‑minute boots).
 - **`emulator-options`:** include `-gpu swiftshader_indirect` and `-no-boot-anim` if you override defaults (full override replaces action defaults).
 
