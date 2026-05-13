@@ -4,6 +4,229 @@
 
   var fileAppendChain = Promise.resolve();
 
+  document.addEventListener(
+    'deviceready',
+    function () {
+      runAfQaContract().catch(function (e) {
+        var msg = e && e.message ? e.message : String(e);
+        afQaLog('[AF_QA][startSDK] error: ' + msg);
+      });
+    },
+    false
+  );
+
+  async function runAfQaContract() {
+    await afQaLog('[AF_QA][BOOT] deviceready');
+
+    var env = window.__AF_QA_ENV__ || {};
+    if (!env.DEV_KEY) {
+      await afQaLog('[AF_QA][CONFIG] DEV_KEY missing');
+      return;
+    }
+    if (!env.APP_ID) {
+      await afQaLog('[AF_QA][CONFIG] APP_ID missing');
+      return;
+    }
+
+    var af = window.plugins.appsFlyer;
+
+    af.registerOnAppOpenAttribution(
+      function (res) {
+        void afQaLog('[AF_QA][CALLBACK][onAppOpenAttribution] received: ' + stringifyRes(res));
+      },
+      function (err) {
+        void afQaLog('[AF_QA][CALLBACK][onAppOpenAttribution] error: ' + stringifyRes(err));
+      }
+    );
+
+    af.registerDeepLink(function (res) {
+      void (async function () {
+        await afQaLog(formatOnDeepLinkingContractLine(res));
+        await afQaLog('[AF_QA][CALLBACK][onDeepLinking] raw: ' + stringifyRes(res));
+      })();
+    });
+
+    var initOpts = {
+      devKey: env.DEV_KEY,
+      appId: env.APP_ID,
+      isDebug: true,
+      onInstallConversionDataListener: true,
+      onDeepLinkListener: true,
+      shouldStartSdk: false
+    };
+
+    await initSdkWait(af, initOpts, 1500);
+
+    af.setAppUserId('e2e_user_42');
+    await afQaLog('[AF_QA][setCustomerUserId] result: e2e_user_42');
+
+    af.setCurrencyCode('EUR');
+    await afQaLog('[AF_QA][setCurrencyCode] result: EUR');
+
+    af.setAdditionalData({ tenant: 'e2e_tenant', e2e_flag: '1' });
+    await afQaLog(
+      '[AF_QA][setAdditionalData] keys: tenant,e2e_flag payload=' +
+        JSON.stringify({ tenant: 'e2e_tenant', e2e_flag: '1' })
+    );
+
+    await afQaLog('[AF_QA][AUTO_APIS] --- Pre-start auto APIs complete ---');
+
+    af.startSdk();
+    await afQaLog('[AF_QA][startSDK] result: SUCCESS');
+
+    await waitMs(400);
+
+    await new Promise(function (resolve) {
+      af.getSdkVersion(function (v) {
+        afQaLog('[AF_QA][getSDKVersion] result: ' + v);
+        resolve();
+      });
+    });
+
+    await new Promise(function (resolve) {
+      af.getAppsFlyerUID(function (uid) {
+        afQaLog('[AF_QA][getAppsFlyerUID] result: ' + uid);
+        resolve();
+      });
+    });
+
+    await afQaLog('[AF_QA][AUTO_APIS] --- Post-start auto APIs complete ---');
+
+    await afLogEvent(af, 'af_demo_launch', {}, '[AF_QA][logEvent(af_demo_launch)] result: SUCCESS');
+
+    await afLogEvent(
+      af,
+      'af_purchase',
+      { af_revenue: '12.34', af_currency: 'USD', af_content_id: 'qa_sku_1' },
+      '[AF_QA][logEvent: af_purchase sent] result: SUCCESS'
+    );
+
+    await afLogEvent(
+      af,
+      'af_content_view',
+      { af_content_type: 'qa', af_content_id: 'home' },
+      '[AF_QA][logEvent: af_content_view sent] result: SUCCESS'
+    );
+
+    await afLogEvent(
+      af,
+      'af_qa_custom_purchase',
+      {
+        af_revenue: '9.99',
+        af_currency: 'USD',
+        metadata: { tier: 'gold', seats: 2 }
+      },
+      '[AF_QA][logEvent] name=af_qa_custom_purchase payload=' +
+        JSON.stringify({
+          af_revenue: '9.99',
+          af_currency: 'USD',
+          metadata: { tier: 'gold', seats: 2 }
+        })
+    );
+
+    await new Promise(function (resolve) {
+      var identityPayload = {
+        customer_user_id: 'e2e_user_42',
+        tenant: 'e2e_tenant',
+        check: 'identity_round_trip'
+      };
+      af.logEvent(
+        'af_qa_identity_check',
+        identityPayload,
+        function () {
+          afQaLog(
+            '[AF_QA][logEvent] name=af_qa_identity_check payload=' +
+              JSON.stringify(identityPayload)
+          ).then(function () {
+            return afQaLog('[AF_QA][event_payload] customer_user_id=e2e_user_42');
+          }).then(function () {
+            resolve();
+          });
+        },
+        function (err) {
+          afQaLog('[AF_QA][logEvent] error: af_qa_identity_check ' + stringifyRes(err));
+          resolve();
+        }
+      );
+    });
+
+    af.Stop(true);
+    await afQaLog('[AF_QA][stop] result: true');
+
+    await new Promise(function (resolve) {
+      af.logEvent(
+        'af_qa_suppressed',
+        { note: 'must_not_http_200_while_stopped' },
+        function () {
+          afQaLog('[AF_QA][logEvent] name=af_qa_suppressed (unexpected success while stopped)');
+          resolve();
+        },
+        function () {
+          resolve();
+        }
+      );
+    });
+
+    af.Stop(false);
+    await afQaLog('[AF_QA][stop] result: false');
+
+    await afLogEvent(
+      af,
+      'af_qa_resumed',
+      { note: 'after_stop_false' },
+      '[AF_QA][logEvent] name=af_qa_resumed result: SUCCESS'
+    );
+
+    await waitMs(1500);
+
+    await afQaLog('[AF_QA][AUTO_APIS] --- Auto run complete ---');
+    await fileAppendChain;
+  }
+
+  function initSdkWait(af, initOpts, timeoutMs) {
+    return new Promise(function (resolve, reject) {
+      var settled = false;
+      af.initSdk(
+        initOpts,
+        function (gcd) {
+          void afQaLog(
+            '[AF_QA][CALLBACK][onInstallConversionData] received: ' + stringifyRes(gcd)
+          );
+        },
+        function (err) {
+          void afQaLog('[AF_QA][startSDK] error: initSdk ' + stringifyRes(err));
+          if (!settled) {
+            settled = true;
+            reject(new Error(stringifyRes(err)));
+          }
+        }
+      );
+      setTimeout(function () {
+        if (!settled) {
+          settled = true;
+          resolve();
+        }
+      }, timeoutMs);
+    });
+  }
+
+  function afLogEvent(af, eventName, eventValues, successLine) {
+    return new Promise(function (resolve) {
+      af.logEvent(
+        eventName,
+        eventValues,
+        function () {
+          void afQaLog(successLine);
+          resolve();
+        },
+        function (err) {
+          void afQaLog('[AF_QA][logEvent] error: ' + eventName + ' ' + stringifyRes(err));
+          resolve();
+        }
+      );
+    });
+  }
+
   function afQaAppendFileLine(line) {
     if (!window.cordova || !cordova.file) {
       return fileAppendChain;
@@ -85,14 +308,11 @@
     }
   }
 
-  /**
-   * Pull deep_link_value / deepLinkValue from UDL JSON (nested maps, link URLs, or JSON string fallbacks).
-   */
   function extractDeepLinkValueFromUdl(o) {
     if (!o || typeof o !== 'object') {
       return '';
     }
-    var visit = function (node, depth) {
+    function visit(node, depth) {
       if (depth > 8 || node == null) {
         return '';
       }
@@ -143,7 +363,9 @@
         if (
           typeof val === 'string' &&
           val !== '' &&
-          (val.indexOf('deep_link_value=') !== -1 || val.indexOf('afqa-') !== -1 || val.indexOf('://') !== -1)
+          (val.indexOf('deep_link_value=') !== -1 ||
+            val.indexOf('afqa-') !== -1 ||
+            val.indexOf('://') !== -1)
         ) {
           var fromUrlish = visit(val, depth + 1);
           if (fromUrlish) return fromUrlish;
@@ -157,7 +379,7 @@
         }
       }
       return '';
-    };
+    }
     var out = visit(o, 0);
     if (out) {
       return out;
@@ -194,10 +416,6 @@
     return '';
   }
 
-  /**
-   * Normative line shape per appsflyer-mobile-plugin-tooling/contracts/test-app-contract.md — same
-   * substrings the scenario runner greps (`status=Status.FOUND`, `deepLinkValue=…`).
-   */
   function parseDeepLinkNativePayload(raw) {
     var o = raw;
     if (typeof raw === 'string') {
@@ -253,258 +471,5 @@
     return new Promise(function (resolve) {
       setTimeout(resolve, ms);
     });
-  }
-
-  document.addEventListener(
-    'deviceready',
-    function () {
-      runAfQaContract().catch(function (e) {
-        var msg = e && e.message ? e.message : String(e);
-        afQaLog('[AF_QA][startSDK] error: ' + msg);
-      });
-    },
-    false
-  );
-
-  async function runAfQaContract() {
-    await afQaLog('[AF_QA][BOOT] deviceready');
-
-    var env = window.__AF_QA_ENV__ || {};
-    if (!env.DEV_KEY) {
-      await afQaLog('[AF_QA][CONFIG] DEV_KEY missing');
-      return;
-    }
-    if (!env.APP_ID) {
-      await afQaLog('[AF_QA][CONFIG] APP_ID missing');
-      return;
-    }
-
-    var af = window.plugins.appsFlyer;
-
-    af.registerOnAppOpenAttribution(
-      function (res) {
-        void afQaLog('[AF_QA][CALLBACK][onAppOpenAttribution] received: ' + stringifyRes(res));
-      },
-      function (err) {
-        void afQaLog('[AF_QA][CALLBACK][onAppOpenAttribution] error: ' + stringifyRes(err));
-      }
-    );
-
-    af.registerDeepLink(function (res) {
-      void (async function () {
-        await afQaLog(formatOnDeepLinkingContractLine(res));
-        await afQaLog('[AF_QA][CALLBACK][onDeepLinking] raw: ' + stringifyRes(res));
-      })();
-    });
-
-    var initOpts = {
-      devKey: env.DEV_KEY,
-      appId: env.APP_ID,
-      isDebug: true,
-      onInstallConversionDataListener: true,
-      onDeepLinkListener: true,
-      shouldStartSdk: false
-    };
-
-    await new Promise(function (resolve, reject) {
-      var settled = false;
-      af.initSdk(
-        initOpts,
-        function (gcd) {
-          void afQaLog(
-            '[AF_QA][CALLBACK][onInstallConversionData] received: ' + stringifyRes(gcd)
-          );
-        },
-        function (err) {
-          void afQaLog('[AF_QA][startSDK] error: initSdk ' + stringifyRes(err));
-          if (!settled) {
-            settled = true;
-            reject(new Error(stringifyRes(err)));
-          }
-        }
-      );
-      setTimeout(function () {
-        if (!settled) {
-          settled = true;
-          resolve();
-        }
-      }, 1500);
-    });
-
-    af.setAppUserId('e2e_user_42');
-    await afQaLog('[AF_QA][setCustomerUserId] result: e2e_user_42');
-
-    af.setCurrencyCode('EUR');
-    await afQaLog('[AF_QA][setCurrencyCode] result: EUR');
-
-    af.setAdditionalData({ tenant: 'e2e_tenant', e2e_flag: '1' });
-    await afQaLog(
-      '[AF_QA][setAdditionalData] keys: tenant,e2e_flag payload=' +
-        JSON.stringify({ tenant: 'e2e_tenant', e2e_flag: '1' })
-    );
-
-    await afQaLog('[AF_QA][AUTO_APIS] --- Pre-start auto APIs complete ---');
-
-    af.startSdk();
-    await afQaLog('[AF_QA][startSDK] result: SUCCESS');
-
-    await waitMs(400);
-
-    await new Promise(function (resolve) {
-      af.getSdkVersion(function (v) {
-        afQaLog('[AF_QA][getSDKVersion] result: ' + v);
-        resolve();
-      });
-    });
-
-    await new Promise(function (resolve) {
-      af.getAppsFlyerUID(function (uid) {
-        afQaLog('[AF_QA][getAppsFlyerUID] result: ' + uid);
-        resolve();
-      });
-    });
-
-    await afQaLog('[AF_QA][AUTO_APIS] --- Post-start auto APIs complete ---');
-
-    await new Promise(function (resolve) {
-      af.logEvent(
-        'af_demo_launch',
-        {},
-        function () {
-          afQaLog('[AF_QA][logEvent(af_demo_launch)] result: SUCCESS');
-          resolve();
-        },
-        function (err) {
-          afQaLog('[AF_QA][logEvent] error: af_demo_launch ' + stringifyRes(err));
-          resolve();
-        }
-      );
-    });
-
-    await new Promise(function (resolve) {
-      af.logEvent(
-        'af_purchase',
-        {
-          af_revenue: '12.34',
-          af_currency: 'USD',
-          af_content_id: 'qa_sku_1'
-        },
-        function () {
-          afQaLog('[AF_QA][logEvent: af_purchase sent] result: SUCCESS');
-          resolve();
-        },
-        function (err) {
-          afQaLog('[AF_QA][logEvent] error: af_purchase ' + stringifyRes(err));
-          resolve();
-        }
-      );
-    });
-
-    await new Promise(function (resolve) {
-      af.logEvent(
-        'af_content_view',
-        { af_content_type: 'qa', af_content_id: 'home' },
-        function () {
-          afQaLog('[AF_QA][logEvent: af_content_view sent] result: SUCCESS');
-          resolve();
-        },
-        function (err) {
-          afQaLog('[AF_QA][logEvent] error: af_content_view ' + stringifyRes(err));
-          resolve();
-        }
-      );
-    });
-
-    await new Promise(function (resolve) {
-      af.logEvent(
-        'af_qa_custom_purchase',
-        {
-          af_revenue: '9.99',
-          af_currency: 'USD',
-          metadata: { tier: 'gold', seats: 2 }
-        },
-        function () {
-          afQaLog(
-            '[AF_QA][logEvent] name=af_qa_custom_purchase payload=' +
-              JSON.stringify({
-                af_revenue: '9.99',
-                af_currency: 'USD',
-                metadata: { tier: 'gold', seats: 2 }
-              })
-          );
-          resolve();
-        },
-        function (err) {
-          afQaLog('[AF_QA][logEvent] error: af_qa_custom_purchase ' + stringifyRes(err));
-          resolve();
-        }
-      );
-    });
-
-    await new Promise(function (resolve) {
-      var identityPayload = {
-        customer_user_id: 'e2e_user_42',
-        tenant: 'e2e_tenant',
-        check: 'identity_round_trip'
-      };
-      af.logEvent(
-        'af_qa_identity_check',
-        identityPayload,
-        function () {
-          afQaLog(
-            '[AF_QA][logEvent] name=af_qa_identity_check payload=' +
-              JSON.stringify(identityPayload)
-          ).then(function () {
-            return afQaLog('[AF_QA][event_payload] customer_user_id=e2e_user_42');
-          }).then(function () {
-            resolve();
-          });
-        },
-        function (err) {
-          afQaLog('[AF_QA][logEvent] error: af_qa_identity_check ' + stringifyRes(err));
-          resolve();
-        }
-      );
-    });
-
-    af.Stop(true);
-    await afQaLog('[AF_QA][stop] result: true');
-
-    await new Promise(function (resolve) {
-      af.logEvent(
-        'af_qa_suppressed',
-        { note: 'must_not_http_200_while_stopped' },
-        function () {
-          afQaLog('[AF_QA][logEvent] name=af_qa_suppressed (unexpected success while stopped)');
-          resolve();
-        },
-        function () {
-          resolve();
-        }
-      );
-    });
-
-    af.Stop(false);
-    await afQaLog('[AF_QA][stop] result: false');
-
-    await new Promise(function (resolve) {
-      af.logEvent(
-        'af_qa_resumed',
-        { note: 'after_stop_false' },
-        function () {
-          afQaLog('[AF_QA][logEvent] name=af_qa_resumed result: SUCCESS');
-          resolve();
-        },
-        function (err) {
-          afQaLog('[AF_QA][logEvent] error: af_qa_resumed ' + stringifyRes(err));
-          resolve();
-        }
-      );
-    });
-
-    await waitMs(1500);
-
-    await afQaLog('[AF_QA][AUTO_APIS] --- Auto run complete ---');
-    await fileAppendChain;
   }
 })();
