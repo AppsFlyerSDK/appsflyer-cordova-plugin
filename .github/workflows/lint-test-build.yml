@@ -1,32 +1,16 @@
 # =============================================================================
-# Lint, Test & Build — PR gate + reusable from rc-release.yml
+# Lint, Test & Build — reusable only (workflow_call)
 # =============================================================================
 #
 # 1) JSHint on plugin JS (www, src). Cordova Jasmine tests under tests/ are not linted in CI.
-# 2) Optional release-style Cordova builds for Android + iOS (debug simulator/APK),
-#    mirroring what RC-E2E exercises (same scripts as android-e2e / ios-e2e).
+# 2) Optional Cordova debug builds for Android + iOS (same scripts as android-e2e / ios-e2e).
 #
-# Triggers: pull_request / push to master, workflow_dispatch, workflow_call.
+# Trigger: workflow_call only. Caller: rc-release.yml (and any future workflows that reuse it).
 # =============================================================================
 
 name: Lint, Test & Build
 
 on:
-  pull_request:
-    branches:
-      - master
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'examples/**'
-  push:
-    branches:
-      - master
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'examples/**'
-  workflow_dispatch:
   workflow_call:
     inputs:
       skip_unit:

@@ -1,50 +1,51 @@
 ---
 name: cordova-rc-release
 description: >-
-  Maps the intended AppsFlyer Cordova RC release pipeline (RC prep, E2E, publish, smoke, promote,
-  production) to workflow files. Use when planning or adding rc-release/rc-smoke/promote workflows;
-  not for day-to-day feature work.
+  Maps the AppsFlyer Cordova RC pipeline (RC prep, lint-test-build, E2E, npm publish, rc-smoke,
+  promote) to workflow files in this repo. Use when editing rc-release, rc-smoke, promote-release,
+  or lint-test-build; not for day-to-day feature work.
 globs: >-
-  .github/workflows/android-e2e.yml,.github/workflows/ios-e2e.yml,.github/workflows/pre-release-workflow.yml,
-  .github/workflows/release-Production-workflow.yml,.af-e2e/**,.af-smoke/rc-test-plan.json,scripts/af-scenario-runner.sh
+  .github/workflows/rc-release.yml,.github/workflows/rc-smoke.yml,.github/workflows/promote-release.yml,
+  .github/workflows/lint-test-build.yml,
+  .github/workflows/android-e2e.yml,.github/workflows/ios-e2e.yml,
+  .github/workflows/pre-release-workflow.yml,.github/workflows/release-Production-workflow.yml,
+  .af-e2e/**,.af-smoke/rc-test-plan.json,scripts/af-scenario-runner.sh
 ---
 
-# RC release pipeline — AppsFlyer Cordova plugin (target + current)
+# RC release pipeline — AppsFlyer Cordova plugin
 
 Use when:
 
-- Adding **`rc-release.yml`**, **`rc-smoke.yml`**, **`promote-release.yml`**, or **`production-release.yml`**.
-- Wiring **`workflow_call`** from RC into **lint + Android E2E + iOS E2E**.
-- Explaining why promotion should wait on **`rc-smoke/npm`** check-run (Flutter parity).
+- Editing **`rc-release.yml`**, **`rc-smoke.yml`**, **`promote-release.yml`**, or **`lint-test-build.yml`**.
+- Wiring **`workflow_call`** from RC into **lint-test-build** + **Android E2E** + **iOS E2E**.
+- Explaining why promotion should wait on **`rc-smoke/npm`** check-run **success** on the release branch head.
 
-## Sources of truth (tooling repo)
+## Contract sources (shared tooling repo)
 
 - [`contracts/rc-release-contract.md`](https://github.com/AppsFlyerSDK/appsflyer-mobile-plugin-tooling/blob/main/contracts/rc-release-contract.md)
 - [`contracts/e2e-test-contract.md`](https://github.com/AppsFlyerSDK/appsflyer-mobile-plugin-tooling/blob/main/contracts/e2e-test-contract.md)
 - [`contracts/smoke-test-contract.md`](https://github.com/AppsFlyerSDK/appsflyer-mobile-plugin-tooling/blob/main/contracts/smoke-test-contract.md)
-- Live reference: **AppsFlyerSDK/appsflyer-flutter-plugin** `.github/workflows/`
 
-## Current vs target (this repo)
+## Stages in this repo (Cordova)
 
-| Stage | Target workflow (Flutter parity) | Cordova repo **today** |
-|-------|----------------------------------|-------------------------|
-| Lint / unit / build gate | `lint-test-build` composite | Legacy **`pre-release-workflow.yml`** only — old **`mac-os-unit-test-runner.yml`** / **`build-apps-workflow.yml`** removed; not yet unified with Flutter `lint-test-build` |
-| Pre-publish E2E | `android-e2e.yml`, `ios-e2e.yml` | **Present** — callable via `workflow_dispatch` / `workflow_call` |
-| RC publish + tagging | `rc-release.yml` | **Not present** — see `release-Production-workflow.yml` / historical flows |
-| Post-publish smoke | `rc-smoke.yml` + npm resolve | **Not present** |
-| Promote (strip `-rcN`) | `promote-release.yml` gated on `rc-smoke/npm` | **Not present** |
-| Production | `production-release.yml` | Partially covered by **`release-Production-workflow.yml`** (verify before changing) |
+| Stage | Workflow(s) |
+|-------|----------------|
+| RC pre-publish | **`rc-release.yml`**: **`lint-test-build.yml`** (`workflow_call` only) + **`ios-e2e.yml`** + **`android-e2e.yml`**, then npm **`QA`** publish, prerelease, PR to `master` |
+| Post-publish smoke | **`rc-smoke.yml`** → check **`rc-smoke/npm`** |
+| Promote | **`promote-release.yml`** (label + **`rc-smoke/npm`** gate) → **`rc-promote-strip-rc.sh`** |
+| Production (legacy) | **`release-Production-workflow.yml`** on merge to `master` — verify before changing |
 
-Track incremental adoption in **`docs/SCENARIO_RUNNER_ADOPTION_WORKPLAN.md`** (Phase 4 / 6).
+Track adoption details in **`docs/SCENARIO_RUNNER_ADOPTION_WORKPLAN.md`**.
 
 ## Secrets (names only)
 
 | Secret | Typical use |
 |--------|-------------|
-| `ENV_FILE` | Multiline `.env` for E2E sibling + smoke app (`DEV_KEY`, `APP_ID`) |
-| Registry / npm tokens | Publish jobs when implemented |
+| `ENV_FILE` | Multiline `.env` for E2E sibling + smoke (`DEV_KEY`, `APP_ID`) |
+| `CI_NPM_TOKEN` | `npm publish` in RC Release |
+| `CI_DEV_GITHUB_TOKEN` | Branch push, PR, prerelease, promote, `gh` in smoke |
 
 ## Do not
 
-- Do not bypass **`rc-smoke`** success requirement for promotion if the org adopts Flutter-style gates.
-- Do not duplicate long contract text in skills — link tooling + Flutter repo.
+- Do not bypass **`rc-smoke/npm` success** for promotion when using the designed promote gate.
+- Do not duplicate long contract text in skills — link tooling contracts above.
