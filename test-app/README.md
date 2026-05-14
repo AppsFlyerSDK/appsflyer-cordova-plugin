@@ -134,9 +134,7 @@ If **`pod install`** fails with **“required a higher minimum deployment target
 
 Cordova’s default simulator (**often iPhone SE (3rd generation)**) is passed to **`xcodebuild`** as **name only**; newer Xcode then uses **`OS:latest`**, which may not match any installed runtime for that device type.
 
-**`test-app/build.json`** (copied into the E2E sibling by **`sync-test-app-e2e-copy.sh`**) sets **`buildFlag`** to **`-destination generic/platform=iOS Simulator`** so the debug build does not depend on a specific simulator model. **`e2e-cordova-build.sh`** passes **`--buildConfig=…/build.json`** when that file exists in the E2E app root.
-
-Override with **`CORDOVA_E2E_IOS_BUILDCONFIG=/path/to/other-build.json`**, or add your own **`buildFlag`** **`-destination …`** there (e.g. **`platform=iOS Simulator,id=<UDID>`** from **`xcrun simctl list devices available`**).
+**`test-app/build.json`** (copied into the E2E sibling by **`sync-test-app-e2e-copy.sh`**) uses **`buildFlag`**: **`-destination generic/platform=iOS Simulator`** and **`ARCHS=arm64`**, so the debug build does not depend on a specific simulator model and skips the **x86_64** simulator slice (GitHub **macos-** runners are Apple Silicon; building that slice against **AppsFlyerLib** can fail with missing Swift compatibility symbols on newer Xcode). **`e2e-cordova-build.sh`** passes **`--buildConfig=…/build.json`** when that file exists in the E2E app root. Override with **`CORDOVA_E2E_IOS_BUILDCONFIG=/path/to/other-build.json`** on an **Intel** Mac (omit **`ARCHS=arm64`** or set **`ARCHS=x86_64`**) or to pass a custom **`-destination …`** (e.g. **`platform=iOS Simulator,id=<UDID>`** from **`xcrun simctl list devices available`**).
 
 The CocoaPods warnings about **`LD_RUNPATH_SEARCH_PATHS`** are common with Cordova + Pods; they do not block a typical debug simulator build.
 

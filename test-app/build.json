@@ -1,10 +1,16 @@
 {
   "ios": {
     "debug": {
-      "buildFlag": "-destination generic/platform=iOS Simulator"
+      "buildFlag": [
+        "-destination generic/platform=iOS Simulator",
+        "ARCHS=arm64"
+      ]
     },
     "release": {
-      "buildFlag": "-destination generic/platform=iOS Simulator"
+      "buildFlag": [
+        "-destination generic/platform=iOS Simulator",
+        "ARCHS=arm64"
+      ]
     }
   }
 }
