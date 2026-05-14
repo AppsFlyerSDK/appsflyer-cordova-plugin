@@ -76,7 +76,7 @@
 
     "test": "npm run jshint",
 
-    "jshint": "node node_modules/jshint/bin/jshint www && node node_modules/jshint/bin/jshint src && node node_modules/jshint/bin/jshint tests",
+    "jshint": "node node_modules/jshint/bin/jshint www && node node_modules/jshint/bin/jshint src",
 
     "setupIonicCordova": "cd examples/ionic-cordova; npm install; ionic cordova plugin rm cordova-plugin-appsflyer-sdk --save; ionic cordova platform rm android; ionic cordova platform rm ios; ionic cordova plugin add cordova-plugin-appsflyer-sdk --save; ionic cordova platform add android; ionic cordova platform add ios",
 

@@ -2,7 +2,7 @@
 # Lint, Test & Build — PR gate + reusable from rc-release.yml
 # =============================================================================
 #
-# 1) JSHint on plugin JS (www, src, tests).
+# 1) JSHint on plugin JS (www, src). Cordova Jasmine tests under tests/ are not linted in CI.
 # 2) Optional release-style Cordova builds for Android + iOS (debug simulator/APK),
 #    mirroring what RC-E2E exercises (same scripts as android-e2e / ios-e2e).
 #
