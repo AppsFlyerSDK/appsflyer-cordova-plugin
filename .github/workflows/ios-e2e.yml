@@ -13,6 +13,7 @@
 # Schedule note: `inputs` is undefined on `schedule`; expressions below avoid reading `inputs.*` on schedule.
 #
 # Simulator selection (iPhone 15–17 on iOS 17/18) avoids iOS 17.0 custom-scheme confirmation prompts in CI.
+# Do not `xcode-select` the newest Xcode_* on the image: it can break Swift/Pods simulator links (e.g. AppsFlyerLib).
 #
 # Secrets: ENV_FILE (multiline .env — see docs/github-actions-ENV_FILE.md).
 # =============================================================================
@@ -95,11 +96,9 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Select Xcode version
-        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
+      - name: Xcode toolchain (runner default)
         run: |
-          XCODE=$(ls /Applications | grep -E "^Xcode_[0-9]" | sort -V | tail -1)
-          sudo xcode-select -s "/Applications/$XCODE"
+          xcode-select -p
           xcodebuild -version
 
       - name: Ensure CocoaPods

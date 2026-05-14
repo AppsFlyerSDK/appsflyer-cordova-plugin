@@ -101,10 +101,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Select Xcode
+      - name: Xcode toolchain (runner default)
         run: |
-          XCODE=$(ls /Applications | grep -E "^Xcode_[0-9]" | sort -V | tail -1)
-          sudo xcode-select -s "/Applications/$XCODE"
+          xcode-select -p
           xcodebuild -version
       - run: |
           if ! command -v pod >/dev/null 2>&1; then

@@ -195,10 +195,9 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Select Xcode
+      - name: Xcode toolchain (runner default)
         run: |
-          XCODE=$(ls /Applications | grep -E "^Xcode_[0-9]" | sort -V | tail -1)
-          sudo xcode-select -s "/Applications/$XCODE"
+          xcode-select -p
           xcodebuild -version
 
       - name: Boot simulator (iOS 17/18 iPhone 15–17)
