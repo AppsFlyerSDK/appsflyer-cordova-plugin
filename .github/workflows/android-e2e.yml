@@ -6,7 +6,7 @@
 # Runs .af-e2e/test-plan.json via scripts/af-scenario-runner.sh on an Android emulator.
 #
 # Triggers:
-# - workflow_call from e2e.yml or rc-release.yml
+# - workflow_call from rc-release.yml
 # - workflow_dispatch for manual reruns
 # - Weekly cron (Sunday 03:00 UTC); checks out default branch
 #
