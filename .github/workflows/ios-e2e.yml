@@ -6,11 +6,13 @@
 # Runs .af-e2e/test-plan.json via scripts/af-scenario-runner.sh on an iOS Simulator.
 #
 # Triggers:
-# - workflow_call from e2e.yml or future rc-release.yml
+# - workflow_call from e2e.yml or rc-release.yml
 # - workflow_dispatch for manual reruns
 # - Weekly cron (Sunday 02:00 UTC); checks out default branch
 #
 # Schedule note: `inputs` is undefined on `schedule`; expressions below avoid reading `inputs.*` on schedule.
+#
+# Simulator selection (iPhone 15–17 on iOS 17/18) avoids iOS 17.0 custom-scheme confirmation prompts in CI.
 #
 # Secrets: ENV_FILE (multiline .env — see docs/github-actions-ENV_FILE.md).
 # =============================================================================
@@ -64,15 +66,15 @@ concurrency:
 jobs:
   e2e-ios:
     name: E2E Tests (iOS)
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.event_name == 'schedule' && github.ref || (inputs.ref != '' && inputs.ref || github.ref) }}
 
       - name: Cache npm downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.npm
           key: npm-cordova-e2e-${{ runner.os }}-${{ hashFiles('test-app/package.json') }}
@@ -80,7 +82,7 @@ jobs:
             npm-cordova-e2e-${{ runner.os }}-
 
       - name: Cache CocoaPods (specs + downloads)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cocoapods
@@ -92,6 +94,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: Select Xcode version
+        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
+        run: |
+          XCODE=$(ls /Applications | grep -E "^Xcode_[0-9]" | sort -V | tail -1)
+          sudo xcode-select -s "/Applications/$XCODE"
+          xcodebuild -version
 
       - name: Ensure CocoaPods
         run: |
@@ -115,24 +124,44 @@ jobs:
           fi
           ./scripts/e2e-cordova-build.sh ios
 
-      - name: Shutdown simulators and boot iPhone
+      - name: Boot iOS simulator (iPhone 15–17, iOS 17/18)
         if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         run: |
           xcrun simctl shutdown all || true
-          UDID="$(
-            xcrun simctl list devices available -j | jq -r '
-              [(.devices // {}) | to_entries[] | .value[]
-                | select(.isAvailable == true and ((.name // "") | contains("iPhone")))]
-              | if length == 0 then "" else .[0].udid end'
-          )"
+          DEVICES_JSON=$(xcrun simctl list -j devices available)
+          UDID=$(echo "$DEVICES_JSON" | jq -r '
+            .devices
+            | to_entries
+            | map(select(.key | test("iOS-1[78]")))
+            | sort_by(.key) | reverse
+            | map(
+                . as $rt
+                | $rt.value
+                | map(select(.name | test("^iPhone 1[5-7]$")))
+                | first
+                | (if . then {udid, runtime: $rt.key, name} else empty end)
+              )
+            | first // empty
+            | .udid // empty
+          ')
+          if [[ -z "$UDID" ]]; then
+            echo "No iPhone 15/16/17 on iOS 17/18 found; falling back to first available iPhone."
+            UDID=$(echo "$DEVICES_JSON" | jq -r '.devices[][] | select(.name | test("^iPhone")) | .udid' | head -1)
+          fi
           if [[ -z "${UDID}" ]]; then
             echo "::error::No available iPhone simulator"
             xcrun simctl list devices available
             exit 1
           fi
-          echo "Booting ${UDID}"
-          xcrun simctl boot "${UDID}"
-          xcrun simctl bootstatus "${UDID}" -b
+          echo "Selected simulator UDID: $UDID"
+          echo "$DEVICES_JSON" | jq -r --arg u "$UDID" '
+            .devices | to_entries[] | . as $rt
+            | $rt.value[] | select(.udid == $u)
+            | "Runtime: \($rt.key)  Device: \(.name)"
+          '
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          echo "IOS_SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
 
       - name: Run iOS E2E
         if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
@@ -147,9 +176,41 @@ jobs:
             ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json
           fi
 
+      - name: Dump iOS QA log file (debug)
+        if: always()
+        run: |
+          UDID="${IOS_SIMULATOR_UDID:-}"
+          if [[ -z "$UDID" ]]; then
+            echo "IOS_SIMULATOR_UDID unset; skipping QA file dump"
+            exit 0
+          fi
+          SIM_DATA="$HOME/Library/Developer/CoreSimulator/Devices/$UDID/data"
+          LOG=$(find "$SIM_DATA/Containers/Data/Application" -name "af_qa_logs.txt" 2>/dev/null | head -1)
+          echo "=== QA log: ${LOG:-not found} ==="
+          cat "$LOG" 2>/dev/null | head -200 || echo "(empty)"
+
+      - name: Dump simulator state and deep-link events (debug)
+        if: failure()
+        run: |
+          UDID="${IOS_SIMULATOR_UDID:-}"
+          if [[ -z "$UDID" ]]; then
+            echo "IOS_SIMULATOR_UDID unset; skipping deep-link triage dump"
+            exit 0
+          fi
+          echo "=== Booted simulators ==="
+          xcrun simctl list devices booted || true
+          echo "=== Installed apps for $UDID ==="
+          xcrun simctl listapps "$UDID" 2>/dev/null \
+            | grep -E "com.appsflyer|CFBundleURLSchemes|cordova|qa" || true
+          echo "=== Last 90s of simctl URL/launchservices events ==="
+          xcrun simctl spawn "$UDID" log show \
+            --last 90s --style compact 2>/dev/null \
+            | grep -E "Opening URL|openURL|launchservices|com.appsflyer|FrontBoard:Process" \
+            | tail -200 || true
+
       - name: Upload E2E reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ios-e2e-${{ github.run_number }}
           path: .af-e2e/reports/

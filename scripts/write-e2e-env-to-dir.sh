@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Write Cordova project-root `.env` before `cordova prepare` / `cordova build` (same idea as Flutter
-# writing the app `.env` inside the build driver). Called from e2e-cordova-build.sh and
+# Write Cordova project-root `.env` before `cordova prepare` / `cordova build` (CI uses
+# secrets.ENV_FILE the same way). Called from e2e-cordova-build.sh and
 # smoke-cordova-build.sh.
 #
 # Usage:

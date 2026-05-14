@@ -6,7 +6,7 @@
 # Runs .af-e2e/test-plan.json via scripts/af-scenario-runner.sh on an Android emulator.
 #
 # Triggers:
-# - workflow_call from e2e.yml or future rc-release.yml
+# - workflow_call from e2e.yml or rc-release.yml
 # - workflow_dispatch for manual reruns
 # - Weekly cron (Sunday 03:00 UTC); checks out default branch
 #
@@ -68,37 +68,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.event_name == 'schedule' && github.ref || (inputs.ref != '' && inputs.ref || github.ref) }}
 
-      # Speed up npm install (global cordova + E2E sibling) and Gradle wrapper / dependency downloads.
       - name: Cache npm downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.npm
           key: npm-cordova-e2e-${{ runner.os }}-${{ hashFiles('test-app/package.json') }}
           restore-keys: |
             npm-cordova-e2e-${{ runner.os }}-
 
-      - name: Cache Gradle user home
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-cordova-e2e-${{ runner.os }}-${{ hashFiles('test-app/package.json', 'test-app/config.xml') }}
-          restore-keys: |
-            gradle-cordova-e2e-${{ runner.os }}-
-
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
@@ -138,12 +128,10 @@ jobs:
         if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         run: |
           set -euo pipefail
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm-perms.rules
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules && sudo udevadm trigger || true
           sudo chgrp kvm /dev/kvm 2>/dev/null || true
           sudo chmod g+rwx /dev/kvm 2>/dev/null || true
-          # Runner user is often not in group `kvm`; group perms alone keep `-accel off` (TCG) and
-          # ~10m boots. World-writable /dev/kvm matches GitHub runner-image guidance so KVM works.
           sudo chmod 666 /dev/kvm 2>/dev/null || true
           ls -la /dev/kvm || true
 
@@ -158,22 +146,14 @@ jobs:
           target: google_apis
           avd-name: cordova-e2e
           force-avd-creation: true
-          # Prefer KVM; with `auto`, a missed `/dev/kvm` open falls back to TCG and ~10m boots.
           disable-linux-hw-accel: false
-          # Default action timeout is 600s — slow TCG boots burn the whole window. KVM cold boot
-          # is usually well under 5m; fail earlier if the guest never becomes ready.
           emulator-boot-timeout: 420
-          # Keep action defaults (gpu + no-boot-anim) and add DNS; overriding `emulator-options`
-          # replaces the default entirely — without `-gpu`/`-no-boot-anim` the guest is slower.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -dns-server 8.8.8.8,1.1.1.1
-          # reactivecircus/android-emulator-runner@v2 runs each newline-separated line of `script:` as its
-          # own `sh -c` invocation. Use a single `bash …/ci-android-e2e-scenario.sh` line (bash supports
-          # `set -o pipefail` inside the script; dash does not).
           script: bash "${GITHUB_WORKSPACE}/scripts/ci-android-e2e-scenario.sh"
 
       - name: Upload E2E reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: android-e2e-${{ github.run_number }}
           path: .af-e2e/reports/

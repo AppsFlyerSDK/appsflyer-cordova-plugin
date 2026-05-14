@@ -9,6 +9,9 @@
 # - workflow_call (e.g. future rc-release.yml quality gate)
 #
 # PR-triggered E2E: use e2e-pull-request.yml (pull_request cannot use inputs context).
+#
+# RC pipeline: rc-release.yml calls android-e2e.yml + ios-e2e.yml + lint-test-build.yml
+# (same reusable workflows as manual e2e.yml).
 # =============================================================================
 
 name: Android + iOS E2E

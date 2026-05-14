@@ -1,0 +1,315 @@
+# =============================================================================
+# RC Smoke — post-publish validation against npm RC (Cordova)
+# =============================================================================
+#
+# Fires when "RC Release" completes successfully, polls npm for the RC tarball,
+# runs .af-smoke/rc-test-plan.json via scripts/smoke-cordova-build.sh + runner,
+# and posts check_run **rc-smoke/npm** on the release branch head SHA.
+#
+# Post-publish smoke against the npm tarball; posts check_run rc-smoke/npm.
+# =============================================================================
+
+name: RC Smoke
+
+on:
+  workflow_run:
+    workflows: ['RC Release']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      rc_version:
+        description: 'Published RC version (X.Y.Z-rcN)'
+        required: true
+        type: string
+      release_branch:
+        description: 'Release branch (releases/...)'
+        required: true
+        type: string
+
+concurrency:
+  group: rc-smoke-${{ github.event.workflow_run.head_sha || github.event.inputs.release_branch }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  decide:
+    name: Decide if smoke should run
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+      rc_version: ${{ steps.gate.outputs.rc_version }}
+      release_branch: ${{ steps.gate.outputs.release_branch }}
+      head_sha: ${{ steps.gate.outputs.head_sha }}
+    steps:
+      - id: gate
+        env:
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+        run: |
+          set -eo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RC="${{ inputs.rc_version }}"
+            BR="${{ inputs.release_branch }}"
+          else
+            CONCLUSION="${{ github.event.workflow_run.conclusion }}"
+            if [ "$CONCLUSION" != "success" ]; then
+              echo "RC Release did not succeed (conclusion=$CONCLUSION). Skipping smoke."
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            RUN_ID="${{ github.event.workflow_run.id }}"
+            DRY=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq -r '.inputs.dry_run // ""')
+            if [ "$DRY" = "true" ]; then
+              echo "Parent RC Release was dry_run; skipping smoke."
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            EVENT="${{ github.event.workflow_run.event }}"
+            if [ "$EVENT" != "workflow_dispatch" ]; then
+              echo "Parent was not workflow_dispatch (event=$EVENT). Skipping smoke."
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            RC=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}" \
+              --jq -r '.inputs.plugin_version // empty')
+            if [[ -z "$RC" ]]; then
+              RC=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}" \
+                --jq -r '.display_title' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+' | head -1 || true)
+            fi
+            BR="${{ github.event.workflow_run.head_branch }}"
+          fi
+          if ! [[ "$RC" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+            echo "Invalid or missing RC version '$RC'. Skipping."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if ! [[ "$BR" =~ ^releases/ ]]; then
+            echo "Branch '$BR' is not a release branch. Skipping."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          HEAD_SHA=$(gh api "repos/${{ github.repository }}/git/ref/heads/${BR}" --jq '.object.sha')
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+          echo "rc_version=$RC" >> "$GITHUB_OUTPUT"
+          echo "release_branch=$BR" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+
+  resolve:
+    name: Poll npm for RC
+    needs: decide
+    if: ${{ needs.decide.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Wait for registry
+        env:
+          RC: ${{ needs.decide.outputs.rc_version }}
+        run: |
+          set -eo pipefail
+          deadline=$(( $(date +%s) + 900 ))
+          while true; do
+            if curl -fsSL "https://registry.npmjs.org/cordova-plugin-appsflyer-sdk/$RC" | jq -e '.version == "'"$RC"'"' > /dev/null; then
+              echo "Found cordova-plugin-appsflyer-sdk@$RC on npm."
+              break
+            fi
+            now=$(date +%s)
+            if [ "$now" -ge "$deadline" ]; then
+              echo "::error::Timed out waiting for $RC on npm"
+              exit 1
+            fi
+            sleep 30
+          done
+
+  smoke-android:
+    name: Android RC smoke
+    needs: [decide, resolve]
+    if: ${{ needs.decide.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.decide.outputs.release_branch }}
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: >-
+            platforms;android-34
+            platform-tools
+            build-tools;34.0.0
+
+      - run: npm install -g cordova
+
+      - name: Run smoke on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          SMOKE_PLUGIN_VERSION: ${{ needs.decide.outputs.rc_version }}
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          CORDOVA_E2E_ANDROID_JAVA_HOME: ${{ env.JAVA_HOME }}
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          avd-name: cordova-rc-smoke
+          force-avd-creation: true
+          disable-linux-hw-accel: false
+          emulator-boot-timeout: 420
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -dns-server 8.8.8.8,1.1.1.1
+          script: bash "${GITHUB_WORKSPACE}/scripts/ci-android-rc-smoke.sh"
+
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: rc-smoke-android-${{ github.run_number }}
+          path: .af-smoke/reports/
+          if-no-files-found: warn
+
+  smoke-ios:
+    name: iOS RC smoke
+    needs: [decide, resolve]
+    if: ${{ needs.decide.outputs.should_run == 'true' }}
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.decide.outputs.release_branch }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Select Xcode
+        run: |
+          XCODE=$(ls /Applications | grep -E "^Xcode_[0-9]" | sort -V | tail -1)
+          sudo xcode-select -s "/Applications/$XCODE"
+          xcodebuild -version
+
+      - name: Boot simulator (iOS 17/18 iPhone 15–17)
+        id: sim
+        run: |
+          xcrun simctl shutdown all || true
+          DEVICES_JSON=$(xcrun simctl list -j devices available)
+          UDID=$(echo "$DEVICES_JSON" | jq -r '
+            .devices
+            | to_entries
+            | map(select(.key | test("iOS-1[78]")))
+            | sort_by(.key) | reverse
+            | map(
+                . as $rt
+                | $rt.value
+                | map(select(.name | test("^iPhone 1[5-7]$")))
+                | first
+                | (if . then .udid else empty end)
+              )
+            | first // empty
+          ')
+          if [[ -z "$UDID" ]]; then
+            UDID=$(echo "$DEVICES_JSON" | jq -r '.devices[][] | select(.name | test("^iPhone")) | .udid' | head -1)
+          fi
+          [[ -z "$UDID" ]] && { echo "::error::No iPhone simulator"; exit 1; }
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "IOS_SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
+
+      - run: npm install -g cordova
+      - run: |
+          if ! command -v pod >/dev/null 2>&1; then
+            sudo gem install cocoapods -N
+          fi
+
+      - name: Run smoke on simulator
+        env:
+          SMOKE_PLUGIN_VERSION: ${{ needs.decide.outputs.rc_version }}
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          set -euo pipefail
+          cd "${GITHUB_WORKSPACE}"
+          chmod +x scripts/*.sh
+          ./scripts/af-scenario-runner.sh --platform ios --plan .af-smoke/rc-test-plan.json --build --verbose
+
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: rc-smoke-ios-${{ github.run_number }}
+          path: .af-smoke/reports/
+          if-no-files-found: warn
+
+  post-check-run:
+    name: Post rc-smoke/npm check
+    needs: [decide, smoke-android, smoke-ios]
+    if: ${{ always() && needs.decide.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: outcome
+        run: |
+          a="${{ needs.smoke-android.result }}"
+          i="${{ needs.smoke-ios.result }}"
+          if [ "$a" = "success" ] && [ "$i" = "success" ]; then
+            echo "conclusion=success" >> "$GITHUB_OUTPUT"
+          else
+            echo "conclusion=failure" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/github-script@v7
+        env:
+          HEAD_SHA: ${{ needs.decide.outputs.head_sha }}
+          CONCLUSION: ${{ steps.outcome.outputs.conclusion }}
+        with:
+          github-token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          script: |
+            const sha = process.env.HEAD_SHA;
+            const conclusion = process.env.CONCLUSION;
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'rc-smoke/npm',
+              head_sha: sha,
+              status: 'completed',
+              conclusion,
+              output: {
+                title: `rc-smoke/npm — ${conclusion}`,
+                summary: `Cordova RC smoke. Android: ${{ needs.smoke-android.result }} iOS: ${{ needs.smoke-ios.result }}`,
+              },
+            });
+
+  post-skipped-check:
+    name: Post rc-smoke/npm (skipped)
+    needs: decide
+    if: ${{ needs.decide.outputs.should_run == 'false' && github.event_name == 'workflow_run' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        if: ${{ github.event.workflow_run.head_sha != '' }}
+        with:
+          github-token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          script: |
+            const sha = "${{ github.event.workflow_run.head_sha }}";
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'rc-smoke/npm',
+              head_sha: sha,
+              status: 'completed',
+              conclusion: 'skipped',
+              output: {
+                title: 'rc-smoke/npm — skipped',
+                summary: 'RC Release did not publish an RC (dry-run or skipped smoke inputs).',
+              },
+            });

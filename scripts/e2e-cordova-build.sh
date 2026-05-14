@@ -10,7 +10,7 @@
 #
 # Env:
 #   ENV_FILE                 Multiline `.env` body (DEV_KEY=, APP_ID=). CI: set from GitHub secret on
-#                            this script’s environment (same pattern as Flutter E2E). Local: optional
+#                            this script’s environment (CI: GitHub secrets.ENV_FILE). Local: optional
 #                            if `.af-e2e/.env.local` or `test-app/.env` exists — see scripts/write-e2e-env-to-dir.sh.
 #   TEST_APP_E2E_COPY_DEST  Same as sync-test-app-e2e-copy.sh (must match .af-e2e paths if non-default)
 #   CORDOVA_E2E_ANDROID_JAVA_HOME  If set, used as JAVA_HOME for Android builds only (overrides auto-pick).

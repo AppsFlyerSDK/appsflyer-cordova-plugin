@@ -12,7 +12,7 @@
 # **This copy** is vendored in `appsflyer-cordova-plugin` from
 # `AppsFlyerSDK/appsflyer-mobile-plugin-tooling` (see `scripts/TOOLING_PIN.txt`).
 # Behaviour matches upstream; comments here are Cordova-first where log
-# sources differ (WebView / `cordova build` vs Flutter / `flutter build`).
+# sources differ (WebView / `cordova build` vs other native test hosts).
 #
 # Usage:
 #   ./af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json
@@ -231,7 +231,7 @@ android_collect_logs() {
   # logcat via Chromium/WebView (`console.log`), but a **file** mirror is still
   # the contract when you need the same markers as iOS `Documents/af_qa_logs.txt`.
   # Try `files/` first (typical for `cordova-plugin-file` / native helpers), then
-  # `app_flutter/` (kept for Flutter-style test apps that share this runner).
+  # `app_flutter/` (alternate app data layout some setups use with this runner).
   # `run-as` requires a **debug** build (e.g. `cordova build android --debug`).
   local found=0
   for path in files/af_qa_logs.txt app_flutter/af_qa_logs.txt; do
@@ -350,9 +350,9 @@ ios_collect_logs() {
   : > "$log_file"
 
   # Strategy 1: Read the app's af_qa_logs.txt from the simulator filesystem
-  # (test-app contract: `Documents/af_qa_logs.txt`). Same path for Cordova
-  # (native/file bridge) and Flutter (`af_qa_logger.dart`); the file is the
-  # reliable source of `[AF_QA]` because `simctl log show` alone misses many lines.
+  # (test-app contract: `Documents/af_qa_logs.txt`). Cordova uses the same path via
+  # the native/file bridge; the file is the reliable source of `[AF_QA]` because
+  # `simctl log show` alone misses many lines.
   local sim_data_dir
   sim_data_dir="$HOME/Library/Developer/CoreSimulator/Devices/${IOS_UDID}/data"
   if [[ -d "$sim_data_dir" ]]; then

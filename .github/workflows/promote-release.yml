@@ -1,0 +1,111 @@
+# =============================================================================
+# Promote release — strip -rcN after green rc-smoke/npm
+# =============================================================================
+#
+# Apply label **pass QA ready for deploy** on a PR from releases/** to master.
+# Verifies check_run **rc-smoke/npm** = success on the PR head SHA, then runs
+# scripts/rc-promote-strip-rc.sh and pushes.
+# =============================================================================
+
+name: Promote Release
+
+on:
+  pull_request:
+    types: [labeled]
+
+concurrency:
+  group: promote-release-${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Strip -rcN and ready PR for merge
+    if: ${{ github.event.label.name == 'pass QA ready for deploy' && startsWith(github.event.pull_request.head.ref, 'releases/') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Verify rc-smoke/npm on PR head
+        env:
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eo pipefail
+          STATUS=$(gh api "repos/${{ github.repository }}/commits/${HEAD_SHA}/check-runs" \
+            --jq '[.check_runs[] | select(.name=="rc-smoke/npm")] | sort_by(.completed_at) | last | .conclusion')
+          echo "rc-smoke/npm conclusion = $STATUS"
+          if [ "$STATUS" != "success" ]; then
+            gh pr comment ${{ github.event.pull_request.number }} \
+              --body "Promote blocked: \`rc-smoke/npm\` is \`$STATUS\` on the head commit. Re-run RC smoke or publish a new RC."
+            exit 1
+          fi
+
+      - name: Strip -rcN
+        id: ver
+        run: |
+          chmod +x scripts/rc-promote-strip-rc.sh
+          CUR=$(node -p "require('./package.json').version")
+          echo "current=$CUR" >> "$GITHUB_OUTPUT"
+          if ! [[ "$CUR" =~ ^([0-9]+\.[0-9]+\.[0-9]+)-rc[0-9]+$ ]]; then
+            if [[ "$CUR" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "promoted=$CUR" >> "$GITHUB_OUTPUT"
+              echo "needs_commit=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::error::Unexpected version: $CUR"
+            exit 1
+          fi
+          PROMOTED="${BASH_REMATCH[1]}"
+          echo "promoted=$PROMOTED" >> "$GITHUB_OUTPUT"
+          echo "needs_commit=true" >> "$GITHUB_OUTPUT"
+          ./scripts/rc-promote-strip-rc.sh "$PROMOTED"
+
+      - name: Commit and push
+        if: ${{ steps.ver.outputs.needs_commit == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+          else
+            git commit -m "chore: promote ${{ steps.ver.outputs.current }} -> ${{ steps.ver.outputs.promoted }}"
+            git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$BRANCH"
+          fi
+
+      - name: PR comment
+        env:
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "Promotion applied (package.json + plugin.xml version). Merge to **master** when ready for production publish."
+
+  notify-failure:
+    name: Slack (promote failure)
+    needs: promote
+    if: failure()
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "*Cordova promote-release failed*\nPR: ${{ github.event.pull_request.html_url }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
