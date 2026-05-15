@@ -43,7 +43,8 @@ Track adoption details in **`docs/SCENARIO_RUNNER_ADOPTION_WORKPLAN.md`**.
 |--------|-------------|
 | `ENV_FILE` | Multiline `.env` for E2E sibling + smoke (`DEV_KEY`, `APP_ID`) |
 | `CI_NPM_TOKEN` | `npm publish` in RC Release |
-| `CI_DEV_GITHUB_TOKEN` | Branch push, PR, prerelease, promote, `gh` in smoke |
+| `CI_DEV_GITHUB_TOKEN` | Branch push, PR, prerelease, promote; **`gh`** in RC Smoke gate (`decide` job) |
+| *(workflow)* `GITHUB_TOKEN` | **`rc-smoke/npm` check_run** (`post-check-run` / `post-skipped-check`): PAT cannot create check runs — must use Actions token with `checks: write` |
 
 ## Do not
 
