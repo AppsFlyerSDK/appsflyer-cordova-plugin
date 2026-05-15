@@ -2,7 +2,7 @@
   "_meta": {
     "plan_id": "cordova-rc-smoke",
     "plugin": "cordova",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "description": "Post-publish smoke plan for the AppsFlyer Cordova plugin. SMOKE-001..003 against test-app_rc_smoke/ (CI-synthesized; build_cmd runs scripts/smoke-cordova-build.sh which rsyncs test-app/ then pins cordova-plugin-appsflyer-sdk to the npm version from root package.json or SMOKE_PLUGIN_VERSION).",
     "platforms": [
       "android",
@@ -76,7 +76,7 @@
           "id": "http_200_count",
           "description": "At least 3 HTTP 200 responses from AppsFlyer servers",
           "type": "count_matches",
-          "pattern": "response code:200 OK|response_status=200",
+          "pattern": "response code:\\s*200(\\s*OK)?|response_status=200",
           "minimum": 3,
           "fail_action": "fail"
         },
@@ -105,12 +105,10 @@
       "deep_link_url": "afqa-cordova://deeplink?deep_link_value=qa_deeplink_bg&af_sub1=background_test&pid=testmedia&c=deeplink_test",
       "pre_actions": {
         "android": [
-          "adb shell input keyevent KEYCODE_HOME",
-          "sleep 2"
+          "adb shell \"am start -a android.intent.action.MAIN -c android.intent.category.HOME && sleep 2\""
         ],
         "ios": [
-          "xcrun simctl terminate {{UDID}} {{BUNDLE_ID}}",
-          "sleep 1"
+          "xcrun simctl terminate {{UDID}} {{BUNDLE_ID}} && sleep 2"
         ]
       },
       "trigger": {
@@ -155,12 +153,10 @@
       "deep_link_url": "afqa-cordova://deeplink?deep_link_value=qa_deeplink_fg&af_sub1=foreground_test&pid=testmedia&c=deeplink_test",
       "pre_actions": {
         "android": [
-          "adb shell am start -a android.intent.action.MAIN -c android.intent.category.HOME",
-          "sleep 1"
+          "adb shell \"am start -a android.intent.action.MAIN -c android.intent.category.HOME && sleep 2\""
         ],
         "ios": [
-          "xcrun simctl terminate {{UDID}} {{BUNDLE_ID}}",
-          "sleep 1"
+          "xcrun simctl terminate {{UDID}} {{BUNDLE_ID}} && sleep 2"
         ]
       },
       "trigger": {

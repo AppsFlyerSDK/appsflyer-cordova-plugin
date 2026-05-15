@@ -1,11 +1,33 @@
-# Cordova plugin: build E2E sibling app + optional af-scenario-runner on a booted iOS Simulator.
-# Trigger: workflow_dispatch (manual) or workflow_call (e.g. from rc-release in Phase 6).
+# =============================================================================
+# iOS E2E — integration tests (pre-publish)
+# =============================================================================
+#
+# Stage: RC-E2E.
+# Runs .af-e2e/test-plan.json via scripts/af-scenario-runner.sh on an iOS Simulator.
+#
+# Triggers:
+# - workflow_call from rc-release.yml
+# - workflow_dispatch for manual reruns
+# - Weekly cron (Sunday 02:00 UTC); checks out default branch
+#
+# Schedule note: `inputs` is undefined on `schedule`; expressions below avoid reading `inputs.*` on schedule.
+#
+# Simulator selection (iPhone 15–17 on iOS 17/18) avoids iOS 17.0 custom-scheme confirmation prompts in CI.
+# Do not `xcode-select` the newest Xcode_* on the image: it can break Swift/Pods simulator links (e.g. AppsFlyerLib).
+#
+# Secrets: ENV_FILE (multiline .env — see docs/github-actions-ENV_FILE.md).
+# =============================================================================
 
-name: iOS E2E (scenario runner)
+name: iOS E2E
 
 on:
   workflow_dispatch:
     inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out (default: workflow ref)'
+        required: false
+        type: string
+        default: ''
       run_scenarios:
         description: After a successful Cordova build, run af-scenario-runner on the simulator
         type: boolean
@@ -16,6 +38,11 @@ on:
         default: ''
   workflow_call:
     inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out. Defaults to the calling workflow ref.'
+        required: false
+        type: string
+        default: ''
       run_scenarios:
         type: boolean
         default: true
@@ -27,28 +54,55 @@ on:
     secrets:
       ENV_FILE:
         required: false
+  schedule:
+    - cron: '0 2 * * 0'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ios-e2e-${{ github.workflow }}-${{ github.ref }}
+  group: e2e-ios-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  ios-e2e:
-    runs-on: macos-14
+  e2e-ios:
+    name: E2E Tests (iOS)
+    runs-on: macos-15
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'schedule' && github.ref || (inputs.ref != '' && inputs.ref || github.ref) }}
+
+      - name: Cache npm downloads
+        uses: actions/cache@v5
+        with:
+          path: ~/.npm
+          key: npm-cordova-e2e-${{ runner.os }}-${{ hashFiles('test-app/package.json') }}
+          restore-keys: |
+            npm-cordova-e2e-${{ runner.os }}-
+
+      - name: Cache CocoaPods (specs + downloads)
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cocoapods
+            ~/Library/Caches/CocoaPods
+          key: cocoapods-cordova-e2e-${{ runner.os }}-${{ hashFiles('test-app/package.json', 'test-app/config.xml') }}
+          restore-keys: |
+            cocoapods-cordova-e2e-${{ runner.os }}-
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      - name: Xcode toolchain (runner default)
+        run: |
+          xcode-select -p
+          xcodebuild -version
+
       - name: Ensure CocoaPods
         run: |
-          set -euo pipefail
           if ! command -v pod >/dev/null 2>&1; then
             sudo gem install cocoapods -N
           fi
@@ -57,65 +111,106 @@ jobs:
       - name: Install Cordova CLI
         run: npm install -g cordova
 
-      - name: Write E2E sibling .env
+      - name: Build Cordova E2E (iOS)
         env:
           ENV_FILE: ${{ secrets.ENV_FILE }}
         run: |
           set -euo pipefail
-          PLUGIN_ROOT="${GITHUB_WORKSPACE}"
-          E2E_DIR="$(dirname "${PLUGIN_ROOT}")/$(basename "${PLUGIN_ROOT}")-e2e"
-          mkdir -p "${E2E_DIR}"
-          if [[ -z "${ENV_FILE:-}" ]]; then
-            echo "::notice::ENV_FILE secret is unset; scenario phases that need DEV_KEY/APP_ID will fail until the repository (or caller) secret is configured."
-          else
-            printf '%s\n' "${ENV_FILE}" > "${E2E_DIR}/.env"
-          fi
-
-      - name: Build Cordova E2E (iOS)
-        run: |
-          set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
           chmod +x scripts/*.sh
+          if [[ -z "${ENV_FILE:-}" ]]; then
+            echo "::notice::ENV_FILE secret is unset; scenario phases that need DEV_KEY/APP_ID will fail until the repository (or caller) secret is configured."
+          fi
           ./scripts/e2e-cordova-build.sh ios
 
-      - name: Shutdown simulators and boot iPhone
-        if: ${{ inputs.run_scenarios }}
+      - name: Boot iOS simulator (iPhone 15–17, iOS 17/18)
+        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         run: |
-          set -euo pipefail
           xcrun simctl shutdown all || true
-          UDID="$(
-            xcrun simctl list devices available -j | jq -r '
-              [(.devices // {}) | to_entries[] | .value[]
-                | select(.isAvailable == true and ((.name // "") | contains("iPhone")))]
-              | if length == 0 then "" else .[0].udid end'
-          )"
+          DEVICES_JSON=$(xcrun simctl list -j devices available)
+          UDID=$(echo "$DEVICES_JSON" | jq -r '
+            .devices
+            | to_entries
+            | map(select(.key | test("iOS-1[78]")))
+            | sort_by(.key) | reverse
+            | map(
+                . as $rt
+                | $rt.value
+                | map(select(.name | test("^iPhone 1[5-7]$")))
+                | first
+                | (if . then {udid, runtime: $rt.key, name} else empty end)
+              )
+            | first // empty
+            | .udid // empty
+          ')
+          if [[ -z "$UDID" ]]; then
+            echo "No iPhone 15/16/17 on iOS 17/18 found; falling back to first available iPhone."
+            UDID=$(echo "$DEVICES_JSON" | jq -r '.devices[][] | select(.name | test("^iPhone")) | .udid' | head -1)
+          fi
           if [[ -z "${UDID}" ]]; then
             echo "::error::No available iPhone simulator"
             xcrun simctl list devices available
             exit 1
           fi
-          echo "Booting ${UDID}"
-          xcrun simctl boot "${UDID}"
-          xcrun simctl bootstatus "${UDID}" -b
+          echo "Selected simulator UDID: $UDID"
+          echo "$DEVICES_JSON" | jq -r --arg u "$UDID" '
+            .devices | to_entries[] | . as $rt
+            | $rt.value[] | select(.udid == $u)
+            | "Runtime: \($rt.key)  Device: \(.name)"
+          '
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          echo "IOS_SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
 
-      - name: Run af-scenario-runner (iOS)
-        if: ${{ inputs.run_scenarios }}
+      - name: Run iOS E2E
+        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         env:
-          SCENARIO_PHASE: ${{ inputs.scenario_phase }}
+          SCENARIO_PHASE: ${{ github.event_name != 'schedule' && inputs.scenario_phase || '' }}
         run: |
-          set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
           chmod +x scripts/*.sh
-          PHASE_ARGS=()
-          if [[ -n "${SCENARIO_PHASE:-}" ]]; then
-            PHASE_ARGS=(--phase "${SCENARIO_PHASE}")
+          if [ -n "${SCENARIO_PHASE:-}" ]; then
+            ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json --phase "${SCENARIO_PHASE}"
+          else
+            ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json
           fi
-          ./scripts/af-scenario-runner.sh --platform ios --plan .af-e2e/test-plan.json --verbose "${PHASE_ARGS[@]:-}"
 
-      - name: Upload af-scenario-runner reports
+      - name: Dump iOS QA log file (debug)
         if: always()
-        uses: actions/upload-artifact@v4
+        run: |
+          UDID="${IOS_SIMULATOR_UDID:-}"
+          if [[ -z "$UDID" ]]; then
+            echo "IOS_SIMULATOR_UDID unset; skipping QA file dump"
+            exit 0
+          fi
+          SIM_DATA="$HOME/Library/Developer/CoreSimulator/Devices/$UDID/data"
+          LOG=$(find "$SIM_DATA/Containers/Data/Application" -name "af_qa_logs.txt" 2>/dev/null | head -1)
+          echo "=== QA log: ${LOG:-not found} ==="
+          cat "$LOG" 2>/dev/null | head -200 || echo "(empty)"
+
+      - name: Dump simulator state and deep-link events (debug)
+        if: failure()
+        run: |
+          UDID="${IOS_SIMULATOR_UDID:-}"
+          if [[ -z "$UDID" ]]; then
+            echo "IOS_SIMULATOR_UDID unset; skipping deep-link triage dump"
+            exit 0
+          fi
+          echo "=== Booted simulators ==="
+          xcrun simctl list devices booted || true
+          echo "=== Installed apps for $UDID ==="
+          xcrun simctl listapps "$UDID" 2>/dev/null \
+            | grep -E "com.appsflyer|CFBundleURLSchemes|cordova|qa" || true
+          echo "=== Last 90s of simctl URL/launchservices events ==="
+          xcrun simctl spawn "$UDID" log show \
+            --last 90s --style compact 2>/dev/null \
+            | grep -E "Opening URL|openURL|launchservices|com.appsflyer|FrontBoard:Process" \
+            | tail -200 || true
+
+      - name: Upload E2E reports
+        if: always()
+        uses: actions/upload-artifact@v5
         with:
-          name: af-e2e-reports-ios-${{ github.run_id }}
+          name: ios-e2e-${{ github.run_number }}
           path: .af-e2e/reports/
           if-no-files-found: warn

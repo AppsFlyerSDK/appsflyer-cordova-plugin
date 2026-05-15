@@ -9,6 +9,9 @@
 #   ./scripts/e2e-cordova-build.sh ios run          # build + install/launch on simulator
 #
 # Env:
+#   ENV_FILE                 Multiline `.env` body (DEV_KEY=, APP_ID=). CI: set from GitHub secret on
+#                            this script’s environment (CI: GitHub secrets.ENV_FILE). Local: optional
+#                            if `.af-e2e/.env.local` or `test-app/.env` exists — see scripts/write-e2e-env-to-dir.sh.
 #   TEST_APP_E2E_COPY_DEST  Same as sync-test-app-e2e-copy.sh (must match .af-e2e paths if non-default)
 #   CORDOVA_E2E_ANDROID_JAVA_HOME  If set, used as JAVA_HOME for Android builds only (overrides auto-pick).
 #   CORDOVA_E2E_RESPECT_JAVA_HOME  If set to 1, do not change JAVA_HOME for Android (Gradle may still use
@@ -97,6 +100,8 @@ if [[ -n "${TEST_APP_E2E_COPY_DEST:-}" ]]; then
 else
   DEST="$(cat "${ROOT}/.af-e2e/e2e_copy_dest.txt")"
 fi
+
+"${ROOT}/scripts/write-e2e-env-to-dir.sh" "$DEST" "$ROOT"
 
 cd "$DEST"
 npm install

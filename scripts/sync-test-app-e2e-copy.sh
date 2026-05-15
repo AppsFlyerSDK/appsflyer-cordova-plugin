@@ -61,3 +61,6 @@ mkdir -p "${ROOT}/.af-e2e"
 echo "${DEST}" > "${ROOT}/.af-e2e/e2e_copy_dest.txt"
 
 echo "[sync-test-app-e2e-copy] ${ROOT}/test-app/ → ${DEST}"
+if [[ ! -f "${DEST}/.env" ]]; then
+  echo "[sync-test-app-e2e-copy] hint: no ${DEST}/.env yet — run ./scripts/e2e-cordova-build.sh (writes .env via write-e2e-env-to-dir), or ./scripts/bootstrap-e2e-env.sh for a template-only sibling .env."
+fi

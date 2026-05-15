@@ -2,7 +2,7 @@
   "_meta": {
     "plan_id": "cordova-e2e",
     "plugin": "cordova",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "description": "End-to-end test plan for the AppsFlyer Cordova plugin. build_cmd syncs test-app/ to a sibling directory (../appsflyer-cordova-plugin-e2e by default) then builds with file: plugin path. Covers E2E-001..E2E-006 per appsflyer-mobile-plugin-tooling/contracts/e2e-test-contract.md.",
     "platforms": [
       "android",
@@ -104,7 +104,7 @@
           "id": "http_200_count",
           "description": "At least 3 HTTP 200 responses from AppsFlyer servers",
           "type": "count_matches",
-          "pattern": "response code:200 OK|response_status=200",
+          "pattern": "response code:\\s*200(\\s*OK)?|response_status=200",
           "minimum": 3,
           "fail_action": "fail"
         },
@@ -134,18 +134,16 @@
       "id": "phase_2",
       "name": "Background deep link",
       "scenario_ref": "E2E-002",
-      "description": "App is brought down after Phase 1 SDK start; the deep-link URL re-launches it. On Android the app is HOME-keyed to background and re-entered via VIEW intent. On iOS the app is terminated and re-launched with `-deepLinkURL <url>`, which the Cordova app's URL handler / AppDelegate hook (same deep link pipeline as production) \u2014 same SDK pipeline as a real custom-scheme open, but without iOS 17/18-simulator's 'Open in <App>?' confirmation prompt that `simctl openurl` triggers and that nothing in a non-interactive CI run can dismiss. Both paths fire onDeepLinking with Status.FOUND.",
+      "description": "App is brought down after Phase 1 SDK start; the deep-link URL re-launches it. On Android the app is sent to the background by starting the default launcher (`ACTION_MAIN` + `CATEGORY_HOME`) with **2s on-device dwell** in one `adb shell` compound — then re-entered via VIEW intent. On iOS the app is terminated with **`simctl terminate` then `sleep 2` on the same shell line** (runner `eval`) so the process fully tears down before `-deepLinkURL` relaunch; avoids a separate host-only `sleep` that can race the trigger. Same SDK pipeline as a real custom-scheme open without iOS 17/18-simulator's `simctl openurl` confirmation prompt. Both paths fire onDeepLinking with Status.FOUND.",
       "requires_fresh_install": false,
       "wait_after_trigger_sec": 90,
       "deep_link_url": "afqa-cordova://deeplink?deep_link_value=qa_deeplink_bg&af_sub1=background_test&pid=testmedia&c=deeplink_test",
       "pre_actions": {
         "android": [
-          "adb shell input keyevent KEYCODE_HOME",
-          "sleep 2"
+          "adb shell \"am start -a android.intent.action.MAIN -c android.intent.category.HOME && sleep 2\""
         ],
         "ios": [
-          "xcrun simctl terminate {{UDID}} {{BUNDLE_ID}}",
-          "sleep 1"
+          "xcrun simctl terminate {{UDID}} {{BUNDLE_ID}} && sleep 2"
         ]
       },
       "trigger": {
@@ -183,19 +181,17 @@
       "id": "phase_3",
       "name": "Foreground deep link",
       "scenario_ref": "E2E-003",
-      "description": "Fresh install. App is in foreground after SDK start. On Android a brief HOME switch triggers onPause and the VIEW intent brings the app back. On iOS the app is terminated and re-launched with `-deepLinkURL <url>` (same launch-arg path as phase_2), since `simctl openurl` against a running iOS-simulator app still triggers the 'Open in <App>?' confirmation prompt; the foreground-vs-killed distinction is Android-only. Both paths fire onDeepLinking with Status.FOUND.",
+      "description": "Fresh install. App is in foreground after SDK start. On Android a brief switch to the default launcher (`ACTION_MAIN` + `CATEGORY_HOME`) triggers `onPause` without killing the process; the same **2 second on-device dwell** as E2E phase_2 (gesture-navigation friendly) runs before the VIEW deep-link intent brings the app back. On iOS **`simctl terminate` + `sleep 2`** on one shell line (same as phase_2), then `-deepLinkURL` relaunch; `simctl openurl` against a running simulator still triggers the 'Open in <App>?' prompt. The foreground-vs-killed distinction is Android-only. Both paths fire onDeepLinking with Status.FOUND.",
       "requires_fresh_install": true,
       "wait_after_launch_sec": 240,
       "wait_after_trigger_sec": 90,
       "deep_link_url": "afqa-cordova://deeplink?deep_link_value=qa_deeplink_fg&af_sub1=foreground_test&pid=testmedia&c=deeplink_test",
       "pre_actions": {
         "android": [
-          "adb shell am start -a android.intent.action.MAIN -c android.intent.category.HOME",
-          "sleep 1"
+          "adb shell \"am start -a android.intent.action.MAIN -c android.intent.category.HOME && sleep 2\""
         ],
         "ios": [
-          "xcrun simctl terminate {{UDID}} {{BUNDLE_ID}}",
-          "sleep 1"
+          "xcrun simctl terminate {{UDID}} {{BUNDLE_ID}} && sleep 2"
         ]
       },
       "trigger": {
@@ -287,7 +283,7 @@
           "id": "custom_event_http_200",
           "description": "Custom event request returns HTTP 200",
           "type": "count_matches",
-          "pattern": "response code:200 OK|response_status=200",
+          "pattern": "response code:\\s*200(\\s*OK)?|response_status=200",
           "minimum": 1,
           "fail_action": "fail"
         },
@@ -361,7 +357,7 @@
           "id": "identity_event_http_200",
           "description": "Identity check event receives HTTP 200",
           "type": "count_matches",
-          "pattern": "response code:200 OK|response_status=200",
+          "pattern": "response code:\\s*200(\\s*OK)?|response_status=200",
           "minimum": 1,
           "fail_action": "fail"
         }
@@ -403,7 +399,7 @@
           "id": "resumed_event_http_200",
           "description": "After stop(false), af_qa_resumed produces HTTP 200",
           "type": "count_matches",
-          "pattern": "response code:200 OK|response_status=200",
+          "pattern": "response code:\\s*200(\\s*OK)?|response_status=200",
           "minimum": 1,
           "fail_action": "fail"
         },

@@ -1,12 +1,31 @@
-# Cordova plugin: build E2E sibling app + optional af-scenario-runner on an Android emulator.
-# Mirrors Flutter appsflyer-flutter-plugin android-e2e layout (KVM, DNS, nslookup, ENV_FILE → sibling .env).
-# Trigger: workflow_dispatch (manual) or workflow_call (e.g. from rc-release in Phase 6).
+# =============================================================================
+# Android E2E — integration tests (pre-publish)
+# =============================================================================
+#
+# Stage: RC-E2E
+# Runs .af-e2e/test-plan.json via scripts/af-scenario-runner.sh on an Android emulator.
+#
+# Triggers:
+# - workflow_call from rc-release.yml
+# - workflow_dispatch for manual reruns
+# - Weekly cron (Sunday 03:00 UTC); checks out default branch
+#
+# Schedule note: `inputs` is undefined on `schedule`, so checkout / step `if` / SCENARIO_PHASE avoid
+# reading `inputs.*` unless the event is not `schedule` (see expressions below).
+#
+# Secrets: ENV_FILE (multiline .env — see docs/github-actions-ENV_FILE.md).
+# =============================================================================
 
-name: Android E2E (scenario runner)
+name: Android E2E
 
 on:
   workflow_dispatch:
     inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out (default: workflow ref)'
+        required: false
+        type: string
+        default: ''
       run_scenarios:
         description: After a successful Cordova build, run af-scenario-runner on the emulator
         type: boolean
@@ -17,6 +36,11 @@ on:
         default: ''
   workflow_call:
     inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out. Defaults to the calling workflow ref.'
+        required: false
+        type: string
+        default: ''
       run_scenarios:
         type: boolean
         default: true
@@ -28,29 +52,43 @@ on:
     secrets:
       ENV_FILE:
         required: false
+  schedule:
+    - cron: '0 3 * * 0'
 
 permissions:
   contents: read
 
 concurrency:
-  group: android-e2e-${{ github.workflow }}-${{ github.ref }}
+  group: e2e-android-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  android-e2e:
+  e2e-android:
+    name: E2E Tests (Android)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'schedule' && github.ref || (inputs.ref != '' && inputs.ref || github.ref) }}
+
+      - name: Cache npm downloads
+        uses: actions/cache@v5
+        with:
+          path: ~/.npm
+          key: npm-cordova-e2e-${{ runner.os }}-${{ hashFiles('test-app/package.json') }}
+          restore-keys: |
+            npm-cordova-e2e-${{ runner.os }}-
 
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
@@ -63,27 +101,17 @@ jobs:
       - name: Install Cordova CLI
         run: npm install -g cordova
 
-      - name: Write E2E sibling .env
-        env:
-          ENV_FILE: ${{ secrets.ENV_FILE }}
-        run: |
-          set -euo pipefail
-          PLUGIN_ROOT="${GITHUB_WORKSPACE}"
-          E2E_DIR="$(dirname "${PLUGIN_ROOT}")/$(basename "${PLUGIN_ROOT}")-e2e"
-          mkdir -p "${E2E_DIR}"
-          if [[ -z "${ENV_FILE:-}" ]]; then
-            echo "::notice::ENV_FILE secret is unset; scenario phases that need DEV_KEY/APP_ID will fail until the repository (or caller) secret is configured."
-          else
-            printf '%s\n' "${ENV_FILE}" > "${E2E_DIR}/.env"
-          fi
-
       - name: Build Cordova E2E (Android)
         env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
           CORDOVA_E2E_ANDROID_JAVA_HOME: ${{ env.JAVA_HOME }}
         run: |
           set -euo pipefail
           cd "${GITHUB_WORKSPACE}"
           chmod +x scripts/*.sh
+          if [[ -z "${ENV_FILE:-}" ]]; then
+            echo "::notice::ENV_FILE secret is unset; scenario phases that need DEV_KEY/APP_ID will fail until the repository (or caller) secret is configured."
+          fi
           ./scripts/e2e-cordova-build.sh android
 
       # Some `ubuntu-latest` runner images ship `/dev/kvm` owned by group
@@ -97,43 +125,36 @@ jobs:
       # the fix recommended by GitHub's actions/runner-images team and
       # the one printed by the action's own diagnostic message.
       - name: Enable KVM group perms (Linux emulator)
-        if: ${{ inputs.run_scenarios }}
+        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         run: |
           set -euo pipefail
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm-perms.rules
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules && sudo udevadm trigger || true
           sudo chgrp kvm /dev/kvm 2>/dev/null || true
           sudo chmod g+rwx /dev/kvm 2>/dev/null || true
+          sudo chmod 666 /dev/kvm 2>/dev/null || true
+          ls -la /dev/kvm || true
 
-      - name: Run af-scenario-runner (Android)
-        if: ${{ inputs.run_scenarios }}
+      - name: Run Android E2E
+        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          SCENARIO_PHASE: ${{ inputs.scenario_phase }}
+          SCENARIO_PHASE: ${{ github.event_name != 'schedule' && inputs.scenario_phase || '' }}
         with:
           api-level: 34
           arch: x86_64
           target: google_apis
           avd-name: cordova-e2e
           force-avd-creation: true
-          emulator-options: -no-window -no-snapshot -no-audio -dns-server 8.8.8.8,1.1.1.1
-          script: |
-            set -euo pipefail
-            cd "${GITHUB_WORKSPACE}"
-            chmod +x scripts/*.sh
-            nslookup appsflyersdk.com || true
-            adb devices
-            PHASE_ARGS=()
-            if [[ -n "${SCENARIO_PHASE:-}" ]]; then
-              PHASE_ARGS=(--phase "${SCENARIO_PHASE}")
-            fi
-            ./scripts/af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json --verbose "${PHASE_ARGS[@]:-}" \
-              || ./scripts/dump-android-logs.sh
+          disable-linux-hw-accel: false
+          emulator-boot-timeout: 420
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -dns-server 8.8.8.8,1.1.1.1
+          script: bash "${GITHUB_WORKSPACE}/scripts/ci-android-e2e-scenario.sh"
 
-      - name: Upload af-scenario-runner reports
+      - name: Upload E2E reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: af-e2e-reports-android-${{ github.run_id }}
+          name: android-e2e-${{ github.run_number }}
           path: .af-e2e/reports/
           if-no-files-found: warn

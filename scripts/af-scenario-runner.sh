@@ -12,7 +12,7 @@
 # **This copy** is vendored in `appsflyer-cordova-plugin` from
 # `AppsFlyerSDK/appsflyer-mobile-plugin-tooling` (see `scripts/TOOLING_PIN.txt`).
 # Behaviour matches upstream; comments here are Cordova-first where log
-# sources differ (WebView / `cordova build` vs Flutter / `flutter build`).
+# sources differ (WebView / `cordova build` vs other native test hosts).
 #
 # Usage:
 #   ./af-scenario-runner.sh --platform android --plan .af-e2e/test-plan.json
@@ -219,7 +219,9 @@ android_get_pid() {
 
 android_collect_logs() {
   local log_file="$1"
-  local tail_lines="${ANDROID_LOGCAT_TAIL_LINES:-2000}"
+  # Long Cordova/WebView sessions can push native SDK HTTP lines out of a short
+  # tail; CI emulators are also chatty. Override with ANDROID_LOGCAT_TAIL_LINES.
+  local tail_lines="${ANDROID_LOGCAT_TAIL_LINES:-8000}"
 
   # Always start from an empty file so each phase capture is self-contained.
   : > "$log_file"
@@ -229,7 +231,7 @@ android_collect_logs() {
   # logcat via Chromium/WebView (`console.log`), but a **file** mirror is still
   # the contract when you need the same markers as iOS `Documents/af_qa_logs.txt`.
   # Try `files/` first (typical for `cordova-plugin-file` / native helpers), then
-  # `app_flutter/` (kept for Flutter-style test apps that share this runner).
+  # `app_flutter/` (alternate app data layout some setups use with this runner).
   # `run-as` requires a **debug** build (e.g. `cordova build android --debug`).
   local found=0
   for path in files/af_qa_logs.txt app_flutter/af_qa_logs.txt; do
@@ -247,14 +249,17 @@ android_collect_logs() {
 
   # Strategy 2: Always also append logcat. Picks up AppsFlyer native SDK lines
   # (HTTP response codes, etc.), Cordova/Chromium **`[AF_QA]`** `console.log`
-  # output, and other markers used by `count_matches`. Limit to the recent tail
-  # so CI does not dump the whole emulator buffer every phase.
-  adb logcat -d -t "$tail_lines" 2>&1 | grep -E "${LOG_TAG}|AppsFlyer|chromium|Console|Cordova|WebView|response code:|preparing data:" >> "$log_file" || true
+  # output, and other markers used by `count_matches`. Use **-i** and spellings
+  # aligned with iOS collection: some Android builds log `appsflyer` / AFLogger
+  # tags or `response_status=` without the exact `response code:200 OK` substring
+  # on the same line as the `AppsFlyer` brand string — a case-only `AppsFlyer`
+  # filter drops them entirely.
+  adb logcat -d -t "$tail_lines" 2>&1 | grep -Ei "${LOG_TAG}|AppsFlyer|appsflyer|AF-AFLogger|chromium|Console|Cordova|WebView|response code|response_status|preparing data:" >> "$log_file" || true
 }
 
 android_background_app() {
-  log_info "Backgrounding app (HOME key)..."
-  adb shell input keyevent KEYCODE_HOME
+  log_info "Backgrounding app (launcher HOME intent + 2s on device)..."
+  adb shell "am start -a android.intent.action.MAIN -c android.intent.category.HOME && sleep 2"
 }
 
 android_trigger_deeplink() {
@@ -345,9 +350,9 @@ ios_collect_logs() {
   : > "$log_file"
 
   # Strategy 1: Read the app's af_qa_logs.txt from the simulator filesystem
-  # (test-app contract: `Documents/af_qa_logs.txt`). Same path for Cordova
-  # (native/file bridge) and Flutter (`af_qa_logger.dart`); the file is the
-  # reliable source of `[AF_QA]` because `simctl log show` alone misses many lines.
+  # (test-app contract: `Documents/af_qa_logs.txt`). Cordova uses the same path via
+  # the native/file bridge; the file is the reliable source of `[AF_QA]` because
+  # `simctl log show` alone misses many lines.
   local sim_data_dir
   sim_data_dir="$HOME/Library/Developer/CoreSimulator/Devices/${IOS_UDID}/data"
   if [[ -d "$sim_data_dir" ]]; then
@@ -590,7 +595,9 @@ validate_check() {
       local minimum
       minimum=$(echo "$check_json" | jq -r '.minimum // 1')
       local count
-      count=$(grep -cE "$pattern" "$log_file" 2>/dev/null || echo "0")
+      count=$(grep -cE "$pattern" "$log_file" 2>/dev/null || true)
+      count=$(printf '%s' "$count" | tr -d '\n\r')
+      [[ "$count" =~ ^[0-9]+$ ]] || count=0
       if [[ "$count" -ge "$minimum" ]]; then
         echo "{\"status\":\"PASS\",\"evidence\":\"Found ${count} matches (minimum: ${minimum})\"}"
       else
@@ -606,7 +613,12 @@ validate_check() {
       while IFS= read -r forbidden_pattern; do
         forbidden_pattern=$(echo "$forbidden_pattern" | jq -r '.')
         local found
-        found=$(grep -F "$forbidden_pattern" "$log_file" 2>/dev/null | head -1 || true)
+        # `response code:4` / `:5` substring-match unrelated vendor noise (e.g. `response code:590`).
+        if [[ "$forbidden_pattern" == "response code:4" || "$forbidden_pattern" == "response code:5" ]]; then
+          found=$(grep -Ei 'appsflyer|\[AF_QA\]|appsflyersdk' "$log_file" 2>/dev/null | grep -F "$forbidden_pattern" | head -1 || true)
+        else
+          found=$(grep -F "$forbidden_pattern" "$log_file" 2>/dev/null | head -1 || true)
+        fi
         if [[ -n "$found" ]]; then
           status="FAIL"
           evidence="Forbidden pattern found: ${forbidden_pattern} -> $(echo "$found" | head -c 200)"
@@ -694,6 +706,11 @@ run_phase() {
     # sleeping the full ceiling. Use a slower interval here because each ADB
     # `run-as cat` is costly on GitHub's emulator.
     wait_for_qa_marker "[AF_QA][AUTO_APIS] --- Auto run complete ---" "$wait_sec" 10
+    # Native HTTP success lines sometimes land slightly after the JS file marker.
+    if [[ "$PLATFORM" == "android" ]]; then
+      log_info "Android: brief settle after auto-run marker before deep link / log capture..."
+      sleep 5
+    fi
   fi
 
   # Pre-actions (deep link phases: background the app, etc.)

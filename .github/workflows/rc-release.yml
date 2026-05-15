@@ -1,0 +1,357 @@
+# =============================================================================
+# RC Release — pre-publish pipeline (Cordova plugin)
+# =============================================================================
+#
+# Manual dispatch: validates inputs, cuts releases/x.x.x/... branch, runs
+# lint-test-build + iOS/Android E2E on that branch, publishes npm --tag QA,
+# opens PR to master, optional Slack.
+#
+# Downstream: rc-smoke.yml (workflow_run) posts check_run rc-smoke/npm.
+# Promote: promote-release.yml after smoke + label.
+#
+# Secrets: CI_DEV_GITHUB_TOKEN, CI_NPM_TOKEN, ENV_FILE (E2E), CI_SLACK_WEBHOOK_URL (optional)
+# =============================================================================
+
+name: RC Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_branch:
+        description: 'Base branch to cut the release from'
+        required: true
+        type: string
+        default: master
+      plugin_version:
+        description: 'Plugin RC version (X.Y.Z-rcN)'
+        required: true
+        type: string
+      ios_sdk_version:
+        description: 'iOS native AppsFlyer SDK (X.Y.Z)'
+        required: true
+        type: string
+      android_sdk_version:
+        description: 'Android native AppsFlyer SDK (X.Y.Z)'
+        required: true
+        type: string
+      skip_unit:
+        description: 'Skip lint (JSHint) + skip build jobs in lint-test-build'
+        required: false
+        type: boolean
+        default: false
+      skip_builds:
+        description: 'Skip Android + iOS build jobs inside lint-test-build'
+        required: false
+        type: boolean
+        default: false
+      skip_e2e:
+        description: 'Skip iOS + Android E2E (allowed only with dry_run=true)'
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Skip npm publish + GitHub prerelease + PR (rehearsal)'
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: rc-release-${{ github.workflow }}-${{ github.event.inputs.plugin_version }}
+  cancel-in-progress: false
+
+env:
+  VERSION_REGEX: '^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$'
+  SDK_VERSION_REGEX: '^[0-9]+\.[0-9]+\.[0-9]+$'
+
+jobs:
+  validate-release:
+    name: Validate inputs
+    runs-on: ubuntu-latest
+    outputs:
+      release_branch: ${{ steps.compute.outputs.release_branch }}
+      tag_name: ${{ steps.compute.outputs.tag_name }}
+    steps:
+      - name: Validate version regexes
+        env:
+          PLUGIN_VERSION: ${{ inputs.plugin_version }}
+          IOS_SDK_VERSION: ${{ inputs.ios_sdk_version }}
+          ANDROID_SDK_VERSION: ${{ inputs.android_sdk_version }}
+        run: |
+          if ! [[ "$PLUGIN_VERSION" =~ $VERSION_REGEX ]]; then
+            echo "Plugin version '$PLUGIN_VERSION' does not match $VERSION_REGEX"
+            exit 1
+          fi
+          if ! [[ "$IOS_SDK_VERSION" =~ $SDK_VERSION_REGEX ]]; then
+            echo "iOS SDK version '$IOS_SDK_VERSION' does not match $SDK_VERSION_REGEX"
+            exit 1
+          fi
+          if ! [[ "$ANDROID_SDK_VERSION" =~ $SDK_VERSION_REGEX ]]; then
+            echo "Android SDK version '$ANDROID_SDK_VERSION' does not match $SDK_VERSION_REGEX"
+            exit 1
+          fi
+          echo "Inputs OK"
+      - id: compute
+        env:
+          PLUGIN_VERSION: ${{ inputs.plugin_version }}
+        run: |
+          MAJOR=$(echo "$PLUGIN_VERSION" | cut -d'.' -f1)
+          MINOR=$(echo "$PLUGIN_VERSION" | cut -d'.' -f2)
+          PATCH=$(echo "$PLUGIN_VERSION" | cut -d'.' -f3 | cut -d'-' -f1)
+          BRANCH="releases/${MAJOR}.x.x/${MAJOR}.${MINOR}.x/${PLUGIN_VERSION}"
+          TAG="v${PLUGIN_VERSION}"
+          echo "release_branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Release branch: $BRANCH  tag: $TAG"
+
+  prepare-branch:
+    name: RC-PREP — bump versions and push branch
+    needs: validate-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.base_branch }}
+          token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Setup Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Create release branch
+        run: |
+          BRANCH="${{ needs.validate-release.outputs.release_branch }}"
+          if git ls-remote --exit-code --heads origin "$BRANCH"; then
+            echo "Branch $BRANCH already exists; checking out"
+            git fetch origin "$BRANCH"
+            git checkout -B "$BRANCH" "origin/$BRANCH"
+          else
+            git checkout -b "$BRANCH"
+          fi
+
+      - name: Bump plugin + native SDK versions
+        run: |
+          chmod +x scripts/rc-update-cordova-versions.sh
+          ./scripts/rc-update-cordova-versions.sh \
+            "${{ inputs.plugin_version }}" \
+            "${{ inputs.ios_sdk_version }}" \
+            "${{ inputs.android_sdk_version }}"
+
+      - name: Commit and push
+        env:
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+        run: |
+          BRANCH="${{ needs.validate-release.outputs.release_branch }}"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: bump to ${{ inputs.plugin_version }} (RC prep, CI)"
+          fi
+          git push -u "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$BRANCH"
+
+  run-ci:
+    name: Lint, Test & Build
+    needs: [validate-release, prepare-branch]
+    if: ${{ needs.prepare-branch.result == 'success' }}
+    uses: ./.github/workflows/lint-test-build.yml
+    with:
+      skip_unit: ${{ inputs.skip_unit }}
+      skip_builds: ${{ inputs.skip_builds }}
+    secrets: inherit
+
+  run-e2e-ios:
+    name: iOS E2E
+    needs: [validate-release, prepare-branch]
+    if: ${{ inputs.skip_e2e != true }}
+    uses: ./.github/workflows/ios-e2e.yml
+    with:
+      ref: ${{ needs.validate-release.outputs.release_branch }}
+      run_scenarios: true
+      scenario_phase: ''
+    secrets: inherit
+
+  run-e2e-android:
+    name: Android E2E
+    needs: [validate-release, prepare-branch]
+    if: ${{ inputs.skip_e2e != true }}
+    uses: ./.github/workflows/android-e2e.yml
+    with:
+      ref: ${{ needs.validate-release.outputs.release_branch }}
+      run_scenarios: true
+      scenario_phase: ''
+    secrets: inherit
+
+  pre-publish-gate:
+    name: Pre-publish gate
+    needs:
+      - validate-release
+      - prepare-branch
+      - run-ci
+      - run-e2e-ios
+      - run-e2e-android
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify gates
+        run: |
+          set -euo pipefail
+          ci_result="${{ needs.run-ci.result }}"
+          ios_result="${{ needs.run-e2e-ios.result }}"
+          android_result="${{ needs.run-e2e-android.result }}"
+          fail=0
+          for pair in "ci:$ci_result" "ios:$ios_result" "android:$android_result"; do
+            name="${pair%%:*}"
+            res="${pair##*:}"
+            case "$res" in
+              success|skipped) echo "$name: $res" ;;
+              *) echo "::error::$name gate failed: $res"; fail=1 ;;
+            esac
+          done
+          if [[ "$fail" -ne 0 ]]; then exit 1; fi
+          if [[ "${{ inputs.skip_e2e }}" == "true" && "${{ inputs.dry_run }}" != "true" ]]; then
+            echo "::error::skip_e2e is only allowed when dry_run=true"
+            exit 1
+          fi
+
+  publish-rc:
+    name: RC-PUBLISH — npm publish --tag QA
+    needs: [validate-release, pre-publish-gate]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      published: ${{ steps.publish.outputs.published }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.validate-release.outputs.release_branch }}
+          token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm install
+
+      - id: publish
+        name: Publish RC to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.CI_NPM_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "Dry run: npm publish --dry-run"
+            npm publish --tag QA --access public --dry-run
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          else
+            npm publish --tag QA --access public
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  create-prerelease-tag:
+    name: Create GitHub prerelease
+    needs: [validate-release, publish-rc]
+    if: ${{ inputs.dry_run != true && needs.publish-rc.outputs.published == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          script: |
+            const tag = "${{ needs.validate-release.outputs.tag_name }}";
+            const branch = "${{ needs.validate-release.outputs.release_branch }}";
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              target_commitish: branch,
+              name: tag,
+              prerelease: true,
+              generate_release_notes: false,
+              body: `RC \`${tag}\` on npm (\`QA\` tag). Wait for \`rc-smoke/npm\`, then apply promote label.`,
+            });
+
+  open-pr:
+    name: Open PR to master
+    needs: [validate-release, publish-rc]
+    if: ${{ inputs.dry_run != true && needs.publish-rc.outputs.published == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.validate-release.outputs.release_branch }}
+          token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+      - name: Open or update PR
+        env:
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          BRANCH: ${{ needs.validate-release.outputs.release_branch }}
+          VERSION: ${{ inputs.plugin_version }}
+        run: |
+          existing=$(gh pr list --head "$BRANCH" --base master --json number,state --jq '.[] | select(.state=="OPEN") | .number' | head -1)
+          body=$(cat <<EOF
+          Auto-generated PR for RC \`$VERSION\`.
+
+          Pipeline checks:
+          - Lint, Test & Build
+          - iOS E2E / Android E2E
+          - \`rc-smoke/npm\` (after npm publish)
+
+          When QA approves, apply label **pass QA ready for deploy** (see promote-release.yml).
+          EOF
+          )
+          if [[ -z "$existing" ]]; then
+            gh pr create --base master --head "$BRANCH" --title "Release $VERSION" --body "$body"
+          else
+            gh pr edit "$existing" --body "$body" --title "Release $VERSION"
+          fi
+
+  notify-team:
+    name: Notify Slack
+    needs:
+      - validate-release
+      - prepare-branch
+      - publish-rc
+      - pre-publish-gate
+      - run-e2e-ios
+      - run-e2e-android
+      - run-ci
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summarize
+        id: s
+        run: |
+          echo "ci=${{ needs.run-ci.result }}" >> "$GITHUB_OUTPUT"
+          echo "ios=${{ needs.run-e2e-ios.result }}" >> "$GITHUB_OUTPUT"
+          echo "android=${{ needs.run-e2e-android.result }}" >> "$GITHUB_OUTPUT"
+          echo "gate=${{ needs.pre-publish-gate.result }}" >> "$GITHUB_OUTPUT"
+          echo "publish=${{ needs.publish-rc.result }}" >> "$GITHUB_OUTPUT"
+
+      - name: Slack (optional)
+        continue-on-error: true
+        if: ${{ inputs.dry_run != true }}
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "*Cordova RC* `${{ inputs.plugin_version }}`\n• CI: ${{ steps.s.outputs.ci }}\n• iOS E2E: ${{ steps.s.outputs.ios }}\n• Android E2E: ${{ steps.s.outputs.android }}\n• Gate: ${{ steps.s.outputs.gate }}\n• Publish: ${{ steps.s.outputs.publish }}\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}

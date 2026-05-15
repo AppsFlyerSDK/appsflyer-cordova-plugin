@@ -15,12 +15,18 @@
   "devDependencies": {
     "cordova-android": "^13.0.0",
     "cordova-ios": "^7.1.1",
-    "cordova-plugin-appsflyer-sdk": "file:.."
+    "cordova-plugin-appsflyer-sdk": "file:..",
+    "cordova-plugin-customurlscheme": "^5.0.2",
+    "cordova-plugin-file": "^8.1.0"
   },
   "cordova": {
     "platforms": [],
     "plugins": {
-      "cordova-plugin-appsflyer-sdk": {}
+      "cordova-plugin-appsflyer-sdk": {},
+      "cordova-plugin-file": {},
+      "cordova-plugin-customurlscheme": {
+        "URL_SCHEME": "afqa-cordova"
+      }
     }
   }
 }

@@ -23,6 +23,8 @@ examples/cordova-unit-tests-app/platforms/
 # Scenario runner + contract test app (secrets & machine-local reports)
 .env
 .env.local
+# Same multiline body as GitHub Actions secret ENV_FILE (DEV_KEY=, APP_ID=); never commit.
+.af-e2e/.env.local
 .af-e2e/reports/
 .af-smoke/reports/
 

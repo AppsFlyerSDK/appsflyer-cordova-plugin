@@ -9,6 +9,7 @@
 #   ./scripts/smoke-cordova-build.sh ios run
 #
 # Env:
+#   ENV_FILE                       Same as e2e-cordova-build.sh — written to test-app_rc_smoke/.env before build.
 #   SMOKE_PLUGIN_VERSION           Passed to sync-test-app-rc-smoke.sh (default: root package.json version).
 #   CORDOVA_E2E_ANDROID_JAVA_HOME  Android: same semantics as e2e-cordova-build.sh (optional JDK pin).
 #   CORDOVA_E2E_RESPECT_JAVA_HOME  Android: same as e2e script.
@@ -88,6 +89,8 @@ stop_android_gradle_daemon_if_present() {
 
 export SMOKE_PLUGIN_VERSION="${SMOKE_PLUGIN_VERSION:-}"
 "${ROOT}/scripts/sync-test-app-rc-smoke.sh"
+
+"${ROOT}/scripts/write-e2e-env-to-dir.sh" "$DEST" "$ROOT"
 
 cd "$DEST"
 npm install

@@ -3,3 +3,4 @@ platforms/
 plugins/
 .env
 .env.local
+www/af-qa-env.js
