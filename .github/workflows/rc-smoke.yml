@@ -60,7 +60,7 @@ jobs:
               exit 0
             fi
             RUN_ID="${{ github.event.workflow_run.id }}"
-            DRY=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq -r '.inputs.dry_run // ""')
+            DRY=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}" | jq -r '.inputs.dry_run // ""')
             if [ "$DRY" = "true" ]; then
               echo "Parent RC Release was dry_run; skipping smoke."
               echo "should_run=false" >> "$GITHUB_OUTPUT"
@@ -73,10 +73,10 @@ jobs:
               exit 0
             fi
             RC=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}" \
-              --jq -r '.inputs.plugin_version // empty')
+              | jq -r '.inputs.plugin_version // empty')
             if [[ -z "$RC" ]]; then
               RC=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}" \
-                --jq -r '.display_title' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+' | head -1 || true)
+                | jq -r '.display_title' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+' | head -1 || true)
             fi
             BR="${{ github.event.workflow_run.head_branch }}"
           fi
@@ -90,7 +90,7 @@ jobs:
             echo "should_run=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          HEAD_SHA=$(gh api "repos/${{ github.repository }}/git/ref/heads/${BR}" --jq '.object.sha')
+          HEAD_SHA=$(gh api "repos/${{ github.repository }}/git/ref/heads/${BR}" | jq -r '.object.sha')
           echo "should_run=true" >> "$GITHUB_OUTPUT"
           echo "rc_version=$RC" >> "$GITHUB_OUTPUT"
           echo "release_branch=$BR" >> "$GITHUB_OUTPUT"
