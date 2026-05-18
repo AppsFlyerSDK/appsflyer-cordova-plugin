@@ -9,7 +9,8 @@
 # Downstream: rc-smoke.yml (workflow_run) posts check_run rc-smoke/npm.
 # Promote: promote-release.yml after smoke + label.
 #
-# Secrets: CI_DEV_GITHUB_TOKEN, CI_NPM_TOKEN, ENV_FILE (E2E), CI_SLACK_WEBHOOK_URL (optional)
+# Secrets: CI_DEV_GITHUB_TOKEN, ENV_FILE (E2E), CI_SLACK_WEBHOOK_URL (optional)
+# npm publish: npm-publish-package.yml (OIDC; register that file on npm trusted publishing)
 # =============================================================================
 
 name: RC Release
@@ -225,39 +226,15 @@ jobs:
   publish-rc:
     name: RC-PUBLISH — npm publish --tag QA
     needs: [validate-release, pre-publish-gate]
-    runs-on: ubuntu-latest
     permissions:
-      contents: write
-    outputs:
-      published: ${{ steps.publish.outputs.published }}
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ needs.validate-release.outputs.release_branch }}
-          token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: npm install
-
-      - id: publish
-        name: Publish RC to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.CI_NPM_TOKEN }}
-          DRY_RUN: ${{ inputs.dry_run }}
-        run: |
-          if [[ "$DRY_RUN" == "true" ]]; then
-            echo "Dry run: npm publish --dry-run"
-            npm publish --tag QA --access public --dry-run
-            echo "published=false" >> "$GITHUB_OUTPUT"
-          else
-            npm publish --tag QA --access public
-            echo "published=true" >> "$GITHUB_OUTPUT"
-          fi
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/npm-publish-package.yml
+    with:
+      checkout_ref: ${{ needs.validate-release.outputs.release_branch }}
+      npm_dist_tag: QA
+      dry_run: ${{ inputs.dry_run }}
+      access: public
 
   create-prerelease-tag:
     name: Create GitHub prerelease

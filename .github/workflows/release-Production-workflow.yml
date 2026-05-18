@@ -1,3 +1,4 @@
+# Production release on merge to master. npm publish via npm-publish-package.yml (OIDC).
 name: Release plugin to production
 
 on:
@@ -15,9 +16,13 @@ on:
       - 'testsScripts/**'
       - 'docs/**'
 jobs:
-  Deploy-To-Production:
+  deploy:
+    name: Deploy-To-Production
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    outputs:
+      plugin_version: ${{ steps.meta.outputs.plugin_version }}
+      release_branch_name: ${{ steps.meta.outputs.release_branch_name }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -39,11 +44,15 @@ jobs:
         id: vars
         with:
           repo-token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
-      - name: Determine release tag and release branch
+      - id: meta
+        name: Determine release tag and release branch
         run: |
-          TAG=$(echo "${{ steps.vars.outputs.branch }}" | grep -Eo '[0-9].[0-9]+.[0-9]+')
-          echo "PLUGIN_VERSION=$TAG" >> $GITHUB_ENV
-          echo "RELEASE_BRANCH_NAME=${{ steps.vars.outputs.branch }}" >> $GITHUB_ENV
+          TAG=$(echo "${{ steps.vars.outputs.branch }}" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+          BRANCH="${{ steps.vars.outputs.branch }}"
+          echo "PLUGIN_VERSION=$TAG" >> "$GITHUB_ENV"
+          echo "RELEASE_BRANCH_NAME=$BRANCH" >> "$GITHUB_ENV"
+          echo "plugin_version=$TAG" >> "$GITHUB_OUTPUT"
+          echo "release_branch_name=$BRANCH" >> "$GITHUB_OUTPUT"
           echo "push new release >> $TAG"
 
       - name: "Create release"
@@ -66,17 +75,33 @@ jobs:
             } catch (error) {
               core.setFailed(error.message);
             }
-      - name: Push to NPM
-        env:
-          CI_NPM_TOKEN: ${{ secrets.CI_NPM_TOKEN }}
-        run: |
-          echo "//registry.npmjs.org/:_authToken=$CI_NPM_TOKEN" > ~/.npmrc
-          npm publish
+  publish-npm:
+    name: Publish to npm (OIDC)
+    needs: deploy
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/npm-publish-package.yml
+    with:
+      checkout_ref: ${{ github.sha }}
+      npm_dist_tag: latest
+      dry_run: false
+      access: public
+
+  notify-slack:
+    name: Notify Slack
+    needs: [deploy, publish-npm]
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
 
       - name: Generate Slack payload
         env:
-          PLUGIN_VERSION: ${{ env.PLUGIN_VERSION }}
-          RELEASE_BRANCH_NAME: ${{ env.RELEASE_BRANCH_NAME }}
+          PLUGIN_VERSION: ${{ needs.deploy.outputs.plugin_version }}
+          RELEASE_BRANCH_NAME: ${{ needs.deploy.outputs.release_branch_name }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
