@@ -249,18 +249,20 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-          BRANCH: ${{ needs.validate-release.outputs.release_branch }}
+          # workflow_dispatch must exist on this ref (default branch). Publish sources from release branch.
+          WORKFLOW_REF: ${{ github.event.repository.default_branch }}
+          GIT_REF: ${{ needs.validate-release.outputs.release_branch }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
-          PREV="$(gh run list --workflow=npm-publish-oidc.yml --branch "$BRANCH" --limit 1 --json databaseId -q '.[0].databaseId // empty')"
-          gh workflow run npm-publish-oidc.yml --ref "$BRANCH" \
-            -f "git_ref=$BRANCH" \
+          PREV="$(gh run list --workflow=npm-publish-oidc.yml --branch "$WORKFLOW_REF" --limit 1 --json databaseId -q '.[0].databaseId // empty')"
+          gh workflow run npm-publish-oidc.yml --ref "$WORKFLOW_REF" \
+            -f "git_ref=$GIT_REF" \
             -f "dist_tag=QA" \
             -f "dry_run=$DRY_RUN"
           run_id=""
           for _ in $(seq 1 120); do
-            cur="$(gh run list --workflow=npm-publish-oidc.yml --branch "$BRANCH" --limit 1 --json databaseId -q '.[0].databaseId // empty')"
+            cur="$(gh run list --workflow=npm-publish-oidc.yml --branch "$WORKFLOW_REF" --limit 1 --json databaseId -q '.[0].databaseId // empty')"
             if [[ -n "$cur" && "$cur" != "$PREV" ]]; then
               run_id="$cur"
               break
@@ -268,7 +270,7 @@ jobs:
             sleep 2
           done
           if [[ -z "$run_id" ]]; then
-            echo "::error::Timed out waiting for npm-publish-oidc.yml run to appear on branch $BRANCH"
+            echo "::error::Timed out waiting for npm-publish-oidc.yml run on $WORKFLOW_REF"
             exit 1
           fi
           gh run watch "$run_id" --exit-status

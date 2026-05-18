@@ -26,7 +26,7 @@
     <description>Cordova Plugin AppsFlyer</description>
     <license>Apache 2.0</license>
     <keywords>cordova,appsflyer</keywords>
-    <repo>https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk.git</repo>
+    <repo>https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin.git</repo>
     <engines>
         <engine name="cordova" version=">=4.3.0"/>
     </engines>

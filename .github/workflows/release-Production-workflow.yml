@@ -82,16 +82,17 @@ jobs:
       - name: Dispatch npm OIDC publish workflow and wait
         env:
           GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          WORKFLOW_REF: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
-          PREV="$(gh run list --workflow=npm-publish-oidc.yml --branch master --limit 1 --json databaseId -q '.[0].databaseId // empty')"
-          gh workflow run npm-publish-oidc.yml --ref master \
+          PREV="$(gh run list --workflow=npm-publish-oidc.yml --branch "$WORKFLOW_REF" --limit 1 --json databaseId -q '.[0].databaseId // empty')"
+          gh workflow run npm-publish-oidc.yml --ref "$WORKFLOW_REF" \
             -f "git_ref=${{ github.sha }}" \
             -f "dist_tag=latest" \
             -f "dry_run=false"
           run_id=""
           for _ in $(seq 1 120); do
-            cur="$(gh run list --workflow=npm-publish-oidc.yml --branch master --limit 1 --json databaseId -q '.[0].databaseId // empty')"
+            cur="$(gh run list --workflow=npm-publish-oidc.yml --branch "$WORKFLOW_REF" --limit 1 --json databaseId -q '.[0].databaseId // empty')"
             if [[ -n "$cur" && "$cur" != "$PREV" ]]; then
               run_id="$cur"
               break
@@ -99,7 +100,7 @@ jobs:
             sleep 2
           done
           if [[ -z "$run_id" ]]; then
-            echo "::error::Timed out waiting for npm-publish-oidc.yml run on master"
+            echo "::error::Timed out waiting for npm-publish-oidc.yml run on $WORKFLOW_REF"
             exit 1
           fi
           gh run watch "$run_id" --exit-status
