@@ -9,7 +9,8 @@
 # Downstream: rc-smoke.yml (workflow_run) posts check_run rc-smoke/npm.
 # Promote: promote-release.yml after smoke + label.
 #
-# Secrets: CI_DEV_GITHUB_TOKEN, CI_NPM_TOKEN, ENV_FILE (E2E), CI_SLACK_WEBHOOK_URL (optional)
+# Secrets: CI_DEV_GITHUB_TOKEN, ENV_FILE (E2E), CI_SLACK_WEBHOOK_URL (optional)
+# npm publish: npm-publish-oidc.yml via workflow_dispatch (register that file on npm trusted publishing)
 # =============================================================================
 
 name: RC Release
@@ -227,35 +228,58 @@ jobs:
     needs: [validate-release, pre-publish-gate]
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      id-token: write
     outputs:
-      published: ${{ steps.publish.outputs.published }}
+      published: ${{ steps.set-publish-out.outputs.published }}
     steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ needs.validate-release.outputs.release_branch }}
-          token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: npm install
-
-      - id: publish
-        name: Publish RC to npm
+      - name: Assert npm OIDC workflow is active
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.CI_NPM_TOKEN }}
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          state="$(gh api "repos/${GH_REPO}/actions/workflows/npm-publish-oidc.yml" --jq '.state' 2>/dev/null || echo "missing")"
+          if [ "$state" != "active" ]; then
+            echo "::error::npm-publish-oidc.yml is not active on the default branch (state=$state)."
+            exit 1
+          fi
+
+      - name: Dispatch npm OIDC publish workflow and wait
+        env:
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH: ${{ needs.validate-release.outputs.release_branch }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
-          if [[ "$DRY_RUN" == "true" ]]; then
-            echo "Dry run: npm publish --dry-run"
-            npm publish --tag QA --access public --dry-run
+          set -euo pipefail
+          PREV="$(gh run list --workflow=npm-publish-oidc.yml --branch "$BRANCH" --limit 1 --json databaseId -q '.[0].databaseId // empty')"
+          gh workflow run npm-publish-oidc.yml --ref "$BRANCH" \
+            -f "git_ref=$BRANCH" \
+            -f "dist_tag=QA" \
+            -f "dry_run=$DRY_RUN"
+          run_id=""
+          for _ in $(seq 1 120); do
+            cur="$(gh run list --workflow=npm-publish-oidc.yml --branch "$BRANCH" --limit 1 --json databaseId -q '.[0].databaseId // empty')"
+            if [[ -n "$cur" && "$cur" != "$PREV" ]]; then
+              run_id="$cur"
+              break
+            fi
+            sleep 2
+          done
+          if [[ -z "$run_id" ]]; then
+            echo "::error::Timed out waiting for npm-publish-oidc.yml run to appear on branch $BRANCH"
+            exit 1
+          fi
+          gh run watch "$run_id" --exit-status
+
+      - name: Set published output
+        id: set-publish-out
+        if: success()
+        run: |
+          if ${{ inputs.dry_run }}; then
             echo "published=false" >> "$GITHUB_OUTPUT"
           else
-            npm publish --tag QA --access public
             echo "published=true" >> "$GITHUB_OUTPUT"
           fi
 

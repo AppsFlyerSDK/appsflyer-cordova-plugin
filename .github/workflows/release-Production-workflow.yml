@@ -66,28 +66,83 @@ jobs:
             } catch (error) {
               core.setFailed(error.message);
             }
-      - name: Push to NPM
-        env:
-          CI_NPM_TOKEN: ${{ secrets.CI_NPM_TOKEN }}
-        run: |
-          echo "//registry.npmjs.org/:_authToken=$CI_NPM_TOKEN" > ~/.npmrc
-          npm publish
 
-      - name: Generate and send slack report
+      - name: Assert npm OIDC workflow is active
         env:
-          SLACK_TOKEN: ${{ secrets.CI_SLACK_TOKEN }}
-          RELEASE_BRACH_NAME: ${{env.RELEASE_BRANCH_NAME}}
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          CHANGES=$(awk -v ver="${{ env.PLUGIN_VERSION }}" '
+          set -euo pipefail
+          state="$(gh api "repos/${GH_REPO}/actions/workflows/npm-publish-oidc.yml" --jq '.state' 2>/dev/null || echo "missing")"
+          if [ "$state" != "active" ]; then
+            echo "::error::npm-publish-oidc.yml is not active on the default branch (state=$state)."
+            exit 1
+          fi
+
+      - name: Dispatch npm OIDC publish workflow and wait
+        env:
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          PREV="$(gh run list --workflow=npm-publish-oidc.yml --branch master --limit 1 --json databaseId -q '.[0].databaseId // empty')"
+          gh workflow run npm-publish-oidc.yml --ref master \
+            -f "git_ref=${{ github.sha }}" \
+            -f "dist_tag=latest" \
+            -f "dry_run=false"
+          run_id=""
+          for _ in $(seq 1 120); do
+            cur="$(gh run list --workflow=npm-publish-oidc.yml --branch master --limit 1 --json databaseId -q '.[0].databaseId // empty')"
+            if [[ -n "$cur" && "$cur" != "$PREV" ]]; then
+              run_id="$cur"
+              break
+            fi
+            sleep 2
+          done
+          if [[ -z "$run_id" ]]; then
+            echo "::error::Timed out waiting for npm-publish-oidc.yml run on master"
+            exit 1
+          fi
+          gh run watch "$run_id" --exit-status
+
+      - name: Generate Slack payload
+        env:
+          PLUGIN_VERSION: ${{ env.PLUGIN_VERSION }}
+          RELEASE_BRANCH_NAME: ${{ env.RELEASE_BRANCH_NAME }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          CHANGES=$(awk -v ver="${PLUGIN_VERSION}" '
             $0 ~ "^## " ver "$" { in_section=1; next }
             in_section && /^## / { exit }
             in_section { print }
           ' RELEASENOTES.md | sed '/^[[:space:]]*$/d')
           if [ -z "$CHANGES" ]; then
-            echo "Missing release notes for version ${{ env.PLUGIN_VERSION }} in RELEASENOTES.md"
+            echo "Missing release notes for version ${PLUGIN_VERSION} in RELEASENOTES.md"
             exit 1
           fi
-          android_sdk_version=$(cat README.md | grep 'Android AppsFlyerSDK' | grep -Eo '[0-9].[0-9]+.[0-9]+')
-          ios_sdk_version=$(cat README.md | grep 'iOS AppsFlyerSDK' | grep -Eo  '[0-9].[0-9]+.[0-9]+')
-          curl -X POST -H 'Content-type: application/json' --data '{"jira_fixed_version": "'"${{env.PLUGIN_VERSION}}"'", "deploy_type": "Production", "install_tag": "latest", "git_branch": "'"$RELEASE_BRACH_NAME"'", "changes_and_fixes": "'"$CHANGES"'", "android_dependency": "'"$android_sdk_version"'", "ios_dependency": "'"$ios_sdk_version"'"}' "$SLACK_TOKEN"
+          android_sdk_version=$(grep 'Android AppsFlyerSDK' README.md | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          ios_sdk_version=$(grep 'iOS AppsFlyerSDK' README.md | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          jq -n \
+            --arg ver "$PLUGIN_VERSION" \
+            --arg branch "$RELEASE_BRANCH_NAME" \
+            --arg android "$android_sdk_version" \
+            --arg ios "$ios_sdk_version" \
+            --arg url "$RUN_URL" \
+            --arg changes "$CHANGES" \
+            '{text: (
+              "*Cordova Production* `" + $ver + "`\n" +
+              "• Branch: `" + $branch + "`\n" +
+              "• Install tag: `latest` (Production)\n" +
+              "• Android AppsFlyerSDK: `" + $android + "`\n" +
+              "• iOS AppsFlyerSDK: `" + $ios + "`\n" +
+              "• Changes:\n```\n" + $changes + "\n```\n" +
+              "• Run: " + $url
+            )}' > slack-payload.json
 
+      - name: Slack (optional)
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload-file-path: slack-payload.json
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
