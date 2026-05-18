@@ -24,7 +24,7 @@
 
     "type": "git",
 
-    "url": "git+https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin.git"
+    "url": "https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin.git"
 
   },
 
