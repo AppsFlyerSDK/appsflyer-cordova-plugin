@@ -1,0 +1,85 @@
+# Single workflow file for npm trusted publishing (OIDC). npm allows one trusted
+# publisher workflow name per package. RC and production entry workflows trigger
+# this file via workflow_dispatch so the executing workflow matches npm config.
+# See https://docs.npmjs.com/trusted-publishers#troubleshooting (workflow_call caveat).
+
+name: npm publish (OIDC)
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        description: 'Git ref (branch or SHA) to checkout and publish from'
+        required: true
+        type: string
+      dist_tag:
+        description: 'npm dist-tag (QA for RC; latest for production default tag)'
+        required: true
+        type: string
+      dry_run:
+        description: 'If true, run npm publish --dry-run only'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: npm-publish-oidc-${{ inputs.git_ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to npm (OIDC + provenance)
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.git_ref }}
+          token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Ensure npm supports OIDC trusted publishing
+        run: |
+          set -euo pipefail
+          npm install -g 'npm@^11.5.1'
+          echo "node $(node --version)"
+          NPM_VERSION="$(npm --version)"
+          echo "npm ${NPM_VERSION}"
+          export NPM_VERSION
+          node -e 'const version = process.env.NPM_VERSION || ""; const parts = version.split(".").map(Number); const ok = parts[0] > 11 || (parts[0] === 11 && (parts[1] > 5 || (parts[1] === 5 && parts[2] >= 1))); if (!ok) { console.error("npm " + version + " is too old for OIDC trusted publishing; need >=11.5.1"); process.exit(1); }'
+
+      - name: Install plugin dependencies
+        run: npm install
+
+      - name: Strip token auth from npm configs
+        run: |
+          set -euo pipefail
+          for file in ".npmrc" "$HOME/.npmrc" "${NPM_CONFIG_USERCONFIG:-}"; do
+            if [ -n "$file" ] && [ -f "$file" ]; then
+              sed -i '/_authToken=/d' "$file"
+              sed -i '/^always-auth=/d' "$file"
+            fi
+          done
+
+      - name: Publish to npm
+        run: |
+          set -euo pipefail
+          : "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:?missing OIDC env - id-token: write probably not granted}"
+          : "${ACTIONS_ID_TOKEN_REQUEST_URL:?missing OIDC env - id-token: write probably not granted}"
+          args=(--access public --provenance)
+          if [ "${{ inputs.dist_tag }}" != "latest" ]; then
+            args+=(--tag "${{ inputs.dist_tag }}")
+          fi
+          if ${{ inputs.dry_run }}; then
+            echo "Dry run; not publishing to the registry."
+            npm publish "${args[@]}" --dry-run
+          else
+            npm publish "${args[@]}"
+          fi

@@ -1,4 +1,3 @@
-# Production release on merge to master. npm publish via npm-publish-package.yml (OIDC).
 name: Release plugin to production
 
 on:
@@ -16,13 +15,9 @@ on:
       - 'testsScripts/**'
       - 'docs/**'
 jobs:
-  deploy:
-    name: Deploy-To-Production
+  Deploy-To-Production:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    outputs:
-      plugin_version: ${{ steps.meta.outputs.plugin_version }}
-      release_branch_name: ${{ steps.meta.outputs.release_branch_name }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -44,15 +39,11 @@ jobs:
         id: vars
         with:
           repo-token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
-      - id: meta
-        name: Determine release tag and release branch
+      - name: Determine release tag and release branch
         run: |
-          TAG=$(echo "${{ steps.vars.outputs.branch }}" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
-          BRANCH="${{ steps.vars.outputs.branch }}"
-          echo "PLUGIN_VERSION=$TAG" >> "$GITHUB_ENV"
-          echo "RELEASE_BRANCH_NAME=$BRANCH" >> "$GITHUB_ENV"
-          echo "plugin_version=$TAG" >> "$GITHUB_OUTPUT"
-          echo "release_branch_name=$BRANCH" >> "$GITHUB_OUTPUT"
+          TAG=$(echo "${{ steps.vars.outputs.branch }}" | grep -Eo '[0-9].[0-9]+.[0-9]+')
+          echo "PLUGIN_VERSION=$TAG" >> $GITHUB_ENV
+          echo "RELEASE_BRANCH_NAME=${{ steps.vars.outputs.branch }}" >> $GITHUB_ENV
           echo "push new release >> $TAG"
 
       - name: "Create release"
@@ -75,33 +66,48 @@ jobs:
             } catch (error) {
               core.setFailed(error.message);
             }
-  publish-npm:
-    name: Publish to npm (OIDC)
-    needs: deploy
-    permissions:
-      id-token: write
-      contents: read
-    uses: ./.github/workflows/npm-publish-package.yml
-    with:
-      checkout_ref: ${{ github.sha }}
-      npm_dist_tag: latest
-      dry_run: false
-      access: public
 
-  notify-slack:
-    name: Notify Slack
-    needs: [deploy, publish-npm]
-    if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          ref: ${{ github.sha }}
+      - name: Assert npm OIDC workflow is active
+        env:
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          state="$(gh api "repos/${GH_REPO}/actions/workflows/npm-publish-oidc.yml" --jq '.state' 2>/dev/null || echo "missing")"
+          if [ "$state" != "active" ]; then
+            echo "::error::npm-publish-oidc.yml is not active on the default branch (state=$state)."
+            exit 1
+          fi
+
+      - name: Dispatch npm OIDC publish workflow and wait
+        env:
+          GH_TOKEN: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          PREV="$(gh run list --workflow=npm-publish-oidc.yml --branch master --limit 1 --json databaseId -q '.[0].databaseId // empty')"
+          gh workflow run npm-publish-oidc.yml --ref master \
+            -f "git_ref=${{ github.sha }}" \
+            -f "dist_tag=latest" \
+            -f "dry_run=false"
+          run_id=""
+          for _ in $(seq 1 120); do
+            cur="$(gh run list --workflow=npm-publish-oidc.yml --branch master --limit 1 --json databaseId -q '.[0].databaseId // empty')"
+            if [[ -n "$cur" && "$cur" != "$PREV" ]]; then
+              run_id="$cur"
+              break
+            fi
+            sleep 2
+          done
+          if [[ -z "$run_id" ]]; then
+            echo "::error::Timed out waiting for npm-publish-oidc.yml run on master"
+            exit 1
+          fi
+          gh run watch "$run_id" --exit-status
 
       - name: Generate Slack payload
         env:
-          PLUGIN_VERSION: ${{ needs.deploy.outputs.plugin_version }}
-          RELEASE_BRANCH_NAME: ${{ needs.deploy.outputs.release_branch_name }}
+          PLUGIN_VERSION: ${{ env.PLUGIN_VERSION }}
+          RELEASE_BRANCH_NAME: ${{ env.RELEASE_BRANCH_NAME }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail

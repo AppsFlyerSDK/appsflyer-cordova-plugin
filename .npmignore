@@ -1,7 +1,16 @@
-examples
+examples/
+tests/
+testsScripts/
+docs/
+.github/
+.claude/
+.cursor/
+.idea/
+.af-e2e/
+.af-smoke/
 # Automation shell lives inside the plugin repo; excluding it from npm pack prevents
 # Cordova from copying test-app/ into plugins/.../test-app/... (infinite path / ENAMETOOLONG).
 test-app/
 test-app_rc_smoke/
-.cursor/
-.idea/
+RELEASENOTES.md
+.travis.yml

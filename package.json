@@ -24,7 +24,7 @@
 
     "type": "git",
 
-    "url": "git+https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk.git"
+    "url": "git+https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin.git"
 
   },
 
@@ -66,11 +66,11 @@
 
   "bugs": {
 
-    "url": "https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/issues"
+    "url": "https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin/issues"
 
   },
 
-  "homepage": "https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk#readme",
+  "homepage": "https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin#readme",
 
   "scripts": {
 

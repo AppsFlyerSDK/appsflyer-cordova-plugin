@@ -6,7 +6,7 @@ description: >-
   or lint-test-build; not for day-to-day feature work.
 globs: >-
   .github/workflows/rc-release.yml,.github/workflows/rc-smoke.yml,.github/workflows/promote-release.yml,
-  .github/workflows/npm-publish-package.yml,.github/workflows/lint-test-build.yml,
+  .github/workflows/npm-publish-oidc.yml,.github/workflows/lint-test-build.yml,
   .github/workflows/android-e2e.yml,.github/workflows/ios-e2e.yml,
   .github/workflows/pre-release-workflow.yml,.github/workflows/release-Production-workflow.yml,
   .af-e2e/**,.af-smoke/rc-test-plan.json,scripts/af-scenario-runner.sh
@@ -30,10 +30,10 @@ Use when:
 
 | Stage | Workflow(s) |
 |-------|----------------|
-| RC pre-publish | **`rc-release.yml`**: **`lint-test-build.yml`** + **`ios-e2e.yml`** + **`android-e2e.yml`**, then **`npm-publish-package.yml`** (`QA` tag), prerelease, PR to `master` |
+| RC pre-publish | **`rc-release.yml`**: **`lint-test-build.yml`** + E2E, then **`workflow_dispatch`** → **`npm-publish-oidc.yml`** (`QA`), prerelease, PR to `master` |
 | Post-publish smoke | **`rc-smoke.yml`** → check **`rc-smoke/npm`** |
 | Promote | **`promote-release.yml`** (label + **`rc-smoke/npm`** gate) → **`rc-promote-strip-rc.sh`** |
-| Production | **`release-Production-workflow.yml`** on merge to `master` → **`npm-publish-package.yml`** (`latest`) |
+| Production | **`release-Production-workflow.yml`** on merge to `master` → **`npm-publish-oidc.yml`** (`latest`) |
 
 Track adoption details in **`docs/SCENARIO_RUNNER_ADOPTION_WORKPLAN.md`**.
 
@@ -43,11 +43,12 @@ Track adoption details in **`docs/SCENARIO_RUNNER_ADOPTION_WORKPLAN.md`**.
 |--------|-------------|
 | `ENV_FILE` | Multiline `.env` for E2E sibling + smoke (`DEV_KEY`, `APP_ID`) |
 | `CI_DEV_GITHUB_TOKEN` | Branch push, PR, prerelease, promote; **`gh`** in RC Smoke gate (`decide` job) |
-| *(npm OIDC)* | **`npm-publish-package.yml`** — register on npm **Trusted publishing**; callers need **`id-token: write`** |
+| *(npm OIDC)* | Register **`npm-publish-oidc.yml`** on npm **Trusted publishing** (not callers); RC/prod **dispatch** that workflow |
 | *(workflow)* `GITHUB_TOKEN` | **`rc-smoke/npm` check_run** (`post-check-run` / `post-skipped-check`): PAT cannot create check runs — must use Actions token with `checks: write` |
 
 ## Do not
 
 - Do not bypass **`rc-smoke/npm` success** for promotion when using the designed promote gate.
-- Do not add **`NODE_AUTH_TOKEN` / `CI_NPM_TOKEN`** to **`npm-publish-package.yml`** publish steps (OIDC only).
+- Do not use **`workflow_call`** for npm OIDC publish (npm validates the **executing** workflow file).
+- Do not add **`NODE_AUTH_TOKEN` / `CI_NPM_TOKEN`** to **`npm-publish-oidc.yml`** publish steps (OIDC only).
 - Do not duplicate long contract text in skills — link tooling contracts above.
