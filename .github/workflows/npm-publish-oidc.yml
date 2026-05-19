@@ -55,6 +55,44 @@ jobs:
           export NPM_VERSION
           node -e 'const version = process.env.NPM_VERSION || ""; const parts = version.split(".").map(Number); const ok = parts[0] > 11 || (parts[0] === 11 && (parts[1] > 5 || (parts[1] === 5 && parts[2] >= 1))); if (!ok) { console.error("npm " + version + " is too old for OIDC trusted publishing; need >=11.5.1"); process.exit(1); }'
 
+      - name: Prepare package for registry publish
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # Release branches cut before metadata fixes may still have the old repo URL;
+          # npm provenance requires repository.url to match this GitHub repository.
+          node <<'NODE'
+          const fs = require('fs');
+          const repo = `https://github.com/${process.env.GITHUB_REPOSITORY}`;
+          const pj = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pj.repository = { type: 'git', url: `git+${repo}.git` };
+          pj.bugs = { url: `${repo}/issues` };
+          pj.homepage = `${repo}#readme`;
+          if (pj.license && typeof pj.license === 'object') {
+            pj.license.url = `${repo}/blob/master/LICENSE`;
+          }
+          fs.writeFileSync('package.json', JSON.stringify(pj, null, 2) + '\n');
+          console.log(`[npm-publish-oidc] repository.url=${pj.repository.url}`);
+          NODE
+          cat > .npmignore <<'EOF'
+          examples/
+          tests/
+          testsScripts/
+          docs/
+          .github/
+          .claude/
+          .cursor/
+          .idea/
+          .af-e2e/
+          .af-smoke/
+          test-app/
+          test-app_rc_smoke/
+          RELEASENOTES.md
+          .travis.yml
+          EOF
+          echo "Prepared package.json repository metadata and .npmignore"
+
       - name: Install plugin dependencies
         run: npm install
 
