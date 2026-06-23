@@ -91,16 +91,16 @@ static NSString *const NO_WAITING_TIME = @"You need to set waiting time for ATT"
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         return;
     } else {
-        if (isDeepLinking == YES) {
-            [AppsFlyerLib shared].deepLinkDelegate = self;
-        }
-
-        // Initialize the SDK
+        // Set credentials before deepLinkDelegate (UDL can fire a server request immediately).
         [[AppsFlyerLib shared] setPluginInfoWith:AFSDKPluginCordova pluginVersion:@"6.18.0" additionalParams:nil];
         [AppsFlyerLib shared].appleAppID = appId;
         [AppsFlyerLib shared].appsFlyerDevKey = devKey;
         [AppsFlyerLib shared].isDebug = isDebug;
         [AppsFlyerLib shared].useUninstallSandbox = useUninstallSandbox;
+
+        if (isDeepLinking == YES) {
+            [AppsFlyerLib shared].deepLinkDelegate = self;
+        }
     }
 
 #ifndef AFSDK_NO_IDFA
