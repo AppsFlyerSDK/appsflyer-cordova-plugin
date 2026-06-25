@@ -50,6 +50,10 @@ public class AppsFlyerPlugin: CDVPlugin {
     /// After JS invokes RPC `start` once, `UIApplication.didBecomeActive` re-posts fire-and-forget `start` (replaces Obj-C `shouldStartSdk` / `sendLaunch:`).
     private var shouldStartSdk = false
 
+    /// `init` RPC must complete before `registerDeeplinkListener` (UDL can auth-fail in iOS strict mode otherwise).
+    private var initRpcCompleted = false
+    private var pendingRegisterDeeplinkListenerRpc = false
+
     /// Ensures we only register `NotificationCenter` observers once per plugin instance.
     private var didRegisterNotificationObservers = false
 
@@ -130,6 +134,16 @@ public class AppsFlyerPlugin: CDVPlugin {
                 shouldStartSdk = true
             }
 
+            if rpcMethod == "registerDeeplinkListener", !initRpcCompleted {
+                pendingRegisterDeeplinkListenerRpc = true
+                logRpc("executeRpc: deferring registerDeeplinkListener until init RPC succeeds")
+                sendRegistrationAck(command: command) { [weak self] result in
+                    guard let self = self, let result = result else { return }
+                    self.commandDelegate.send(result, callbackId: command.callbackId)
+                }
+                return
+            }
+
             let requestJson: String
             do {
                 requestJson = try Self.buildJsonRpcEnvelope(method: rpcMethod, params: rpcParams)
@@ -143,6 +157,11 @@ public class AppsFlyerPlugin: CDVPlugin {
 
             let responseJson = await rpcClient.execute(jsonRequest: requestJson)
             logRpc("executeRpc: response \(Self.truncateForLog(responseJson))")
+
+            if rpcMethod == "init", Self.isRpcResponseSuccess(responseJson) {
+                initRpcCompleted = true
+                await flushPendingRegisterDeeplinkListenerRpcIfNeeded()
+            }
 
             Self.sendRpcEnvelopeToCordova(
                 responseJson,
@@ -421,6 +440,7 @@ public class AppsFlyerPlugin: CDVPlugin {
             logRpc("registration: deep link listener → callbackId=\(cb ?? "nil")")
         case "unsubscribeForDeepLink":
             deepLinkListenerCallbackId = nil
+            pendingRegisterDeeplinkListenerRpc = false
             logRpc("registration: deep link listener cleared")
         case "registerConversionListener":
             conversionListenerCallbackId = cb
@@ -437,6 +457,37 @@ public class AppsFlyerPlugin: CDVPlugin {
         let result = CDVPluginResult(status: CDVCommandStatus.noResult)
         result.keepCallback = true
         send(result)
+    }
+
+    /// Runs deferred `registerDeeplinkListener` after successful `init` (mirrors Obj-C credential-before-delegate ordering).
+    private func flushPendingRegisterDeeplinkListenerRpcIfNeeded() async {
+        guard pendingRegisterDeeplinkListenerRpc else { return }
+        pendingRegisterDeeplinkListenerRpc = false
+        do {
+            let json = try Self.buildJsonRpcEnvelope(method: "registerDeeplinkListener", params: [:])
+            logRpc("flushPendingRegisterDeeplinkListener: \(Self.truncateForLog(json))")
+            _ = await rpcClient.execute(jsonRequest: json)
+        } catch {
+            logRpc("flushPendingRegisterDeeplinkListener: failed — \(error.localizedDescription)")
+        }
+    }
+
+    /// `true` when the RPC envelope has no transport/handler error (same rules as `sendRpcEnvelopeToCordova`).
+    private static func isRpcResponseSuccess(_ responseJson: String) -> Bool {
+        guard let data = responseJson.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else {
+            return false
+        }
+        if let transportError = obj["error"] as? [String: Any], !transportError.isEmpty {
+            return false
+        }
+        if let dict = obj["result"] as? [String: Any],
+           let success = dict["success"] as? Bool,
+           success == false {
+            return false
+        }
+        return true
     }
 
     /// Maps AFRPC JSON to Cordova (aligned with iOS `result.success` convention).
