@@ -17,6 +17,7 @@
 #   CORDOVA_E2E_RESPECT_JAVA_HOME  If set to 1, do not change JAVA_HOME for Android (Gradle may still use
 #                                  ~/.gradle/gradle.properties org.gradle.java.home unless you set GRADLE_OPTS).
 #   CORDOVA_E2E_IOS_BUILDCONFIG    Optional path to Cordova build.json for iOS (default: build.json in E2E app root if present).
+#   CORDOVA_IOS_POD_REPO_UPDATE    1 = pod install --repo-update before iOS build (default: 1 in GitHub Actions, 0 locally).
 
 set -euo pipefail
 
@@ -117,6 +118,10 @@ if [[ "$PLATFORM" == android ]] && [[ ! -d platforms/android ]]; then
 fi
 if [[ "$PLATFORM" == ios ]] && [[ ! -d platforms/ios ]]; then
   cordova platform add ios --no-interactive
+fi
+
+if [[ "$PLATFORM" == ios ]]; then
+  "${ROOT}/scripts/cordova-ios-pod-install.sh" "$DEST"
 fi
 
 ios_bc="${CORDOVA_E2E_IOS_BUILDCONFIG:-}"
