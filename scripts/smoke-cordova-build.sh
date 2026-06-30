@@ -14,7 +14,7 @@
 #   CORDOVA_E2E_ANDROID_JAVA_HOME  Android: same semantics as e2e-cordova-build.sh (optional JDK pin).
 #   CORDOVA_E2E_RESPECT_JAVA_HOME  Android: same as e2e script.
 #   CORDOVA_E2E_IOS_BUILDCONFIG    iOS: optional build.json path (default: build.json in smoke app dir).
-#   CORDOVA_IOS_POD_REPO_UPDATE    1 = pod install --repo-update before iOS build (default: 1 in GitHub Actions, 0 locally).
+#   CORDOVA_IOS_POD_REPO_UPDATE    1 = refresh CocoaPods specs before iOS platform add/build (default: 1 in GitHub Actions, 0 locally).
 
 set -euo pipefail
 
@@ -105,10 +105,12 @@ fi
 if [[ "$PLATFORM" == android ]] && [[ ! -d platforms/android ]]; then
   cordova platform add android --no-interactive
 fi
+if [[ "$PLATFORM" == ios ]]; then
+  "${ROOT}/scripts/cordova-ios-pod-install.sh" --update-specs
+fi
 if [[ "$PLATFORM" == ios ]] && [[ ! -d platforms/ios ]]; then
   cordova platform add ios --no-interactive
 fi
-
 if [[ "$PLATFORM" == ios ]]; then
   "${ROOT}/scripts/cordova-ios-pod-install.sh" "$DEST"
 fi
