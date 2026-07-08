@@ -1,3 +1,13 @@
+## 6.18.0
+ Release date: *2026-05-07*
+
+- Android and iOS SDK versions were updated to 6.18.0.
+
+## 6.17.9
+ Release date: *2026-03-17*
+
+
+
 ## 6.17.8
  Release date: *2025-12-11*
 

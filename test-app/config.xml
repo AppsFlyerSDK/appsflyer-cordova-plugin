@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.appsflyer.qa.cordova" version="1.0.0"
+    xmlns="http://www.w3.org/ns/widgets"
+    xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>AFQACordova</name>
+    <description>Minimal AppsFlyer Cordova test shell for af-scenario-runner (E2E + smoke). Manual sample remains under examples/cordovatestapp/.</description>
+    <author email="dev@appsflyer.com" href="https://www.appsflyer.com">AppsFlyer</author>
+    <content src="index.html" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="afqa-cordova:*" />
+
+    <hook type="before_prepare" src="hooks/emit-af-qa-env.js" />
+    <!-- Flutter-style: replay simctl -deepLinkURL into AppsFlyerAttribution after delay (see hooks/afqa-ios-simctl-deeplink-replay.js). -->
+    <hook type="after_prepare" src="hooks/afqa-ios-simctl-deeplink-replay.js" />
+
+    <!-- Reference tree only: run Cordova from the sibling copy (see test-app/README.md). -->
+    <plugin name="cordova-plugin-appsflyer-sdk" spec=".." />
+    <plugin name="cordova-plugin-file" spec="~8.1.0" />
+    <plugin name="cordova-plugin-customurlscheme" spec="~5.0.2">
+        <variable name="URL_SCHEME" value="afqa-cordova" />
+    </plugin>
+
+    <platform name="ios">
+        <!-- AppsFlyerFramework (plugin pod) requires iOS 12+; Cordova default is lower and breaks `pod install`. -->
+        <preference name="deployment-target" value="12.0" />
+        <edit-config target="NSUserTrackingUsageDescription" file="*-Info.plist" mode="merge">
+            <string>AppsFlyer QA automation</string>
+        </edit-config>
+    </platform>
+</widget>

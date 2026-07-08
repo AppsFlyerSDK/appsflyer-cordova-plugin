@@ -1,0 +1,54 @@
+---
+name: cordova-rc-release
+description: >-
+  Maps the AppsFlyer Cordova RC pipeline (RC prep, lint-test-build, E2E, npm publish, rc-smoke,
+  promote) to workflow files in this repo. Use when editing rc-release, rc-smoke, promote-release,
+  or lint-test-build; not for day-to-day feature work.
+globs: >-
+  .github/workflows/rc-release.yml,.github/workflows/rc-smoke.yml,.github/workflows/promote-release.yml,
+  .github/workflows/npm-publish-oidc.yml,.github/workflows/lint-test-build.yml,
+  .github/workflows/android-e2e.yml,.github/workflows/ios-e2e.yml,
+  .github/workflows/pre-release-workflow.yml,.github/workflows/release-Production-workflow.yml,
+  .af-e2e/**,.af-smoke/rc-test-plan.json,scripts/af-scenario-runner.sh
+---
+
+# RC release pipeline — AppsFlyer Cordova plugin
+
+Use when:
+
+- Editing **`rc-release.yml`**, **`rc-smoke.yml`**, **`promote-release.yml`**, or **`lint-test-build.yml`**.
+- Wiring **`workflow_call`** from RC into **lint-test-build** + **Android E2E** + **iOS E2E**.
+- Explaining why promotion should wait on **`rc-smoke/npm`** check-run **success** on the release branch head.
+
+## Contract sources (shared tooling repo)
+
+- [`contracts/rc-release-contract.md`](https://github.com/AppsFlyerSDK/appsflyer-mobile-plugin-tooling/blob/main/contracts/rc-release-contract.md)
+- [`contracts/e2e-test-contract.md`](https://github.com/AppsFlyerSDK/appsflyer-mobile-plugin-tooling/blob/main/contracts/e2e-test-contract.md)
+- [`contracts/smoke-test-contract.md`](https://github.com/AppsFlyerSDK/appsflyer-mobile-plugin-tooling/blob/main/contracts/smoke-test-contract.md)
+
+## Stages in this repo (Cordova)
+
+| Stage | Workflow(s) |
+|-------|----------------|
+| RC pre-publish | **`rc-release.yml`**: **`lint-test-build.yml`** + E2E, then **`workflow_dispatch`** → **`npm-publish-oidc.yml`** (`QA`), prerelease, PR to `master` |
+| Post-publish smoke | **`rc-smoke.yml`** → check **`rc-smoke/npm`** |
+| Promote | **`promote-release.yml`** (label + **`rc-smoke/npm`** gate) → **`rc-promote-strip-rc.sh`** |
+| Production | **`release-Production-workflow.yml`** on merge to `master` → **`npm-publish-oidc.yml`** (`latest`) |
+
+Track adoption details in **`docs/SCENARIO_RUNNER_ADOPTION_WORKPLAN.md`**.
+
+## Secrets (names only)
+
+| Secret | Typical use |
+|--------|-------------|
+| `ENV_FILE` | Multiline `.env` for E2E sibling + smoke (`DEV_KEY`, `APP_ID`) |
+| `CI_DEV_GITHUB_TOKEN` | Branch push, PR, prerelease, promote; **`gh`** in RC Smoke gate (`decide` job) |
+| *(npm OIDC)* | Register **`npm-publish-oidc.yml`** on npm **Trusted publishing**; dispatch with **`--ref` = default branch**, **`git_ref`** = release branch / merge SHA |
+| *(workflow)* `GITHUB_TOKEN` | **`rc-smoke/npm` check_run** (`post-check-run` / `post-skipped-check`): PAT cannot create check runs — must use Actions token with `checks: write` |
+
+## Do not
+
+- Do not bypass **`rc-smoke/npm` success** for promotion when using the designed promote gate.
+- Do not use **`workflow_call`** for npm OIDC publish (npm validates the **executing** workflow file).
+- Do not add **`NODE_AUTH_TOKEN` / `CI_NPM_TOKEN`** to **`npm-publish-oidc.yml`** publish steps (OIDC only).
+- Do not duplicate long contract text in skills — link tooling contracts above.

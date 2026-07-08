@@ -21,12 +21,12 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="cordova-plugin-appsflyer-sdk"
-        version="6.15.3-rc3">
+        version="6.18.0">
     <name>AppsFlyer</name>
     <description>Cordova Plugin AppsFlyer</description>
     <license>Apache 2.0</license>
     <keywords>cordova,appsflyer</keywords>
-    <repo>https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk.git</repo>
+    <repo>https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin.git</repo>
     <engines>
         <engine name="cordova" version=">=4.3.0"/>
     </engines>
@@ -88,7 +88,7 @@
             <config>
             </config>
             <pods use-frameworks="true">
-               <pod name="AppsFlyerFramework" spec="6.17.9"/>
+               <pod name="AppsFlyerFramework" spec="6.18.1"/>
                <pod name="AppsFlyerRPC" spec="1.0.4"/>
             </pods>
         </podspec>

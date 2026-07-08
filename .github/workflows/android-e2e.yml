@@ -1,0 +1,160 @@
+# =============================================================================
+# Android E2E — integration tests (pre-publish)
+# =============================================================================
+#
+# Stage: RC-E2E
+# Runs .af-e2e/test-plan.json via scripts/af-scenario-runner.sh on an Android emulator.
+#
+# Triggers:
+# - workflow_call from rc-release.yml
+# - workflow_dispatch for manual reruns
+# - Weekly cron (Sunday 03:00 UTC); checks out default branch
+#
+# Schedule note: `inputs` is undefined on `schedule`, so checkout / step `if` / SCENARIO_PHASE avoid
+# reading `inputs.*` unless the event is not `schedule` (see expressions below).
+#
+# Secrets: ENV_FILE (multiline .env — see docs/github-actions-ENV_FILE.md).
+# =============================================================================
+
+name: Android E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out (default: workflow ref)'
+        required: false
+        type: string
+        default: ''
+      run_scenarios:
+        description: After a successful Cordova build, run af-scenario-runner on the emulator
+        type: boolean
+        default: true
+      scenario_phase:
+        description: Optional --phase id (e.g. phase_1). Leave empty to run all phases.
+        type: string
+        default: ''
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Branch, tag, or SHA to check out. Defaults to the calling workflow ref.'
+        required: false
+        type: string
+        default: ''
+      run_scenarios:
+        type: boolean
+        default: true
+        required: false
+      scenario_phase:
+        type: string
+        required: false
+        default: ''
+    secrets:
+      ENV_FILE:
+        required: false
+  schedule:
+    - cron: '0 3 * * 0'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e-android:
+    name: E2E Tests (Android)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'schedule' && github.ref || (inputs.ref != '' && inputs.ref || github.ref) }}
+
+      - name: Cache npm downloads
+        uses: actions/cache@v5
+        with:
+          path: ~/.npm
+          key: npm-cordova-e2e-${{ runner.os }}-${{ hashFiles('test-app/package.json') }}
+          restore-keys: |
+            npm-cordova-e2e-${{ runner.os }}-
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: >-
+            platforms;android-34
+            platform-tools
+            build-tools;34.0.0
+
+      - name: Install Cordova CLI
+        run: npm install -g cordova
+
+      - name: Build Cordova E2E (Android)
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          CORDOVA_E2E_ANDROID_JAVA_HOME: ${{ env.JAVA_HOME }}
+        run: |
+          set -euo pipefail
+          cd "${GITHUB_WORKSPACE}"
+          chmod +x scripts/*.sh
+          if [[ -z "${ENV_FILE:-}" ]]; then
+            echo "::notice::ENV_FILE secret is unset; scenario phases that need DEV_KEY/APP_ID will fail until the repository (or caller) secret is configured."
+          fi
+          ./scripts/e2e-cordova-build.sh android
+
+      # Some `ubuntu-latest` runner images ship `/dev/kvm` owned by group
+      # `kvm` without adding the runner user to that group. When this
+      # happens, reactivecircus/android-emulator-runner falls back to
+      # `-accel off` (software TCG), which boots in ~9 minutes instead of
+      # ~30s and brings up slirp networking unreliably -- leading to
+      # "Emulator has no IP connectivity" even with `-dns-server` set.
+      # The udev rule below grants 0666 perms on /dev/kvm so the action's
+      # ProbeKVM check finds it accessible and uses `-accel kvm`. This is
+      # the fix recommended by GitHub's actions/runner-images team and
+      # the one printed by the action's own diagnostic message.
+      - name: Enable KVM group perms (Linux emulator)
+        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
+        run: |
+          set -euo pipefail
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger || true
+          sudo chgrp kvm /dev/kvm 2>/dev/null || true
+          sudo chmod g+rwx /dev/kvm 2>/dev/null || true
+          sudo chmod 666 /dev/kvm 2>/dev/null || true
+          ls -la /dev/kvm || true
+
+      - name: Run Android E2E
+        if: ${{ github.event_name == 'schedule' || inputs.run_scenarios != false }}
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          SCENARIO_PHASE: ${{ github.event_name != 'schedule' && inputs.scenario_phase || '' }}
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          avd-name: cordova-e2e
+          force-avd-creation: true
+          disable-linux-hw-accel: false
+          emulator-boot-timeout: 420
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -no-audio -no-boot-anim -dns-server 8.8.8.8,1.1.1.1
+          script: bash "${GITHUB_WORKSPACE}/scripts/ci-android-e2e-scenario.sh"
+
+      - name: Upload E2E reports
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: android-e2e-${{ github.run_number }}
+          path: .af-e2e/reports/
+          if-no-files-found: warn
