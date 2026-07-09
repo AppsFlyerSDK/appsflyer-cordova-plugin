@@ -190,11 +190,18 @@ if (!window.CustomEvent) {
     };
 
     /**
-     * Set user emails with encryption type (e.g. SHA256, MD5).
+     * @deprecated Use setUserEmail(email) instead. The SDK now normalizes and hashes emails on-device,
+     * so the crypt type is ignored. On Android only the first email is forwarded to setUserEmail.
      */
     AppsFlyer.prototype.setUserEmailsWithCryptType = function (cryptType, emails) {
         argscheck.checkArgs('SA', 'AppsFlyer.setUserEmailsWithCryptType', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmailsWithCryptType', params: { cryptType: cryptType || '', emails: emails || [] } }]);
+        if (isAndroid()) {
+            window.console.warn("[DEPRECATED] 'setUserEmailsWithCryptType' is deprecated. Use 'setUserEmail' instead.");
+            const email = (emails && emails.length > 0) ? emails[0] : '';
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmail', params: { email: email } }]);
+        } else {
+            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmailsWithCryptType', params: { cryptType: cryptType || '', emails: emails || [] } }]);
+        }
     };
 
     /**
@@ -268,6 +275,60 @@ if (!window.CustomEvent) {
             ? { customerId: customerUserId }
             : { customerUserId: customerUserId };
         exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: uidParams }]);
+    };
+
+    /**
+     * Set the user's email. The value is normalized and hashed on-device by the SDK before being sent.
+     * Replaces the deprecated setUserEmails / setUserEmailsWithCryptType APIs on Android.
+     * @param {string} email - Plain (unhashed) email address.
+     */
+    AppsFlyer.prototype.setUserEmail = function (email) {
+        argscheck.checkArgs('S', 'AppsFlyer.setUserEmail', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmail', params: { email: email || '' } }]);
+    };
+
+    /**
+     * Set the user's phone number. The value is normalized and hashed on-device by the SDK before being sent.
+     * @param {string} countryCode - Country dialing code (e.g. "1", "44").
+     * @param {string} phoneNumber - Local phone number, without the country code.
+     */
+    AppsFlyer.prototype.setUserPhone = function (countryCode, phoneNumber) {
+        argscheck.checkArgs('SS', 'AppsFlyer.setUserPhone', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserPhone', params: { countryCode: countryCode || '', phoneNumber: phoneNumber || '' } }]);
+    };
+
+    /**
+     * Set the user's first name. The value is normalized and hashed on-device by the SDK before being sent.
+     * @param {string} firstName - Plain (unhashed) first name.
+     */
+    AppsFlyer.prototype.setUserFirstName = function (firstName) {
+        argscheck.checkArgs('S', 'AppsFlyer.setUserFirstName', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserFirstName', params: { firstName: firstName || '' } }]);
+    };
+
+    /**
+     * Set the user's last name. The value is normalized and hashed on-device by the SDK before being sent.
+     * @param {string} lastName - Plain (unhashed) last name.
+     */
+    AppsFlyer.prototype.setUserLastName = function (lastName) {
+        argscheck.checkArgs('S', 'AppsFlyer.setUserLastName', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserLastName', params: { lastName: lastName || '' } }]);
+    };
+
+    /**
+     * Set the user's Facebook login ID. The value is normalized and hashed on-device by the SDK before being sent.
+     * @param {number|string} fbLoginId - Facebook login ID (numeric value or its string representation).
+     */
+    AppsFlyer.prototype.setUserFbLoginId = function (fbLoginId) {
+        argscheck.checkArgs('*', 'AppsFlyer.setUserFbLoginId', arguments);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserFbLoginId', params: { fbLoginId: fbLoginId != null ? fbLoginId : 0 } }]);
+    };
+
+    /**
+     * Clear all previously set hashed PII values (email, phone, first name, last name, Facebook login ID).
+     */
+    AppsFlyer.prototype.clearUserPii = function () {
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'clearUserPii', params: {} }]);
     };
 
     /**
@@ -706,22 +767,37 @@ if (!window.CustomEvent) {
     };
 
     /**
-     * Facebook Advanced Matching
+     * Facebook Advanced Matching (iOS).
+     * @deprecated On Android use setUserPhone(countryCode, phoneNumber) instead; the number is forwarded
+     * to setUserPhone with an empty country code and hashed on-device by the SDK.
      * @param phoneNumber phone number
      * @param successC success callback
      */
     AppsFlyer.prototype.setPhoneNumber = function (phoneNumber, successC) {
-        exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPhoneNumber', params: { phoneNumber: phoneNumber || '' } }]);
+        if (isAndroid()) {
+            window.console.warn("[DEPRECATED] 'setPhoneNumber' is deprecated. Use 'setUserPhone' instead.");
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserPhone', params: { countryCode: '', phoneNumber: phoneNumber || '' } }]);
+        } else {
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPhoneNumber', params: { phoneNumber: phoneNumber || '' } }]);
+        }
     };
 
     /**
-     * Facebook Advanced Matching
+     * Facebook Advanced Matching (iOS).
+     * @deprecated On Android use setUserEmail(email) instead. The SDK now hashes emails on-device, so the
+     * crypt type is ignored and only the first email is forwarded to setUserEmail.
      * @param userEmails Strings array of emails
      * @param successC success callback
      */
     AppsFlyer.prototype.setUserEmails = function (userEmails, successC) {
         const emails = userEmails || [];
-        exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmails', params: { emails: emails, cryptType: 'sha256' } }]);
+        if (isAndroid()) {
+            window.console.warn("[DEPRECATED] 'setUserEmails' is deprecated. Use 'setUserEmail' instead.");
+            const email = emails.length > 0 ? emails[0] : '';
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmail', params: { email: email } }]);
+        } else {
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmails', params: { emails: emails, cryptType: 'sha256' } }]);
+        }
     };
 
     /**
