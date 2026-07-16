@@ -37,11 +37,6 @@ exports.defineAutoTests = function () {
             expect(typeof window.plugins.appsFlyer.registerDeepLink).toBe('function');
         });
 
-        it("appsFlyer.registerOnAppOpenAttribution method", function () {
-            expect(window.plugins.appsFlyer.registerOnAppOpenAttribution).toBeDefined();
-            expect(typeof window.plugins.appsFlyer.registerOnAppOpenAttribution).toBe('function');
-        });
-
         it("appsFlyer.setCurrencyCode method", function () {
             expect(window.plugins.appsFlyer.setCurrencyCode).toBeDefined();
             expect(typeof window.plugins.appsFlyer.setCurrencyCode).toBe('function');
@@ -157,14 +152,34 @@ exports.defineAutoTests = function () {
             expect(typeof window.plugins.appsFlyer.enableFacebookDeferredApplinks).toBe('function');
         });
 
-        it("appsFlyer.setPhoneNumber method", function () {
-            expect(window.plugins.appsFlyer.setPhoneNumber).toBeDefined();
-            expect(typeof window.plugins.appsFlyer.setPhoneNumber).toBe('function');
+        it("appsFlyer.setUserEmail method", function () {
+            expect(window.plugins.appsFlyer.setUserEmail).toBeDefined();
+            expect(typeof window.plugins.appsFlyer.setUserEmail).toBe('function');
         });
 
-        it("appsFlyer.setUserEmails method", function () {
-            expect(window.plugins.appsFlyer.setUserEmails).toBeDefined();
-            expect(typeof window.plugins.appsFlyer.setUserEmails).toBe('function');
+        it("appsFlyer.setUserPhone method", function () {
+            expect(window.plugins.appsFlyer.setUserPhone).toBeDefined();
+            expect(typeof window.plugins.appsFlyer.setUserPhone).toBe('function');
+        });
+
+        it("appsFlyer.setUserFirstName method", function () {
+            expect(window.plugins.appsFlyer.setUserFirstName).toBeDefined();
+            expect(typeof window.plugins.appsFlyer.setUserFirstName).toBe('function');
+        });
+
+        it("appsFlyer.setUserLastName method", function () {
+            expect(window.plugins.appsFlyer.setUserLastName).toBeDefined();
+            expect(typeof window.plugins.appsFlyer.setUserLastName).toBe('function');
+        });
+
+        it("appsFlyer.setUserFbLoginId method", function () {
+            expect(window.plugins.appsFlyer.setUserFbLoginId).toBeDefined();
+            expect(typeof window.plugins.appsFlyer.setUserFbLoginId).toBe('function');
+        });
+
+        it("appsFlyer.clearUserPii method", function () {
+            expect(window.plugins.appsFlyer.clearUserPii).toBeDefined();
+            expect(typeof window.plugins.appsFlyer.clearUserPii).toBe('function');
         });
 
         it("appsFlyer.setHost method", function () {

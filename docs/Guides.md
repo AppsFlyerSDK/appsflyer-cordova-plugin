@@ -113,31 +113,27 @@ window.plugins.appsFlyer.initSdk(options , onSuccess , onError);
   
   
   
-###  <a id="handle-deeplinking"> 2. Direct Deeplinking  
-  In order to implement deeplink with AppsFlyer, you must call `registerOnAppOpenAttribution` **before** `initSdk`<br>  
-For more information on deeplinks, please read [here](https://dev.appsflyer.com/docs/getting-started)  
-  
-  
-  
-  
-```javascript  
-window.plugins.appsFlyer.registerOnAppOpenAttribution(function(res) {  
-  
-  console.log(res);  
- var deeplinkData = JSON.parse(res);  
-     if(deeplinkData.type === 'onAppOpenAttribution'){         var link = deeplinkData.data.link;  
-  console.log(link);  
- // redirect here     } else {  
-  console.log('onAppOpenAttribution error');  
- }}, function onAppOpenAttributionError(err){  
-  console.log(err);  
-});  
-  
-```  
-  
-###  <a id="Unified-deep-linking"> 3. Unified deep linking  
-In order to use the unified deep link you need to send the `onDeepLinkListener: true` flag inside the object that sent to the sdk.<br>  
-**NOTE:** when sending this flag, the sdk will ignore `onAppOpenAttribution`!<br>  
+###  <a id="handle-deeplinking"> 2. Deep linking (SDK 7)
+
+In SDK 7, `onAppOpenAttribution` and `onAppOpenAttributionFailure` were removed. Use `registerDeepLink` **before** `initSdk` — all outcomes arrive on the `onDeepLinking` callback with a `status` field (`found`, `failure`, `notFound`).
+
+For more information on deeplinks, please read [here](https://dev.appsflyer.com/docs/getting-started)
+
+```javascript
+window.plugins.appsFlyer.registerDeepLink(function(res) {
+  console.log(res);
+  var deeplinkData = typeof res === 'string' ? JSON.parse(res) : res;
+  if (deeplinkData.status === 'found') {
+    console.log(deeplinkData.data.deepLink);
+    // redirect here
+  } else if (deeplinkData.status === 'failure') {
+    console.log('Deep link error:', deeplinkData.data.error);
+  }
+});
+```
+
+###  <a id="Unified-deep-linking"> 3. Unified deep linking
+In order to use the unified deep link you need to send the `onDeepLinkListener: true` flag inside the object that sent to the sdk.<br>
 For more information about this api, please check [OneLink Guide Here](https://dev.appsflyer.com/docs/android-unified-deep-linking)  
   
   
@@ -221,7 +217,7 @@ It appears as follows:
 var handleOpenURL = function(url) {window.plugins.appsFlyer.handleOpenUrl(url);  
 }  
 ```  
-Now you will get deep link information in the onAppOpenAttribution callback  
+Now you will get deep link information in the `onDeepLinking` callback (via `registerDeepLink`)  
   
 #### <a id="ios-universal"> If you are using Ionic+Capacitor or Ionic+Cordova:<br>  
 ##### import:<br>  

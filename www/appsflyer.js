@@ -95,23 +95,35 @@ if (!window.CustomEvent) {
     global.AFPurchaseDetails = AFPurchaseDetails;
 
     /**
-     * initialize the SDK
+     * Initialize the SDK.
+     * @param {Object} args - `{ devKey, appId }`
+     * @param {function} [successCB] - Called when initialize completes successfully.
+     * @param {function} [errorCB] - Called when initialize fails or args are invalid.
      */
-    AppsFlyer.prototype.initSdk = function (args) {
+    AppsFlyer.prototype.initSdk = function (args, successCB, errorCB) {
         argscheck.checkArgs('O', 'AppsFlyer.initSdk', arguments);
-        const params = {
-            devKey: args.devKey || '',
-            appId: args.appId || ''
-        };
-        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'init', params: params }]);
-    };
-
-    /**
-     * iOS: RPC `waitForATT` — timeout in seconds. Call when using ATT on iOS 14+.
-     */
-    AppsFlyer.prototype.waitForATT = function (timeoutSeconds) {
-        if (!isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'waitForATT', params: { timeout: timeoutSeconds } }]);
+        if (!args) {
+            if (errorCB) {
+                errorCB(AppsFlyerError.INVALID_ARGUMENT_ERROR);
+            }
+        } else if (args.appId !== undefined && (typeof args.appId !== 'string' || args.appId === '')) {
+            if (errorCB) {
+                errorCB(AppsFlyerError.APPID_NOT_VALID);
+            }
+        } else if (args.devKey !== undefined && typeof args.devKey !== 'string') {
+            if (errorCB) {
+                errorCB(AppsFlyerError.DEVKEY_NOT_VALID);
+            }
+        } else if (args.devKey === undefined || args.devKey === '') {
+            if (errorCB) {
+                errorCB(AppsFlyerError.NO_DEVKEY_FOUND);
+            }
+        } else {
+            const params = {
+                devKey: args.devKey || '',
+                appId: args.appId || ''
+            };
+            exec(successCB, errorCB, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'init', params: params }]);
         }
     };
 
@@ -132,8 +144,10 @@ if (!window.CustomEvent) {
     };
 
     /**
-     * Register Unified deep link listener
-     * @param onDeepLinkListener ddl callback triggered when deep linked has been clicked and onDeepLinkListener = true;
+     * Register unified deep link listener (SDK 7).
+     * Replaces removed onAppOpenAttribution / onAppOpenAttributionFailure.
+     * Callback receives onDeepLinking with status: found | failure | notFound.
+     * @param onDeepLinkListener callback triggered when a deep link is resolved
      */
     AppsFlyer.prototype.registerDeepLink = function (onDeepLinkListener) {
         callbackMap.ddlSuc = onDeepLinkListener;
@@ -190,21 +204,6 @@ if (!window.CustomEvent) {
     };
 
     /**
-     * @deprecated Use setUserEmail(email) instead. The SDK now normalizes and hashes emails on-device,
-     * so the crypt type is ignored. On Android only the first email is forwarded to setUserEmail.
-     */
-    AppsFlyer.prototype.setUserEmailsWithCryptType = function (cryptType, emails) {
-        argscheck.checkArgs('SA', 'AppsFlyer.setUserEmailsWithCryptType', arguments);
-        if (isAndroid()) {
-            window.console.warn("[DEPRECATED] 'setUserEmailsWithCryptType' is deprecated. Use 'setUserEmail' instead.");
-            const email = (emails && emails.length > 0) ? emails[0] : '';
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmail', params: { email: email } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmailsWithCryptType', params: { cryptType: cryptType || '', emails: emails || [] } }]);
-        }
-    };
-
-    /**
      * Set preinstall attribution (mediaSource, campaign, siteId).
      */
     AppsFlyer.prototype.setPreinstallAttribution = function (mediaSource, campaign, siteId) {
@@ -252,17 +251,11 @@ if (!window.CustomEvent) {
         const revenueVal = afAdRevenueData.revenue != null ? afAdRevenueData.revenue : 0;
         const params = {
             monetizationNetwork: afAdRevenueData.monetizationNetwork || '',
-            mediationNetwork: isAndroid()
-                ? ((afAdRevenueData.mediationNetwork && String(afAdRevenueData.mediationNetwork).trim()) || 'custom')
-                : (afAdRevenueData.mediationNetwork || ''),
+            mediationNetwork: (afAdRevenueData.mediationNetwork && String(afAdRevenueData.mediationNetwork).trim()) || 'custom',
             currencyIso4217Code: afAdRevenueData.currencyIso4217Code || '',
+            revenue: revenueVal,
             additionalParameters: additionalParameters || null
         };
-        if (isAndroid()) {
-            params.revenue = revenueVal;
-        } else {
-            params.eventRevenue = revenueVal;
-        }
         exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAdRevenue', params: params }]);
     };
 
@@ -271,15 +264,11 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setAppUserId = function (customerUserId) {
         argscheck.checkArgs('S', 'AppsFlyer.setAppUserId', arguments);
-        const uidParams = isAndroid()
-            ? { customerId: customerUserId }
-            : { customerUserId: customerUserId };
-        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: uidParams }]);
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setCustomerUserId', params: { customerId: customerUserId } }]);
     };
 
     /**
      * Set the user's email. The value is normalized and hashed on-device by the SDK before being sent.
-     * Replaces the deprecated setUserEmails / setUserEmailsWithCryptType APIs on Android.
      * @param {string} email - Plain (unhashed) email address.
      */
     AppsFlyer.prototype.setUserEmail = function (email) {
@@ -321,7 +310,21 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setUserFbLoginId = function (fbLoginId) {
         argscheck.checkArgs('*', 'AppsFlyer.setUserFbLoginId', arguments);
-        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserFbLoginId', params: { fbLoginId: fbLoginId != null ? fbLoginId : 0 } }]);
+        var id = 0;
+        if (fbLoginId != null) {
+            if (typeof fbLoginId === 'string') {
+                id = parseInt(fbLoginId, 10);
+                if (isNaN(id)) {
+                    id = 0;
+                }
+            } else {
+                id = Number(fbLoginId);
+                if (!isFinite(id)) {
+                    id = 0;
+                }
+            }
+        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserFbLoginId', params: { fbLoginId: id } }]);
     };
 
     /**
@@ -421,11 +424,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.appendParametersToDeepLinkingURL = function (contains, parameters) {
         argscheck.checkArgs('SO', 'AppsFlyer.appendParametersToDeepLinkingURL', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'appendParametersToDeepLinkingURL', params: { contains: contains || '', parameters: parameters || {} } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'appendParametersToDeeplinkURL', params: { containsString: contains || '', params: parameters || {} } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'appendParametersToDeepLinkingURL', params: { contains: contains || '', parameters: parameters || {} } }]);
     };
 
     /**
@@ -433,11 +432,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.logInvite = function (channel, eventParameters) {
         argscheck.checkArgs('SO', 'AppsFlyer.logInvite', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logInvite', params: { channel: channel || '', eventParameters: eventParameters || null } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logInvite', params: { channel: channel || '', parameters: eventParameters || null } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logInvite', params: { channel: channel || '', eventParameters: eventParameters || null } }]);
     };
 
     /**
@@ -467,11 +462,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.anonymizeUser = function (isDisabled) {
         argscheck.checkArgs('*', 'AppsFlyer.anonymizeUser', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'anonymizeUser', params: { shouldAnonymize: Boolean(isDisabled) } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAnonymizeUser', params: { anonymize: Boolean(isDisabled) } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'anonymizeUser', params: { shouldAnonymize: Boolean(isDisabled) } }]);
     };
 
     /**
@@ -479,11 +470,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.Stop = function (isStop) {
         argscheck.checkArgs('*', 'AppsFlyer.Stop', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'stop', params: { shouldStop: Boolean(isStop) } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setStopped', params: { stopped: Boolean(isStop) } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'stop', params: { shouldStop: Boolean(isStop) } }]);
     };
 
     /**
@@ -554,11 +541,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.setAppInviteOneLinkID = function (args) {
         argscheck.checkArgs('S', 'AppsFlyer.setAppInviteOneLinkID', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAppInviteOneLink', params: { oneLinkId: args || '' } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAppInviteOneLinkID', params: { oneLinkID: args || '' } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAppInviteOneLink', params: { oneLinkId: args || '' } }]);
     };
 
     /**
@@ -588,14 +571,13 @@ if (!window.CustomEvent) {
                 channel: a.channel || null,
                 campaign: a.campaign || null,
                 referrerName: a.referrerName || null,
-                referrerImageURL: a.referrerImageUrl || a.referrerImageURL || null,
+                referrerImageUrl: a.referrerImageUrl || a.referrerImageURL || null,
                 referrerCustomerId: a.customerId || a.customerID || null,
-                baseDeeplink: a.baseDeepLink || a.baseDeeplink || null,
-                deeplinkPath: a.deeplinkPath || null,
+                baseDeepLink: a.baseDeepLink || a.baseDeeplink || null,
                 brandDomain: a.brandDomain || null,
-                customParams: a.userParams || null
+                userParams: a.userParams || null
             };
-            exec(successCB, errorCB, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'generateInviteUrl', params: params }]);
+            exec(successCB, errorCB, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'generateInviteLink', params: params }]);
         }
     };
 
@@ -607,11 +589,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.logCrossPromotionImpression = function (appId, campaign, userParams) {
         argscheck.checkArgs('*', 'AppsFlyer.logCrossPromotionImpression', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logCrossPromoteImpression', params: { appId: appId || '', campaign: campaign || '', userParams: userParams || null } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logCrossPromoteImpression', params: { appID: appId || '', campaign: campaign || null, parameters: userParams || null } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logCrossPromoteImpression', params: { appId: appId || '', campaign: campaign || '', userParams: userParams || null } }]);
     };
 
     /**
@@ -622,11 +600,7 @@ if (!window.CustomEvent) {
      */
     AppsFlyer.prototype.logCrossPromotionAndOpenStore = function (appId, campaign, params) {
         argscheck.checkArgs('*', 'AppsFlyer.logCrossPromotionAndOpenStore', arguments);
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAndOpenStore', params: { promotedAppId: appId || '', campaign: campaign || '', userParams: params || null } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAndOpenStore', params: { appID: appId || '', campaign: campaign || null, parameters: params || null } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'logAndOpenStore', params: { promotedAppId: appId || '', campaign: campaign || '', userParams: params || null } }]);
     };
 
     /**
@@ -652,8 +626,7 @@ if (!window.CustomEvent) {
      * successCB: Success callback that returns the SDK version
      */
     AppsFlyer.prototype.getSdkVersion = function (successCB) {
-        const method = isAndroid() ? 'getSdkVersion' : 'getSDKVersion';
-        exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: method, params: {} }]);
+        exec(function (result) { if (successCB) successCB(result); }, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'getSdkVersion', params: {} }]);
     };
 
     /**
@@ -700,7 +673,7 @@ if (!window.CustomEvent) {
             if (additionalParameters != null && typeof additionalParameters === 'object') {
                 params.additionalParameters = additionalParameters;
             }
-            exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'validateAndLogInAppPurchaseV2', params: params }]);
+            exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'validateAndLogInAppPurchase', params: params }]);
         }
     };
 
@@ -735,7 +708,7 @@ if (!window.CustomEvent) {
         if (isAndroid()) {
             exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableAdvertisingIdentifiers', params: { isDisable: Boolean(disableAdvertisingIdentifier) } }]);
         } else {
-            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableAdvertisingIdentifier', params: { disable: Boolean(disableAdvertisingIdentifier) } }]);
+            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setDisableAdvertisingIdentifiers', params: { disable: Boolean(disableAdvertisingIdentifier) } }]);
         }
     };
 
@@ -748,8 +721,7 @@ if (!window.CustomEvent) {
      * @param errorC error callback
      */
     AppsFlyer.prototype.setOneLinkCustomDomains = function (domains, successC, errorC) {
-        const method = isAndroid() ? 'setOneLinkCustomDomain' : 'setOneLinkCustomDomains';
-        exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: method, params: { domains: domains || [] } }]);
+        exec(successC, errorC, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setOneLinkCustomDomain', params: { domains: domains || [] } }]);
     };
 
     /**
@@ -759,45 +731,7 @@ if (!window.CustomEvent) {
      * @param isEnabled - boolean value
      */
     AppsFlyer.prototype.enableFacebookDeferredApplinks = function (isEnabled) {
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableFacebookDeferredApplinks', params: { isEnabled: Boolean(isEnabled) } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableFacebookDeferredApplinks', params: { enable: Boolean(isEnabled) } }]);
-        }
-    };
-
-    /**
-     * Facebook Advanced Matching (iOS).
-     * @deprecated On Android use setUserPhone(countryCode, phoneNumber) instead; the number is forwarded
-     * to setUserPhone with an empty country code and hashed on-device by the SDK.
-     * @param phoneNumber phone number
-     * @param successC success callback
-     */
-    AppsFlyer.prototype.setPhoneNumber = function (phoneNumber, successC) {
-        if (isAndroid()) {
-            window.console.warn("[DEPRECATED] 'setPhoneNumber' is deprecated. Use 'setUserPhone' instead.");
-            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserPhone', params: { countryCode: '', phoneNumber: phoneNumber || '' } }]);
-        } else {
-            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPhoneNumber', params: { phoneNumber: phoneNumber || '' } }]);
-        }
-    };
-
-    /**
-     * Facebook Advanced Matching (iOS).
-     * @deprecated On Android use setUserEmail(email) instead. The SDK now hashes emails on-device, so the
-     * crypt type is ignored and only the first email is forwarded to setUserEmail.
-     * @param userEmails Strings array of emails
-     * @param successC success callback
-     */
-    AppsFlyer.prototype.setUserEmails = function (userEmails, successC) {
-        const emails = userEmails || [];
-        if (isAndroid()) {
-            window.console.warn("[DEPRECATED] 'setUserEmails' is deprecated. Use 'setUserEmail' instead.");
-            const email = emails.length > 0 ? emails[0] : '';
-            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmail', params: { email: email } }]);
-        } else {
-            exec(successC, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setUserEmails', params: { emails: emails, cryptType: 'sha256' } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableFacebookDeferredApplinks', params: { isEnabled: Boolean(isEnabled) } }]);
     };
 
     /**
@@ -806,11 +740,7 @@ if (!window.CustomEvent) {
      * @param hostName
      */
     AppsFlyer.prototype.setHost = function (hostPrefix, hostName) {
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setHost', params: { hostPrefixName: hostPrefix || null, hostName: hostName || '' } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setHost', params: { host: hostName || '', hostPrefix: hostPrefix || '' } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setHost', params: { hostPrefixName: hostPrefix || null, hostName: hostName || '' } }]);
     };
 
     /**
@@ -823,11 +753,7 @@ if (!window.CustomEvent) {
         if (pathArr.length === 0) {
             return;
         }
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'addPushNotificationDeepLinkPath', params: { deepLinkPath: pathArr } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'addPushNotificationDeepLinkPath', params: { path: pathArr } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'addPushNotificationDeepLinkPath', params: { deepLinkPath: pathArr } }]);
     };
 
     /**
@@ -868,11 +794,7 @@ if (!window.CustomEvent) {
      * @param additionalData
      */
     AppsFlyer.prototype.setAdditionalData = function (additionalData) {
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAdditionalData', params: { customData: additionalData || {} } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAdditionalData', params: { additionalData: additionalData || {} } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setAdditionalData', params: { customData: additionalData || {} } }]);
     };
 
     /**
@@ -883,11 +805,7 @@ if (!window.CustomEvent) {
      * @param data - Customer data, depends on the integration configuration with the specific partner
      */
     AppsFlyer.prototype.setPartnerData = function (partnerId, data) {
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPartnerData', params: { partnerId: partnerId || '', data: data || {} } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPartnerData', params: { partnerId: partnerId || '', partnerInfo: data || {} } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'setPartnerData', params: { partnerId: partnerId || '', data: data || {} } }]);
     };
 
     /**
@@ -939,11 +857,7 @@ if (!window.CustomEvent) {
      * @param enable - boolean value that represent if enables to collect or not.
      */
     AppsFlyer.prototype.enableTCFDataCollection = function (enable) {
-        if (isAndroid()) {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableTCFDataCollection', params: { shouldCollect: !!enable } }]);
-        } else {
-            exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableTCFDataCollection', params: { enable: !!enable } }]);
-        }
+        exec(null, null, 'AppsFlyerPlugin', 'executeRpc', [{ method: 'enableTCFDataCollection', params: { shouldCollect: !!enable } }]);
     };
 
     /**

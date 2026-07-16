@@ -6,7 +6,7 @@ package com.appsflyer.cordova.plugin;
 
 public class AppsFlyerConstants {
 
-    final static String PLUGIN_VERSION = "6.18.0";
+    final static String PLUGIN_VERSION = "6.18.1";
 
     /** Event type: install conversion data loaded */
     final static String AF_ON_INSTALL_CONVERSION_DATA_LOADED = "onInstallConversionDataLoaded";

@@ -17,7 +17,7 @@ public class AppsFlyerPlugin: CDVPlugin {
     private static let rpcLogPrefix = "[AppsFlyer RPC]"
 
     /// Cordova plugin version for RPC `setPluginInfo` (align with `package.json` / Android `AppsFlyerConstants.PLUGIN_VERSION`).
-    private static let cordovaPluginVersion = "6.17.8"
+    private static let cordovaPluginVersion = "6.18.1"
 
     /// Logs to Xcode / device console (`NSLog`). Filter: `AppsFlyer RPC`
     private func logRpc(_ message: String) {
@@ -49,10 +49,6 @@ public class AppsFlyerPlugin: CDVPlugin {
 
     /// After JS invokes RPC `start` once, `UIApplication.didBecomeActive` re-posts fire-and-forget `start` (replaces Obj-C `shouldStartSdk` / `sendLaunch:`).
     private var shouldStartSdk = false
-
-    /// `init` RPC must complete before `registerDeeplinkListener` (UDL can auth-fail in iOS strict mode otherwise).
-    private var initRpcCompleted = false
-    private var pendingRegisterDeeplinkListenerRpc = false
 
     /// Ensures we only register `NotificationCenter` observers once per plugin instance.
     private var didRegisterNotificationObservers = false
@@ -125,23 +121,13 @@ public class AppsFlyerPlugin: CDVPlugin {
                 logRpc("executeRpc: normalized \(method) → RPC method=\(rpcMethod)")
             }
 
-            if rpcMethod == "init" {
+            if rpcMethod == "initialize" {
                 setupAttributionBridgeAndForegroundObserversIfNeeded()
                 await sendPluginInfoBeforeInit()
             }
 
             if rpcMethod == "start" {
                 shouldStartSdk = true
-            }
-
-            if rpcMethod == "registerDeeplinkListener", !initRpcCompleted {
-                pendingRegisterDeeplinkListenerRpc = true
-                logRpc("executeRpc: deferring registerDeeplinkListener until init RPC succeeds")
-                sendRegistrationAck(command: command) { [weak self] result in
-                    guard let self = self, let result = result else { return }
-                    self.commandDelegate.send(result, callbackId: command.callbackId)
-                }
-                return
             }
 
             let requestJson: String
@@ -157,11 +143,6 @@ public class AppsFlyerPlugin: CDVPlugin {
 
             let responseJson = await rpcClient.execute(jsonRequest: requestJson)
             logRpc("executeRpc: response \(Self.truncateForLog(responseJson))")
-
-            if rpcMethod == "init", Self.isRpcResponseSuccess(responseJson) {
-                initRpcCompleted = true
-                await flushPendingRegisterDeeplinkListenerRpcIfNeeded()
-            }
 
             Self.sendRpcEnvelopeToCordova(
                 responseJson,
@@ -195,6 +176,9 @@ public class AppsFlyerPlugin: CDVPlugin {
     /// Renames Cordova-only RPC method aliases and applies transforms that are not expressible as fixed key names in JS (`www/appsflyer.js` sends native RPC names/params for iOS where possible).
     private func normalizeRpcInvocation(method: String, params: [String: Any]) -> NormalizedRpcInvocation {
         switch method {
+        case "init":
+            // Android plugin_bridge uses "init"; iOS AppsFlyerRPC 7.x renamed it to "initialize".
+            return .invoke(method: "initialize", params: params)
         case "subscribeForDeepLink":
             return .invoke(method: "registerDeeplinkListener", params: params)
         case "unsubscribeForDeepLink":
@@ -203,13 +187,13 @@ public class AppsFlyerPlugin: CDVPlugin {
             return .localAckOnly
         case "unregisterSessionReadyListener":
             return .localAckOnly
-        case "validateAndLogInAppPurchaseV2":
+        case "validateAndLogInAppPurchase":
             var p = params
             if var transaction = p["transaction"] as? [String: Any] {
                 transaction["purchaseType"] = Self.normalizePurchaseTypeForValidateAndLogV2(transaction["purchaseType"])
                 p["transaction"] = transaction
             }
-            return .invoke(method: "validateAndLogInAppPurchaseV2", params: p)
+            return .invoke(method: "validateAndLogInAppPurchase", params: p)
         default:
             return .invoke(method: method, params: params)
         }
@@ -396,9 +380,7 @@ public class AppsFlyerPlugin: CDVPlugin {
 
         switch jsType {
         case Self.afOnInstallConversionDataLoaded,
-        Self.afOnInstallConversionFailure,
-        "onAppOpenAttribution",
-        "onAppOpenAttributionFailure":
+        Self.afOnInstallConversionFailure:
             if let cb = conversionListenerCallbackId {
                 Self.logRpc("deliver: sending to conversion listener callbackId=\(cb)")
                 commandDelegate.send(result, callbackId: cb)
@@ -440,7 +422,6 @@ public class AppsFlyerPlugin: CDVPlugin {
             logRpc("registration: deep link listener → callbackId=\(cb ?? "nil")")
         case "unsubscribeForDeepLink":
             deepLinkListenerCallbackId = nil
-            pendingRegisterDeeplinkListenerRpc = false
             logRpc("registration: deep link listener cleared")
         case "registerConversionListener":
             conversionListenerCallbackId = cb
@@ -457,19 +438,6 @@ public class AppsFlyerPlugin: CDVPlugin {
         let result = CDVPluginResult(status: CDVCommandStatus.noResult)
         result.keepCallback = true
         send(result)
-    }
-
-    /// Runs deferred `registerDeeplinkListener` after successful `init` (mirrors Obj-C credential-before-delegate ordering).
-    private func flushPendingRegisterDeeplinkListenerRpcIfNeeded() async {
-        guard pendingRegisterDeeplinkListenerRpc else { return }
-        pendingRegisterDeeplinkListenerRpc = false
-        do {
-            let json = try Self.buildJsonRpcEnvelope(method: "registerDeeplinkListener", params: [:])
-            logRpc("flushPendingRegisterDeeplinkListener: \(Self.truncateForLog(json))")
-            _ = await rpcClient.execute(jsonRequest: json)
-        } catch {
-            logRpc("flushPendingRegisterDeeplinkListener: failed — \(error.localizedDescription)")
-        }
     }
 
     /// `true` when the RPC envelope has no transport/handler error (same rules as `sendRpcEnvelopeToCordova`).

@@ -15,8 +15,7 @@ The list of available methods for this plugin is described below.
 | [`initSdk`](#initSdk)                                                 | `(Object args, function success, function error)`                         | Initialize the SDK                                                                                      |
 | [`startSdk`](#startSdk)                                               | `()`                                                                      | Starts the SDK - Must call initSdk first in order to make this work                                     |
 | [`logEvent`](#trackEvent)                                             | `(String eventName, Object eventValue, function success, function error)` | Track rich in-app events                                                                                |
-| [`registerOnAppOpenAttribution`](#registerOnAppOpenAttribution)       | `(function success, function error)`                                      | Get the deeplink data                                                                                   |
-| [`registerDeepLink`](#registerDeepLink)                               | `(function callBack)`                                                     | Get unified deep link data                                                                              |
+| [`registerDeepLink`](#registerDeepLink)                               | `(function callBack)`                                                     | Unified deep link / retargeting callbacks (SDK 7)                                                       |
 | [`setCurrencyCode`](#setCurrencyCode)                                 | `(String currencyId)`                                                     | Set currency code                                                                                       |
 | [`setAppUserId`](#setAppUserId)                                       | `(String customerUserId)`                                                 | Set custom_user_id                                                                                      |
 | [`setGCMProjectNumber`](#initSdk)                                     | `(String gcmProjectNumber)`                                               |                                                                                                         |
@@ -41,8 +40,12 @@ The list of available methods for this plugin is described below.
 | [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)`                | Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).          |
 | [`setOneLinkCustomDomains`](#setOneLinkCustomDomains)                 | `(domains, function success, function error)`                             | Set Onelink custom/branded domains                                                                      |
 | [`enableFacebookDeferredApplinks`](#enableFacebookDeferredApplinks)   | `(boolean isEnabled)`                                                     | support deferred deep linking from Facebook Ads                                                         |
-| [`setUserEmails`](#setUserEmails)                                     | `(emails, function success)`                                              | Set user emails for FB Advanced Matching                                                                |
-| [`setPhoneNumber`](#setPhoneNumber)                                   | `(String phoneNumber, function success)`                                  | Set phone number for FB Advanced Matching                                                               |
+| [`setUserEmail`](#setUserEmail)                                       | `(String email)`                                                          | Set the user's email (normalized & hashed on-device)                                                    |
+| [`setUserPhone`](#setUserPhone)                                       | `(String countryCode, String phoneNumber)`                               | Set the user's phone number (normalized & hashed on-device)                                             |
+| [`setUserFirstName`](#setUserFirstName)                               | `(String firstName)`                                                      | Set the user's first name (normalized & hashed on-device)                                               |
+| [`setUserLastName`](#setUserLastName)                                 | `(String lastName)`                                                       | Set the user's last name (normalized & hashed on-device)                                                |
+| [`setUserFbLoginId`](#setUserFbLoginId)                               | `(fbLoginId)`                                                             | Set the user's Facebook login ID (normalized & hashed on-device)                                        |
+| [`clearUserPii`](#clearUserPii)                                       | `()`                                                                      | Clear all previously set hashed PII values                                                              |
 | [`setHost`](#setHost)                                                 | `(String hostPrefix, String hostName)`                                    | Set custom host prefix and host name                                                                    |
 | [`addPushNotificationDeepLinkPath`](#addPushNotificationDeepLinkPath) | `(path)`                                                                  | configure push notification deep link resolution                                                        |
 | [`setResolveDeepLinkURLs`](#setResolveDeepLinkURLs)                   | `(urls)`                                                                  | get the OneLink from click domains                                                                      |
@@ -221,40 +224,28 @@ In any event, the SDK can be reactivated by calling the same API, but to pass fa
 
 ---
 
-##### <a id="registerOnAppOpenAttribution"> **`registerOnAppOpenAttribution(onSuccess, onError): void`**
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `onSuccess` | `(message: stringifed JSON)=>void` | Success callback - called after receiving data on App Open Attribution.|
-| `onError` | `(message: stringifed JSON)=>void` | Error callback - called when error occurs.|
-
-*Example:*
-
-```javascript
-window.plugins.appsFlyer.registerOnAppOpenAttribution(function(res) {
-        console.log('AppsFlyer OAOA ==> ' + res);
-        alert('AppsFlyer OAOA ==> ' + res);
-     },
-     function onAppOpenAttributionError(err) {
-         console.log(err);
-     });
-
-```
 ---
+
 ##### <a id="registerDeepLink"> **`registerDeepLink(callBack): void`**
 
-**Note:** most be called before `initSdk()` and it overrides `registerOnAppOpenAttribution`.
+Register the unified deep link listener. **SDK 7:** this replaces the removed `onAppOpenAttribution` / `onAppOpenAttributionFailure` callbacks. All deep link and retargeting outcomes are delivered as `onDeepLinking` with a `status` field (`found`, `failure`, or `notFound`).
+
+**Note:** call before `initSdk()`.
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `callBack` | `(message: stringifed JSON)=>void` | function called after receiving dep link data|
+| `callBack` | `(message: stringifed JSON)=>void` | Called when deep link data is received |
 
 *Example:*
 
 ```javascript
 window.plugins.appsFlyer.registerDeepLink(function(res) {
-    console.log('AppsFlyer DDL ==> ' + res);
-    alert('AppsFlyer DDL ==> ' + res);
+    var payload = typeof res === 'string' ? JSON.parse(res) : res;
+    if (payload.status === 'found') {
+        console.log('Deep link:', payload.data.deepLink);
+    } else if (payload.status === 'failure') {
+        console.log('Deep link error:', payload.data.error);
+    }
 });
 ```
 ---
@@ -642,36 +633,85 @@ window.plugins.appsFlyer.enableFacebookDeferredApplinks(true);
 | `isEnabled` | `boolean` | enable support deferred deep linking from Facebook Ads |
 
 ---
-##### <a id="setUserEmails"> **`setUserEmails(emails, successC: void`**
-Set user emails for FB Advanced Matching<br>
+##### <a id="setUserEmail"> **`setUserEmail(email): void`**
+Set the user's email. The value is normalized and hashed on-device by the SDK before being sent. Replaces the removed `setUserEmails` / `setUserEmailsWithCryptType` APIs.<br>
 
 *Example:*
 
 ```javascript
-let emails = ["foo@gmail.com", "bar@foo.com"];
-window.plugins.appsFlyer.setUserEmails(emails, successC);
+window.plugins.appsFlyer.setUserEmail("john.doe@example.com");
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `emails` | `String array` | String array of emails |
-| `successC` | `function` | will trigger if the emails were sent successfully |
+| `email` | `String` | Plain (unhashed) email address |
 
 ---
-##### <a id="setPhoneNumber"> **`setPhoneNumber(phoneNumber, successC: void`**
-Set phone number for FB Advanced Matching<br>
+##### <a id="setUserPhone"> **`setUserPhone(countryCode, phoneNumber): void`**
+Set the user's phone number. The value is normalized and hashed on-device by the SDK before being sent.<br>
 
 *Example:*
 
 ```javascript
-let phoneNumber = "0548561587";
-window.plugins.appsFlyer.setPhoneNumber(phoneNumber, successC);
+window.plugins.appsFlyer.setUserPhone("1", "5555550123");
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `phoneNumber` | `String` | String phone number |
-| `successC` | `function` | will trigger if the number was sent successfully |
+| `countryCode` | `String` | Country dialing code (e.g. "1", "44") |
+| `phoneNumber` | `String` | Local phone number, without the country code |
+
+---
+##### <a id="setUserFirstName"> **`setUserFirstName(firstName): void`**
+Set the user's first name. The value is normalized and hashed on-device by the SDK before being sent.<br>
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.setUserFirstName("John");
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `firstName` | `String` | Plain (unhashed) first name |
+
+---
+##### <a id="setUserLastName"> **`setUserLastName(lastName): void`**
+Set the user's last name. The value is normalized and hashed on-device by the SDK before being sent.<br>
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.setUserLastName("Doe");
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `lastName` | `String` | Plain (unhashed) last name |
+
+---
+##### <a id="setUserFbLoginId"> **`setUserFbLoginId(fbLoginId): void`**
+Set the user's Facebook login ID. The value is normalized and hashed on-device by the SDK before being sent.<br>
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.setUserFbLoginId("1234567890");
+```
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `fbLoginId` | `number` \| `String` | Facebook login ID (numeric value or its string representation) |
+
+---
+##### <a id="clearUserPii"> **`clearUserPii(): void`**
+Clear all previously set hashed PII values (email, phone, first name, last name, Facebook login ID).<br>
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.clearUserPii();
+```
 
 ---
 ##### <a id="setHost"> **`setHost(String hostPrefix, String hostName): void`**

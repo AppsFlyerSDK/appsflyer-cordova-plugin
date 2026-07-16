@@ -280,8 +280,8 @@ function setOutOfStore() {
 }
 
 function setUserEmailsWithCryptType() {
-    window.plugins.appsFlyer.setUserEmailsWithCryptType('SHA256', ['test@example.com']);
-    alert('setUserEmailsWithCryptType called');
+    window.plugins.appsFlyer.setUserEmail('test@example.com');
+    alert('setUserEmail called');
 }
 
 function setPreinstallAttribution() {
@@ -340,13 +340,11 @@ function setResolveDeepLinkURLs() {
 }
 
 function setEmails() {
-    let emails = ["foo@bar.com", "support@appsflyer.com"];
-    window.plugins.appsFlyer.setUserEmails(emails, print);
+    window.plugins.appsFlyer.setUserEmail("foo@bar.com");
 }
 
 function setPhoneNumber() {
-    let phone = "0522565426";
-    window.plugins.appsFlyer.setPhoneNumber(phone, print);
+    window.plugins.appsFlyer.setUserPhone("1", "0522565426");
 }
 
 function setFBEnabled() {
