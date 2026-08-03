@@ -12,8 +12,14 @@ The list of available methods for this plugin is described below.
 
 | method name                                                           | params                                                                    | description                                                                                             |
 |-----------------------------------------------------------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| [`initSdk`](#initSdk)                                                 | `(Object args, function success, function error)`                         | Initialize the SDK                                                                                      |
-| [`startSdk`](#startSdk)                                               | `()`                                                                      | Starts the SDK - Must call initSdk first in order to make this work                                     |
+| [`initSdk`](#initSdk)                                                 | `(Object args, function success, function error)`                         | Initialize the SDK (SDK 7: `devKey` and `appId` only)                                                  |
+| [`startSdk`](#startSdk)                                               | `(function success, function error)`                                      | Starts the SDK after session is ready — call `registerSessionReadyListener` first                      |
+| [`setDebugLog`](#setDebugLog)                                         | `(boolean isEnabled)`                                                     | Enable or disable SDK debug logs (replaces `isDebug` init option)                                       |
+| [`registerConversionDataListener`](#registerConversionDataListener)   | `(function success, function error)`                                      | Register install conversion / GCD callbacks (SDK 7)                                                       |
+| [`unregisterConversionDataListener`](#unregisterConversionDataListener) | `()`                                                                    | Unregister conversion data listener                                                                     |
+| [`registerSessionReadyListener`](#registerSessionReadyListener)       | `(function callback)`                                                     | Register callback fired when SDK session is ready to start (SDK 7)                                        |
+| [`unregisterSessionReadyListener`](#unregisterSessionReadyListener) | `()`                                                                      | Unregister session-ready listener                                                                       |
+| [`isSessionReady`](#isSessionReady)                                   | `(function success, function error)`                                      | Query whether the SDK session is ready                                                                  |
 | [`logEvent`](#trackEvent)                                             | `(String eventName, Object eventValue, function success, function error)` | Track rich in-app events                                                                                |
 | [`registerDeepLink`](#registerDeepLink)                               | `(function callBack)`                                                     | Unified deep link / retargeting callbacks (SDK 7)                                                       |
 | [`setCurrencyCode`](#setCurrencyCode)                                 | `(String currencyId)`                                                     | Set currency code                                                                                       |
@@ -30,11 +36,8 @@ The list of available methods for this plugin is described below.
 | [`logCrossPromotionAndOpenStore`](#trackAndOpenStore)                 | `(String appId, String campaign, Object params)`                          | Launch the app store's app page (via Browser)                                                           |
 | [`handleOpenUrl`](#deep-linking-tracking)                             | `(String url)`                                                            |                                                                                                         |
 | [`getSdkVersion`](#getSdkVersion)                                     | `((function success)`                                                     | Get the current SDK version                                                                             |
-| [`setSharingFilterForAllPartners`](#setSharingFilterForAllPartners)   |                                                                           | Used by advertisers to exclude all networks/integrated partners from getting data                       |
-| [`setSharingFilter`](#setSharingFilter)                               | `(partners)`                                                              | Used by advertisers to exclude specified networks/integrated partners from getting data                 |
-| [`setSharingFilterForPartners`](#setSharingFilterForPartners)         | `(partners)`                                                              | Used by advertisers to exclude specified networks/integrated partners from getting data                 |
-| [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase)         | `(Object purchaseInfo, function success, function error)`                 | Deprecated. Please use `validateAndLogInAppPurchaseV2`                                 |
-| [`validateAndLogInAppPurchaseV2`](#validateAndLogInAppPurchaseV2)     | `(Object purchaseDetails, Object additionalParameters, function success, function error)` | API for server verification of in-app purchases using V2 API (BETA)                                     |
+| [`setSharingFilterForPartners`](#setSharingFilterForPartners)         | `(partners)`                                                              | Exclude specified networks/integrated partners from getting data (SDK 7 — only sharing-filter API)      |
+| [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase)         | `(AFPurchaseDetails purchaseDetails, Object additionalParameters, function success, function error)` | Server verification of in-app purchases (SDK 7 unified API)                              |
 | [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox)   | `(boolean isSandbox, function success, function error)`                   | In app purchase receipt validation Apple environment                                                    |
 | [`disableCollectASA`](#disableCollectASA)                             | `(boolean collectASA, function success)`                                  | **iOS**  - set the SDK to load OR not to load iAd.framework dynamically                                 |
 | [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)`                | Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).          |
@@ -65,60 +68,109 @@ The list of available methods for this plugin is described below.
 
 ##### <a id="initSdk"> **`initSdk(options, onSuccess, onError): void`**
 
-initialize the SDK.
+initialize the SDK. **SDK 7:** only `devKey` and `appId` are forwarded to the native SDK. Debug mode, listeners, and lifecycle flags that were previously passed here must be configured via dedicated APIs — see [MIGRATION.md](./MIGRATION.md).
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
 | `options` | `Object` | SDK configuration |
-| `onSuccess` | `(message: string)=>void` | Success callback - called after successful SDK initialization. |
-| `onError` | `(message: string)=>void` | Error callback - called when error occurs during initialization. |
+| `onSuccess` | `(message: string)=>void` | Success callback — called when initialize completes. |
+| `onError` | `(message: string)=>void` | Error callback — called when initialization fails. |
 
 **`options`**
 
 | name                              | type | default | description |
 |-----------------------------------|---------|---------|------------------------|
-| `devKey`                          |`string` |         | [Appsflyer Dev key](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android) |
-| `appId`                           |`string` |         | [Apple Application ID](https://support.appsflyer.com/hc/en-us/articles/207032066-AppsFlyer-SDK-Integration-iOS) (for iOS only) |
-| `isDebug`                         |`boolean`| `false` | debug mode (optional)|
-| `useUninstallSandbox`             |`boolean`| `false` | For iOS only, to test uninstall in Sandbox environment (optional)|
-| `collectIMEI`                     | `boolean` | `false` |opt-out of collection of IMEI |
-| `collectAndroidID`                | `boolean` | `false` |opt-out of collection of collectAndroidID |
-| `onInstallConversionDataListener` |`boolean`| `false` | Accessing AppsFlyer Attribution / Conversion Data from the SDK (Deferred Deeplinking). Read more: [Android](http://support.appsflyer.com/entries/69796693-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deep-linking-), [iOS](http://support.appsflyer.com/entries/22904293-Testing-AppsFlyer-iOS-SDK-Integration-Before-Submitting-to-the-App-Store-). AppsFlyer plugin will return attribution data in `onSuccess` callback. |
-| `shouldStartSdk`                  |`boolean`| `true`  | Prevents from the SDK from sending the launch request after using appsFlyer.initSdk(...). When using this property, the apps needs to manually trigger the appsFlyer.startSdk() API to report the app launch. read more here. (Optional, default=true)|
-.
+| `devKey`                          |`string` |         | [AppsFlyer Dev key](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android) (required) |
+| `appId`                           |`string` |         | [Apple Application ID](https://support.appsflyer.com/hc/en-us/articles/207032066-AppsFlyer-SDK-Integration-iOS) (iOS only) |
 
-*Example:*
+> **Removed from `initSdk` in v7:** `isDebug`, `onInstallConversionDataListener`, `onDeepLinkListener`, `shouldStartSdk`, `waitForATTUserAuthorization`, `collectIMEI`, `collectAndroidID`, and other legacy init flags. Use `setDebugLog()`, `registerConversionDataListener()`, `registerDeepLink()`, and `registerSessionReadyListener()` + `startSdk()` instead.
+
+*Example (SDK 7):*
 
 ```javascript
-var  onSuccess = function(result) {
-// handle result
-};
-
-var  onError = function(err) {
-// handle error
-}
-
-var  options = {
-devKey:  'd3Ac9qPardVYZxfWmCspwL',
-appId:  '123456789',
-isDebug:  false,
-onInstallConversionDataListener:  true  //optional
-};
-
-window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
+window.plugins.appsFlyer.initSdk({
+  devKey: 'd3Ac9qPardVYZxfWmCspwL',
+  appId: '123456789'
+}, function () {
+  window.plugins.appsFlyer.setDebugLog(false);
+  window.plugins.appsFlyer.registerConversionDataListener(onConversionSuccess, onConversionError);
+  window.plugins.appsFlyer.registerSessionReadyListener(function () {
+    window.plugins.appsFlyer.startSdk();
+  });
+}, onError);
 ```
 
 ---
 
-##### <a id="startSdk"> **`startSdk(): void`**
+##### <a id="setDebugLog"> **`setDebugLog(isEnabled): void`**
 
-Starts the SDK
+Enable or disable SDK debug logging. Call after `initSdk`. Replaces the removed `isDebug` init option.
 
 *Example:*
 
 ```javascript
-window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
-window.plugins.appsFlyer.startSdk();
+window.plugins.appsFlyer.setDebugLog(true);
+```
+
+---
+
+##### <a id="registerConversionDataListener"> **`registerConversionDataListener(onSuccess, onError): void`**
+
+Register callbacks for install conversion data (GCD / deferred deep linking). Replaces `onInstallConversionDataListener: true` in init options.
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.registerConversionDataListener(
+  function (result) { console.log('Conversion data:', result); },
+  function (err) { console.error('Conversion error:', err); }
+);
+```
+
+---
+
+##### <a id="unregisterConversionDataListener"> **`unregisterConversionDataListener(): void`**
+
+Unregister the conversion data listener.
+
+---
+
+##### <a id="registerSessionReadyListener"> **`registerSessionReadyListener(callback): void`**
+
+Register a callback invoked when the SDK session is ready. Call `startSdk()` inside this callback.
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.registerSessionReadyListener(function () {
+  window.plugins.appsFlyer.startSdk(onStartSuccess, onStartError);
+});
+```
+
+---
+
+##### <a id="unregisterSessionReadyListener"> **`unregisterSessionReadyListener(): void`**
+
+Unregister the session-ready listener.
+
+---
+
+##### <a id="isSessionReady"> **`isSessionReady(onSuccess, onError): void`**
+
+Query whether the SDK session is ready.
+
+---
+
+##### <a id="startSdk"> **`startSdk(onSuccess, onError): void`**
+
+Starts the SDK. **SDK 7:** register `registerSessionReadyListener` and call `startSdk` from its callback. Optional success/error callbacks notify when start completes.
+
+*Example:*
+
+```javascript
+window.plugins.appsFlyer.registerSessionReadyListener(function () {
+  window.plugins.appsFlyer.startSdk(function (res) { console.log('Started', res); }, console.error);
+});
 ```
 ---
 ##### <a id="trackEvent"> **`logEvent(eventName, eventValues, onSuccess, onError): void`** (optional)
@@ -413,38 +465,9 @@ window.plugins.appsFlyer.getSdkVersion(getSdkVersionCallbackFn);
 
 ---
 
-##### <a id="setSharingFilterForAllPartners"> **`setSharingFilterForAllPartners(): void`**
-
-Used by advertisers to exclude all networks/integrated partners from getting data. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032126#additional-apis-exclude-partners-from-getting-data)
-
-*Example:*
-
-```javascript
-window.plugins.appsFlyer.setSharingFilterForAllPartners();
-```
----
-
-##### <a id="setSharingFilter"> **`setSharingFilter(partners): void`**
-
-Used by advertisers to exclude specified networks/integrated partners from getting data. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032126#additional-apis-exclude-partners-from-getting-data)
-
-*Example:*
-
-```javascript
-let  partners = ["facebook_int","googleadwords_int","snapchat_int","doubleclick_int"];
-
-window.plugins.appsFlyer.setSharingFilter(partners);
-```
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `partners` | `array` | Comma separated array of partners that need to be excluded |
-
----
-
 ##### <a id="setSharingFilterForPartners"> **`setSharingFilterForPartners(partners): void`**
 
-Used by advertisers to exclude specified networks/integrated partners from getting data networks Comma separated array of partners that need to be excluded. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032126#additional-apis-exclude-partners-from-getting-data)
+Used by advertisers to exclude specified networks/integrated partners from getting data. **SDK 7:** this is the only sharing-filter API. `setSharingFilter` and `setSharingFilterForAllPartners` were removed.
 
 *Example:*
 
@@ -456,101 +479,43 @@ window.plugins.appsFlyer.setSharingFilterForPartners(partners);
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `partners` | `array` | Comma separated array of partners that need to be excluded |
+| `partners` | `array` | Array of partner IDs to exclude |
 
 ---
 
-##### <a id="validateAndLogInAppPurchase"> **`validateAndLogInAppPurchase(purchaseInfo, successC, failureC): void`**
+##### <a id="validateAndLogInAppPurchase"> **`validateAndLogInAppPurchase(purchaseDetails, additionalParameters, successC, failureC): void`**
 
-Deprecated, please use `validateAndLogInAppPurchaseV2`.
-
-Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases)
-
-*Example:*
-
-```javascript
- purchaseInfo = {
-        productIdentifier: 'identifier', //iOS
-        transactionId: '12xxx56', //iOS
-        publicKey: "key",
-        currency: 'biz',
-        signature: "sig",
-        purchaseData: "data",
-        price: '123',
-        additionalParameters: {'foo': 'bar'},
-    };
-    window.plugins.appsFlyer.setUseReceiptValidationSandbox(true); // iOS -> for testing in sandbox environment
-    window.plugins.appsFlyer.validateAndLogInAppPurchase(purchaseInfo, successC, failureC);
-```
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `purchaseInfo` | `Object` | In-App Purchase parameters |
-| `successC` | `function` | success callback |
-| `failureC` | `function` | failure callback |
-
-*Purchase parameters:*
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `publicKey` | `string` | License Key obtained from the Google Play Console |
-| `signature` | `string` | data.INAPP_DATA_SIGNATURE |
-| `purchaseData` | `string` | data.INAPP_PURCHASE_DATA |
-| `price` | `string` | The product price |
-| `additionalParameters` | `Object` | The additional param, which you want to receive it in the raw reports. |
-| `productIdentifier` | `string` | The product identifier. *FOR iOS* |
-| `transactionId` | `string` | The purchase transaction Id. *FOR iOS* |
-| `currency` | `string` | The product currency |
----
-
-##### <a id="validateAndLogInAppPurchaseV2"> **`validateAndLogInAppPurchaseV2(purchaseDetails, additionalParameters, successC, failureC): void`**
-
-Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported. This method uses V2 API.
+Receipt validation verifies in-app purchases with the store. **SDK 7** uses a unified API with `AFPurchaseDetails`. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases)
 
 *Example:*
 
 ```javascript
 var purchaseDetails = new AFPurchaseDetails(
-    "my-product-id",           // productId
-    "12345-transaction-id",    // purchaseToken/transactionId
-    "subscription"             // purchaseType: "subscription" or "one_time_purchase"
+    "subscription",
+    "12345-transaction-id",
+    "my-product-id"
 );
 
 var additionalParameters = {
-    custom_param_1: "value1",
-    custom_param_2: "value2"
+    custom_param_1: "value1"
 };
 
-window.plugins.appsFlyer.validateAndLogInAppPurchaseV2(
-    purchaseDetails, 
-    additionalParameters, 
-    function(success) {
-        console.log("Purchase validation successful:", success);
-    }, 
-    function(error) {
-        console.log("Purchase validation failed:", error);
-    }
+window.plugins.appsFlyer.validateAndLogInAppPurchase(
+    purchaseDetails,
+    additionalParameters,
+    function(success) { console.log("Validation OK:", success); },
+    function(error) { console.log("Validation failed:", error); }
 );
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `purchaseDetails` | `Object` | Purchase details object containing productId, purchaseToken, and purchaseType |
-| `additionalParameters` | `Object` | Additional parameters to include with the purchase event (optional) |
-| `successC` | `function` | Success callback - called when validation is successful |
-| `failureC` | `function` | Failure callback - called when validation fails |
+| `purchaseDetails` | `AFPurchaseDetails` | `purchaseType`, `purchaseToken`, `productId` |
+| `additionalParameters` | `Object` | Optional extra event parameters |
+| `successC` | `function` | Success callback |
+| `failureC` | `function` | Failure callback |
 
-*Purchase details parameters:*
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `productId` | `string` | The product identifier |
-| `purchaseToken` | `string` | The purchase token from Google Play Store (Android) or transaction ID (iOS) |
-| `purchaseType` | `string` | The purchase type: "subscription" or "one_time_purchase" |
-
-> 📘Note
-> 
-> `validateAndLogInAppPurchaseV2` generates an `af_purchase` in-app event upon successful validation. Sending this event yourself will cause duplicate event reporting.
+> `validateAndLogInAppPurchase` generates an `af_purchase` in-app event upon successful validation. Do not send the same event separately.
 
 ---
 

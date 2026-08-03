@@ -30,15 +30,6 @@
 
     var af = window.plugins.appsFlyer;
 
-    af.registerOnAppOpenAttribution(
-      function (res) {
-        void afQaLog('[AF_QA][CALLBACK][onAppOpenAttribution] received: ' + stringifyRes(res));
-      },
-      function (err) {
-        void afQaLog('[AF_QA][CALLBACK][onAppOpenAttribution] error: ' + stringifyRes(err));
-      }
-    );
-
     af.registerDeepLink(function (res) {
       void (async function () {
         await afQaLog(formatOnDeepLinkingContractLine(res));
@@ -46,16 +37,20 @@
       })();
     });
 
-    var initOpts = {
-      devKey: env.DEV_KEY,
-      appId: env.APP_ID,
-      isDebug: true,
-      onInstallConversionDataListener: true,
-      onDeepLinkListener: true,
-      shouldStartSdk: false
-    };
+    await initSdkWait(af, { devKey: env.DEV_KEY, appId: env.APP_ID }, 1500);
 
-    await initSdkWait(af, initOpts, 1500);
+    af.setDebugLog(true);
+
+    af.registerConversionDataListener(
+      function (gcd) {
+        void afQaLog(
+          '[AF_QA][CALLBACK][onInstallConversionData] received: ' + stringifyRes(gcd)
+        );
+      },
+      function (err) {
+        void afQaLog('[AF_QA][CALLBACK][onInstallConversionData] error: ' + stringifyRes(err));
+      }
+    );
 
     af.setAppUserId('e2e_user_42');
     await afQaLog('[AF_QA][setCustomerUserId] result: e2e_user_42');
@@ -71,7 +66,19 @@
 
     await afQaLog('[AF_QA][AUTO_APIS] --- Pre-start auto APIs complete ---');
 
-    af.startSdk();
+    await new Promise(function (resolve, reject) {
+      af.registerSessionReadyListener(function () {
+        af.startSdk(
+          function () {
+            resolve();
+          },
+          function (err) {
+            void afQaLog('[AF_QA][startSDK] error: startSdk ' + stringifyRes(err));
+            reject(new Error(stringifyRes(err)));
+          }
+        );
+      });
+    });
     await afQaLog('[AF_QA][startSDK] result: SUCCESS');
 
     await waitMs(400);
@@ -188,10 +195,11 @@
       var settled = false;
       af.initSdk(
         initOpts,
-        function (gcd) {
-          void afQaLog(
-            '[AF_QA][CALLBACK][onInstallConversionData] received: ' + stringifyRes(gcd)
-          );
+        function () {
+          if (!settled) {
+            settled = true;
+            resolve();
+          }
         },
         function (err) {
           void afQaLog('[AF_QA][startSDK] error: initSdk ' + stringifyRes(err));
@@ -429,6 +437,19 @@
       return { statusLabel: 'Status.ERROR', deepLinkValue: '' };
     }
     var ds = o.deepLinkStatus != null ? String(o.deepLinkStatus) : '';
+    if (!ds && o.data != null) {
+      var dataObj = o.data;
+      if (typeof dataObj === 'string') {
+        try {
+          dataObj = JSON.parse(dataObj);
+        } catch (e0) {
+          dataObj = null;
+        }
+      }
+      if (dataObj && typeof dataObj === 'object' && dataObj.status != null) {
+        ds = String(dataObj.status);
+      }
+    }
     var statusLabel = 'Status.ERROR';
     if (ds === 'FOUND' || ds === 'Found' || ds.indexOf('FOUND') !== -1) {
       statusLabel = 'Status.FOUND';

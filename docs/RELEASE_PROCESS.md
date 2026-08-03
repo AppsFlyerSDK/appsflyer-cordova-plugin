@@ -18,7 +18,7 @@ The release process involves:
 
 Before starting a release:
 
-1. **Jira fixed version must exist**: The workflows expect a Jira fixed version named `Cordova SDK v{major}.{minor}.{patch}` (e.g., `Cordova SDK v6.17.9`). Create this in Jira and associate tickets with it before releasing.
+1. **Jira fixed version must exist**: The workflows expect a Jira fixed version named `Cordova SDK v{major}.{minor}.{patch}` (e.g., `Cordova SDK v7.0.1`). Create this in Jira and associate tickets with it before releasing.
 
 2. **Ensure you're on latest master**:
    ```bash
@@ -39,6 +39,7 @@ releases/{major}.x.x/{major}.{minor}.x/{major}.{minor}.{patch}-rc{rc_number}
 ```
 
 **Examples:**
+- `releases/7.x.x/7.0.x/7.0.1-rc1` — major release 7.0.1, first release candidate
 - `releases/6.x.x/6.17.x/6.17.8-rc1` — patch release 6.17.8, first release candidate
 - `releases/6.x.x/6.17.x/6.17.9-rc1` — patch release 6.17.9, first release candidate
 - `releases/6.x.x/6.18.x/6.18.0-rc1` — minor release 6.18.0, first release candidate

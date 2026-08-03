@@ -1,5 +1,7 @@
 # Adding   cordova-plugin-appsflyer-sdk to your project
 
+> **Upgrading from v6?** See the [v6 → v7 migration guide](./MIGRATION.md).
+
 - [Installation using CLI](#installation-using-cli)
 - [Manual installation](#manual-installation)
   - [iOS](#manual-installation-ios)
@@ -21,13 +23,17 @@ Open the build.gradle file for your application. Make sure that the repositories
 ```
 allprojects {
   repositories {
-    jcenter()
+    mavenCentral()
     maven {
       url "https://maven.google.com"
     }
   }
 }
 ```
+
+**SDK 7 (Android):** The plugin pulls AppsFlyer Android SDK **7.0.1** via Gradle BOM (`af-android-sdk-bom`) and `af-android-plugin-bridge`. No manual `@aar` dependency is required.
+
+**SDK 7 (iOS):** The plugin installs CocoaPods `AppsFlyerFramework` **7.0.1** and `AppsFlyerRPC` **7.0.1**. After adding the platform, run `pod install` in `platforms/ios` if Cordova does not do so automatically. Ensure **Run Path Search Paths** includes `/usr/lib/swift`.
 
 ##  <a id="manual-installation"> Manual installation:
   

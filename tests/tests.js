@@ -112,14 +112,19 @@ exports.defineAutoTests = function () {
             expect(typeof window.plugins.appsFlyer.setSharingFilterForPartners).toBe('function');
         });
 
-        it("appsFlyer.setSharingFilter method", function () {
-            expect(window.plugins.appsFlyer.setSharingFilter).toBeDefined();
-            expect(typeof window.plugins.appsFlyer.setSharingFilter).toBe('function');
+        it("appsFlyer.setDebugLog method", function () {
+            expect(window.plugins.appsFlyer.setDebugLog).toBeDefined();
+            expect(typeof window.plugins.appsFlyer.setDebugLog).toBe('function');
         });
 
-        it("appsFlyer.setSharingFilterForAllPartners method", function () {
-            expect(window.plugins.appsFlyer.setSharingFilterForAllPartners).toBeDefined();
-            expect(typeof window.plugins.appsFlyer.setSharingFilterForAllPartners).toBe('function');
+        it("appsFlyer.registerConversionDataListener method", function () {
+            expect(window.plugins.appsFlyer.registerConversionDataListener).toBeDefined();
+            expect(typeof window.plugins.appsFlyer.registerConversionDataListener).toBe('function');
+        });
+
+        it("appsFlyer.registerSessionReadyListener method", function () {
+            expect(window.plugins.appsFlyer.registerSessionReadyListener).toBeDefined();
+            expect(typeof window.plugins.appsFlyer.registerSessionReadyListener).toBe('function');
         });
 
         it("appsFlyer.validateAndLogInAppPurchase method", function () {

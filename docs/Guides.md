@@ -21,26 +21,30 @@
 - [Demo](#demo)  
   
   
-##  <a id="init-sdk"> Init SDK  
-  To initialize the AppsFlyer SDK you need to call `initSdk()`. To see a full list of the `options` check our the API doc [here](./API.md#initSdk).   
-      
-Example:  
-      
-      
-```javascript  
-var onSuccess = function(result) {// handle result };  
-  
-function onError(err) {  
-// handle error  
-}  
-  
-var options = {  devKey: 'd3********wL',  
-  appId: '1******9',  
-  isDebug: false,  
-  waitForATTUserAuthorization: 10  
-};  
-  
-window.plugins.appsFlyer.initSdk(options, onSuccess, onError);  
+##  <a id="init-sdk"> Init SDK (SDK 7)
+
+To initialize the AppsFlyer SDK in v7:
+
+1. Call **`initSdk({ devKey, appId })`** — only these two fields are sent to native.
+2. Configure the SDK with dedicated APIs (`setDebugLog`, etc.).
+3. Register **`registerDeepLink`** and **`registerConversionDataListener`** as needed.
+4. Register **`registerSessionReadyListener`** and call **`startSdk()`** from its callback.
+
+See the full [API doc](./API.md#initSdk) and [v6 → v7 migration guide](./MIGRATION.md).
+
+Example:
+
+```javascript
+var af = window.plugins.appsFlyer;
+
+af.initSdk({ devKey: 'd3********wL', appId: '1******9' }, function () {
+  af.setDebugLog(false);
+  af.registerDeepLink(function (res) { console.log('Deep link:', res); });
+  af.registerConversionDataListener(onConversionSuccess, onConversionError);
+  af.registerSessionReadyListener(function () {
+    af.startSdk(onStartSuccess, onStartError);
+  });
+}, onInitError);
 ```  
   
 ##  <a id="ios14"> Set plugin for IOS 14  
@@ -78,36 +82,38 @@ For more info please check out the [OneLink™ Deep Linking Guide](https://suppo
   
 ###  <a id="deferred-deep-linking"> 1. Deferred Deep Linking (Get Conversion Data)  
   
-Check out the deferred deeplinkg guide from the AppFlyer knowledge base [here](https://support.appsflyer.com/hc/en-us/articles/207032096-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deeplinking-#Introduction)  
+Check out the deferred deeplinking guide from the AppsFlyer knowledge base [here](https://support.appsflyer.com/hc/en-us/articles/207032096-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deeplinking-#Introduction)  
   
-Code Sample to handle the conversion data:  
-  
+**SDK 7:** use `registerConversionDataListener` instead of `onInstallConversionDataListener: true` in init options.
+
+Code sample:
+
 ```javascript  
-function onSuccess(result) {  
- var conversionData = JSON.parse(result);  
-  
+function onConversionSuccess(result) {  
+ var conversionData = typeof result === 'string' ? JSON.parse(result) : result;
+
  if (conversionData.data.is_first_launch === true) {  
          if(conversionData.data.af_status === 'Non-organic') {  
              var media_source = conversionData.data.media_source;  
  var campaign = conversionData.data.campaign;  
   console.log('This is a Non-Organic install. Media source: ' + media_source + ' Campaign: ' + campaign);  
-         } else if(af_status === 'Organic'){  
+         } else if(conversionData.data.af_status === 'Organic'){  
   console.log('Organic Install');  
  }  
  } else if (conversionData.data.is_first_launch === false) {  
  // Not first launch    }  
 }  
   
-function onError(err) {  
+function onConversionError(err) {  
   console.log(err);  
 }  
   
-var options = {  devKey:  'K2aMGPY3SkC9WckYUgHJ99',  
-  isDebug: true,  
-  appId: "4166357985",  
-  onInstallConversionDataListener: true  // required for get conversion data };  
-  
-window.plugins.appsFlyer.initSdk(options , onSuccess , onError);  
+window.plugins.appsFlyer.initSdk({ devKey: 'K2aMGPY3SkC9WckYUgHJ99', appId: '4166357985' }, function () {
+  window.plugins.appsFlyer.registerConversionDataListener(onConversionSuccess, onConversionError);
+  window.plugins.appsFlyer.registerSessionReadyListener(function () {
+    window.plugins.appsFlyer.startSdk();
+  });
+}, onConversionError);
 ```  
   
   
@@ -133,8 +139,10 @@ window.plugins.appsFlyer.registerDeepLink(function(res) {
 ```
 
 ###  <a id="Unified-deep-linking"> 3. Unified deep linking
-In order to use the unified deep link you need to send the `onDeepLinkListener: true` flag inside the object that sent to the sdk.<br>
-For more information about this api, please check [OneLink Guide Here](https://dev.appsflyer.com/docs/android-unified-deep-linking)  
+
+**SDK 7:** call `registerDeepLink` before or immediately after `initSdk`. The removed `onDeepLinkListener` init flag is no longer used.
+
+For more information about this API, please check [OneLink Guide Here](https://dev.appsflyer.com/docs/android-unified-deep-linking)  
   
   
 ```javascript  
@@ -143,22 +151,22 @@ window.plugins.appsFlyer.registerDeepLink(function(res) {
   alert('AppsFlyer DDL ==> ' + res);  
 });  
   
-let options = {  devKey: 'UsxXxXxed',  
-  isDebug: true,  
-  appId: '74xXxXx91',  
-  onInstallConversionDataListener: true,  
-  onDeepLinkListener: true // by default onDeepLinkListener is false!  
-};  
-  
-window.plugins.appsFlyer.initSdk(options, function(res) {  
-  console.log('AppsFlyer GCD ==>' + res);  
-  alert('AppsFlyer GCD ==> ' + res);  
-  
- }, function(err) {  console.log(`AppsFlyer GCD ==> ${err}`);  
-});  
+window.plugins.appsFlyer.initSdk({ devKey: 'UsxXxXxed', appId: '74xXxXx91' }, function () {
+  window.plugins.appsFlyer.registerConversionDataListener(function (res) {
+    console.log('AppsFlyer GCD ==>' + res);
+    alert('AppsFlyer GCD ==> ' + res);
+  }, function (err) {
+    console.log('AppsFlyer GCD error ==> ' + err);
+  });
+  window.plugins.appsFlyer.registerSessionReadyListener(function () {
+    window.plugins.appsFlyer.startSdk();
+  });
+}, function (err) {
+  console.log('initSdk error ==> ' + err);
+});
 ```  
   
-**Note:** The code implementation for `onDeepLink` must be made **prior to the initialization** code of the SDK.  
+**Note:** Register `registerDeepLink` **before** `initSdk` when possible.  
   
 ###  <a id="android-deeplink"> Android Deeplink Setup  
        

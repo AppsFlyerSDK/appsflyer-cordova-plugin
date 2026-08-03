@@ -33,7 +33,7 @@ Normative: [`appsflyer-mobile-plugin-tooling/contracts/test-app-contract.md`](ht
 
 1. Load **`DEV_KEY`**, **`APP_ID`** from `.env` at runtime; never commit `.env`. Provide `test-app/.env.example`. On missing key, log **`[AF_QA][CONFIG]`** and fail fast per contract.
 2. Prefix structured lines with **`[AF_QA]`** — e.g. `[AF_QA][startSDK] result: SUCCESS`, `[AF_QA][CALLBACK][onInstallConversionData] …`.
-3. **Auto-run** on launch (no UI): `shouldStartSdk: false` / manual start pattern per Cordova plugin API → register **onInstallConversionData**, **onDeepLinking** (`registerDeepLink`) → pre-start APIs → log **`--- Pre-start auto APIs complete ---`** → **`startSdk()`** → post-start APIs → three events (`af_demo_launch`, `af_purchase`, `af_content_view`).
+3. **Auto-run** on launch (no UI): SDK 7 flow — register **onDeepLinking** (`registerDeepLink`) **before** `initSdk` (so cold-launch `NOT_FOUND` can fire) → **`initSdk({ devKey, appId })`** (native `init` clears any conversion listener registered earlier) → **`registerConversionDataListener` after init** → pre-start APIs → log **`--- Pre-start auto APIs complete ---`** → **`registerSessionReadyListener`** → **`startSdk()`** → post-start APIs → three events (`af_demo_launch`, `af_purchase`, `af_content_view`).
 4. **iOS:** append the same `[AF_QA]` lines to **`Documents/af_qa_logs.txt`** (Cordova: small native plugin, hook, or `cordova-plugin-file` — see workplan §Phase 3). The scenario runner prefers this file on iOS because `simctl log show` often misses WebView `console.log` output.
 
 ## Scenario runner “ready” markers

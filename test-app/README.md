@@ -4,7 +4,7 @@ This folder is the **source of truth** for the small Cordova app used by **`.af-
 
 - **`examples/cordovatestapp/`** stays the **manual / legacy** sample; scenario runner targets **`test-app`** contract work, not that tree.
 - **`widget id`** is **`com.appsflyer.qa.cordova`** (D5). HQ app + **`.env`** — see repo **`docs/SCENARIO_RUNNER_ADOPTION_WORKPLAN.md`** §0.5.
-- **Phase 3 (contract)** is implemented in **`www/js/index.js`**: **`[AF_QA]`** structured logs, **`shouldStartSdk: false`** + **`startSdk()`**, three standard events + **`af_qa_custom_purchase`** + identity + **`Stop(true/false)`** cycle, marker **`[AF_QA][AUTO_APIS] --- Auto run complete ---`**. Normative doc: [**test-app contract**](https://github.com/AppsFlyerSDK/appsflyer-mobile-plugin-tooling/blob/main/contracts/test-app-contract.md).
+- **Phase 3 (contract)** is implemented in **`www/js/index.js`**: **`[AF_QA]`** structured logs, SDK 7 flow (**`initSdk`** → listeners → **`registerSessionReadyListener`** → **`startSdk()`**), three standard events + **`af_qa_custom_purchase`** + identity + **`Stop(true/false)`** cycle, marker **`[AF_QA][AUTO_APIS] --- Auto run complete ---`**. Normative doc: [**test-app contract**](https://github.com/AppsFlyerSDK/appsflyer-mobile-plugin-tooling/blob/main/contracts/test-app-contract.md).
 
 ### `.env` and `www/af-qa-env.js`
 
@@ -128,7 +128,7 @@ rm -rf "$(cat .af-e2e/e2e_copy_dest.txt)/platforms/android/tools/.gradle"
 
 ### iOS: CocoaPods `AppsFlyerFramework` / deployment target
 
-If **`pod install`** fails with **“required a higher minimum deployment target”** for **`AppsFlyerFramework`**, the Cordova app’s **`IPHONEOS_DEPLOYMENT_TARGET`** is below the SDK pod’s minimum ( **`AppsFlyerFramework` 6.18.x** declares **iOS 12.0** in its podspec). **`test-app/config.xml`** sets **`<preference name="deployment-target" value="12.0" />`** under **`<platform name="ios">`**. After changing it, from the **sibling** tree run **`cordova platform rm ios`** then **`cordova platform add ios`**, or wipe **`platforms/ios`** and run **`./scripts/e2e-cordova-build.sh ios`** again.
+If **`pod install`** fails with **“required a higher minimum deployment target”** for **`AppsFlyerFramework`** or **`AppsFlyerRPC`**, the Cordova app’s **`IPHONEOS_DEPLOYMENT_TARGET`** is below the SDK pod’s minimum ( **`AppsFlyerFramework` 7.0.x** declares **iOS 12.0** in its podspec). **`test-app/config.xml`** sets **`<preference name="deployment-target" value="12.0" />`** under **`<platform name="ios">`**. After changing it, from the **sibling** tree run **`cordova platform rm ios`** then **`cordova platform add ios`**, or wipe **`platforms/ios`** and run **`./scripts/e2e-cordova-build.sh ios`** again.
 
 ### iOS: `xcodebuild` destination / “no available devices matched the request”
 

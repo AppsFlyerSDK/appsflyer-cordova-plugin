@@ -3,7 +3,7 @@
 #
 # Cordova runs plain `pod install` during `platform add` / plugin install / build.
 # Without a prior spec refresh, a stale ~/.cocoapods cache (common in CI) can miss
-# newly published pod versions (e.g. AppsFlyerFramework 6.18.1).
+# newly published pod versions (e.g. AppsFlyerFramework 7.0.1, AppsFlyerRPC 7.0.1).
 #
 # Usage:
 #   ./scripts/cordova-ios-pod-install.sh --update-specs

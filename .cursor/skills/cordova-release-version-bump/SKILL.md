@@ -48,9 +48,10 @@ Apply the versions to these files:
 | `package.json` | `"version": "{cordova_version}"` |
 | `plugin.xml` | `version="{cordova_version}"` (root plugin element) |
 | `plugin.xml` | `<pod name="AppsFlyerFramework" spec="{ios_version}"/>` |
-| `src/android/cordovaAF.gradle` | `implementation 'com.appsflyer:af-android-sdk:{android_version}@aar'` |
-| `src/android/com/appsflyer/cordova/plugin/AppsFlyerConstants.java` | `PLUGIN_VERSION = "{android_version}"` |
-| `src/ios/AppsFlyerPlugin.m` | `pluginVersion:@"{ios_version}"` in `setPluginInfoWith:AFSDKPluginCordova` |
+| `plugin.xml` | `<pod name="AppsFlyerRPC" spec="{rpc_version}"/>` (usually same as iOS SDK in v7) |
+| `src/android/cordovaAF.gradle` | `implementation platform("com.appsflyer:af-android-sdk-bom:{android_version}")` |
+| `src/android/com/appsflyer/cordova/plugin/AppsFlyerConstants.java` | `PLUGIN_VERSION = "{cordova_version}"` |
+| `src/ios/AppsFlyerPlugin.swift` | `cordovaPluginVersion = "{cordova_version}"` |
 | `README.md` | In "This plugin is built for" section: `iOS AppsFlyerSDK **v{ios_version}**` and `Android AppsFlyerSDK **v{android_version}**` |
 
 ---
@@ -78,7 +79,7 @@ Do not continue to Step 4 until the user confirms.
 git checkout master
 git pull origin master
 git checkout -b releases/{major}.x.x/{major}.{minor}.x/{cordova_version}-rc1
-git add package.json plugin.xml src/android/cordovaAF.gradle src/android/com/appsflyer/cordova/plugin/AppsFlyerConstants.java src/ios/AppsFlyerPlugin.m README.md
+git add package.json plugin.xml src/android/cordovaAF.gradle src/android/com/appsflyer/cordova/plugin/AppsFlyerConstants.java src/ios/AppsFlyerPlugin.swift README.md
 git commit -m "Bump version to {cordova_version}"
 git push -u origin releases/{major}.x.x/{major}.{minor}.x/{cordova_version}-rc1
 ```
@@ -120,7 +121,7 @@ Provide the PR link for convenience.
 
 - [ ] User provided: Cordova version, Android SDK version, iOS SDK version
 - [ ] User created Jira fixed version and confirmed
-- [ ] Updated: package.json, plugin.xml, cordovaAF.gradle, AppsFlyerConstants.java, AppsFlyerPlugin.m, README.md
+- [ ] Updated: package.json, plugin.xml, cordovaAF.gradle, AppsFlyerConstants.java, AppsFlyerPlugin.swift, README.md
 - [ ] User tested changes locally and confirmed NPM token (`CI_NPM_TOKEN`) is valid
 - [ ] Created and pushed release branch (correct naming)
 - [ ] (Optional) Opened PR to master

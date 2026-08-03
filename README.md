@@ -31,6 +31,8 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
 ## Table of content  
   
 - [SDK versions](#plugin-build-for)  
+- [V7 Breaking Changes](#v7BreakingChanges)  
+- [Migration guide (v6 → v7)](/docs/MIGRATION.md)  
 - [V6 Breaking Changes](#breakingChanges)  
 - [Installation](#installation)  
 - [Add or Remove Strict mode for App-kids](#appKids)  
@@ -43,8 +45,29 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
   
 ### <a id="plugin-build-for"> This plugin is built for  
   
-- iOS AppsFlyerSDK **v6.18.1**  
-- Android AppsFlyerSDK **v6.18.1**
+- iOS AppsFlyerSDK **v7.0.1** (via CocoaPods: `AppsFlyerFramework` + `AppsFlyerRPC`)  
+- Android AppsFlyerSDK **v7.0.1** (via Gradle BOM: `af-android-sdk-bom` + `af-android-plugin-bridge`)
+
+### <a id="v7BreakingChanges"> ❗v7 Breaking Changes
+
+Version **7.0.1** is a major release. Read the full **[v6 → v7 migration guide](/docs/MIGRATION.md)** before upgrading.
+
+**Summary:**
+
+| Area | v6 | v7 |
+|------|----|----|
+| Native bridge | Per-method Cordova actions | Single **`executeRpc`** action (JSON-RPC plugin bridge) |
+| `initSdk` options | Many flags (`isDebug`, listeners, `shouldStartSdk`, …) | **Only `devKey` and `appId`** — use dedicated APIs for everything else |
+| Start flow | `initSdk` then `startSdk()` | `initSdk` → config → listeners → **`registerSessionReadyListener`** → `startSdk()` |
+| Deep linking | `registerOnAppOpenAttribution` + init flags | **`registerDeepLink`** with unified `onDeepLinking` (`found` / `failure` / `notFound`) |
+| Conversion data | `onInstallConversionDataListener: true` in init | **`registerConversionDataListener(success, error)`** |
+| Debug mode | `isDebug` in init | **`setDebugLog(true)`** after init |
+| User PII | `setUserEmails`, `setPhoneNumber` | **`setUserEmail`, `setUserPhone`, …** (hashed on-device) |
+| Sharing filter | `setSharingFilter`, `setSharingFilterForAllPartners` | **`setSharingFilterForPartners` only** |
+
+**iOS:** Plugin native code is now **Swift** + CocoaPods (`AppsFlyerFramework` **7.0.1**, `AppsFlyerRPC` **7.0.1**). Run Path Search Paths must include `/usr/lib/swift`.
+
+**Android:** Uses Gradle BOM **`com.appsflyer:af-android-sdk-bom:7.0.1`** with `af-android-plugin-bridge`.
 
 ### <a id="breakingChanges"> ❗v6.15.11 Breaking Changes
 
@@ -126,27 +149,35 @@ Great installation and setup guides can be viewed [here](/docs/Guides.md).
   
 ## <a id="setup"> 🚀 Setup  
   
-####  Set your App_ID (iOS only), Dev_Key and enable AppsFlyer to detect installations, sessions (app opens) and updates. > This is the minimum requirement to start tracking your app installs and is already implemented in this plugin. You **MUST** modify this call and provide:    
+####  Set your **devKey** (required) and **appId** (iOS only), then follow the SDK 7 lifecycle: initialize → configure → register listeners → wait for session ready → start.  
+  
  **devKey** - Your application devKey provided by AppsFlyer.<br>  
 **appId**  - ***For iOS only.*** Your iTunes Application ID.<br>  
-**waitForATTUserAuthorization**  - ***For iOS14 only.*** Time for the sdk to wait before launch.  
   
-  
-Add the following lines to your code to be able to initialize tracking with your own AppsFlyer dev key:  
+Add the following to initialize tracking with your AppsFlyer dev key:  
   
   
 ```javascript  
 document.addEventListener('deviceready', function() {  
   
-  window.plugins.appsFlyer.initSdk({  
-  devKey: 'K2***************99', // your AppsFlyer devKey  
-  isDebug: false,  
-  appId: '41*****44', // your ios appID  
-  waitForATTUserAuthorization: 10, //time for the sdk to wait before launch - IOS 14 ONLY!  
- }, (result) => {  console.log(result);  
- }, (error) => {  console.error(error);  
- } );  }, false);  
+  var af = window.plugins.appsFlyer;
+
+  af.initSdk({
+    devKey: 'K2***************99',
+    appId: '41*****44' // iOS only
+  }, function () {
+    af.setDebugLog(false);
+    af.registerDeepLink(function (res) { console.log('Deep link:', res); });
+    af.registerConversionDataListener(function (gcd) { console.log('GCD:', gcd); }, console.error);
+    af.registerSessionReadyListener(function () {
+      af.startSdk(function (result) { console.log(result); }, console.error);
+    });
+  }, console.error);
+
+}, false);  
 ```  
+
+See the **[v6 → v7 migration guide](/docs/MIGRATION.md)** if upgrading from plugin v6.
 ---  
   
   

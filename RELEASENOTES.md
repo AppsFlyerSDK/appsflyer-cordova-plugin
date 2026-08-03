@@ -1,3 +1,11 @@
+## 7.0.1
+ Release date: *2026-07-29*
+
+- **Major release:** Cordova plugin v7 aligned with AppsFlyer Android SDK **7.0.1** and iOS SDK **7.0.1**.
+- **RPC architecture:** All native SDK calls route through a single `executeRpc` bridge (`AppsFlyerRpcHandler` / `AppsFlyerRPC`).
+- **Breaking changes:** New SDK 7 initialization flow (`initSdk` → listeners → `registerSessionReadyListener` → `startSdk`), unified deep linking via `registerDeepLink`, hashed PII APIs, removed legacy sharing-filter and attribution APIs.
+- See [MIGRATION.md](/docs/MIGRATION.md) for the full v6 → v7 migration guide.
+
 ## 6.18.0
  Release date: *2026-05-07*
 

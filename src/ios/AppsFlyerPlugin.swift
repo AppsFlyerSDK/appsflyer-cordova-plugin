@@ -17,7 +17,7 @@ public class AppsFlyerPlugin: CDVPlugin {
     private static let rpcLogPrefix = "[AppsFlyer RPC]"
 
     /// Cordova plugin version for RPC `setPluginInfo` (align with `package.json` / Android `AppsFlyerConstants.PLUGIN_VERSION`).
-    private static let cordovaPluginVersion = "6.18.1"
+    private static let cordovaPluginVersion = "7.0.1"
 
     /// Logs to Xcode / device console (`NSLog`). Filter: `AppsFlyer RPC`
     private func logRpc(_ message: String) {
