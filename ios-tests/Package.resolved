@@ -1,0 +1,23 @@
+{
+  "pins" : [
+    {
+      "identity" : "appsflyer-apple-rpc",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/AppsFlyerSDK/appsflyer-apple-rpc.git",
+      "state" : {
+        "revision" : "24d34041b6a9876e6cd6b1c4090a01616b05b9b5",
+        "version" : "7.0.13"
+      }
+    },
+    {
+      "identity" : "appsflyerframework-static",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/AppsFlyerSDK/AppsFlyerFramework-Static.git",
+      "state" : {
+        "revision" : "14ab04fdb7cfd40623477e111698fe1cad888728",
+        "version" : "7.0.2"
+      }
+    }
+  ],
+  "version" : 2
+}
