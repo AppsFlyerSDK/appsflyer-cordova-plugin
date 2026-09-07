@@ -35,6 +35,14 @@ on:
         description: 'Android native AppsFlyer SDK (X.Y.Z)'
         required: true
         type: string
+      ios_framework_version:
+        description: 'iOS AppsFlyerFramework pulled in transitively by AppsFlyerRPC (X.Y.Z)'
+        required: true
+        type: string
+      android_plugin_bridge_version:
+        description: 'Android af-android-plugin-bridge (X.Y.Z)'
+        required: true
+        type: string
       skip_unit:
         description: 'Skip lint (JSHint) + skip build jobs in lint-test-build'
         required: false
@@ -77,6 +85,8 @@ jobs:
           PLUGIN_VERSION: ${{ inputs.plugin_version }}
           IOS_SDK_VERSION: ${{ inputs.ios_sdk_version }}
           ANDROID_SDK_VERSION: ${{ inputs.android_sdk_version }}
+          IOS_FRAMEWORK_VERSION: ${{ inputs.ios_framework_version }}
+          ANDROID_PLUGIN_BRIDGE_VERSION: ${{ inputs.android_plugin_bridge_version }}
         run: |
           if ! [[ "$PLUGIN_VERSION" =~ $VERSION_REGEX ]]; then
             echo "Plugin version '$PLUGIN_VERSION' does not match $VERSION_REGEX"
@@ -88,6 +98,14 @@ jobs:
           fi
           if ! [[ "$ANDROID_SDK_VERSION" =~ $SDK_VERSION_REGEX ]]; then
             echo "Android SDK version '$ANDROID_SDK_VERSION' does not match $SDK_VERSION_REGEX"
+            exit 1
+          fi
+          if ! [[ "$IOS_FRAMEWORK_VERSION" =~ $SDK_VERSION_REGEX ]]; then
+            echo "iOS framework version '$IOS_FRAMEWORK_VERSION' does not match $SDK_VERSION_REGEX"
+            exit 1
+          fi
+          if ! [[ "$ANDROID_PLUGIN_BRIDGE_VERSION" =~ $SDK_VERSION_REGEX ]]; then
+            echo "Android plugin-bridge version '$ANDROID_PLUGIN_BRIDGE_VERSION' does not match $SDK_VERSION_REGEX"
             exit 1
           fi
           echo "Inputs OK"
@@ -123,9 +141,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Create release branch
         run: |
@@ -144,7 +162,9 @@ jobs:
           ./scripts/rc-update-cordova-versions.sh \
             "${{ inputs.plugin_version }}" \
             "${{ inputs.ios_sdk_version }}" \
-            "${{ inputs.android_sdk_version }}"
+            "${{ inputs.android_sdk_version }}" \
+            "${{ inputs.ios_framework_version }}" \
+            "${{ inputs.android_plugin_bridge_version }}"
 
       - name: Commit and push
         env:

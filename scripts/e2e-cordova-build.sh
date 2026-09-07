@@ -134,6 +134,21 @@ fi
 if [[ "$PLATFORM" == ios ]]; then
   if [[ "$ACTION" == run ]]; then
     echo "[e2e-cordova-build] ios run (build + simulator; same build.json as build when present)"
+    # ios-sim errors out ("Simulator already running") instead of reusing a booted simulator from
+    # a prior run -- shut down first so repeated `run`s are idempotent and each launch is a real
+    # cold start (this matters for cold-launch vs. warm-resume OneLink testing, not just cleanliness).
+    xcrun simctl shutdown all >/dev/null 2>&1 || true
+    # Reinstalling over the same bundle id does NOT clear its old Data container, so containers
+    # from earlier `run`s pile up across devices. af-scenario-runner.sh finds the QA log file by
+    # `find ... -name af_qa_logs.txt | head -1`, with no ordering guarantee -- a stale container
+    # from a previous run can win over the current one, silently feeding the runner old log
+    # content. Uninstall this bundle id from every device first so at most one container exists.
+    ios_bundle_id="$(sed -n 's/.*<widget[^>]*id="\([^"]*\)".*/\1/p' config.xml | head -1)"
+    if [[ -n "$ios_bundle_id" ]]; then
+      for udid in $(xcrun simctl list devices 2>/dev/null | grep -Eo '[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}'); do
+        xcrun simctl uninstall "$udid" "$ios_bundle_id" >/dev/null 2>&1 || true
+      done
+    fi
     if [[ -n "$ios_bc" ]]; then
       cordova run ios --debug --emulator --buildConfig="$ios_bc"
     else

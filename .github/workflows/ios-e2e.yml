@@ -92,9 +92,9 @@ jobs:
           restore-keys: |
             cocoapods-cordova-e2e-${{ runner.os }}-
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Xcode toolchain (runner default)
         run: |

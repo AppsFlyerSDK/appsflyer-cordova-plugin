@@ -80,10 +80,10 @@
           "fail_action": "fail"
         },
         {
-          "id": "event_af_demo_launch",
-          "description": "af_demo_launch event fires",
+          "id": "event_qa_demo_launch",
+          "description": "qa_demo_launch event fires",
           "type": "log_contains",
-          "pattern": "[AF_QA][logEvent(af_demo_launch)] result:",
+          "pattern": "[AF_QA][logEvent(qa_demo_launch)] result:",
           "fail_action": "fail"
         },
         {
@@ -255,7 +255,7 @@
           "id": "custom_event_logged",
           "description": "logEvent invocation with name and full param map is logged",
           "type": "log_contains",
-          "pattern": "[AF_QA][logEvent] name=af_qa_custom_purchase",
+          "pattern": "[AF_QA][logEvent] name=qa_custom_purchase",
           "fail_action": "fail"
         },
         {
