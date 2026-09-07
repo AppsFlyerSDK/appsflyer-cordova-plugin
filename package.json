@@ -1,7 +1,11 @@
 {
   "name": "cordova-plugin-appsflyer-sdk",
-  "version": "6.18.1",
+  "version": "7.0.2",
   "description": "Cordova AppsFlyer SDK Plugin",
+  "iosSdkVersion": "7.0.13",
+  "iosFrameworkVersion": "7.0.2",
+  "androidSdkVersion": "7.0.1",
+  "androidPluginBridgeVersion": "7.0.12",
   "cordova": {
     "id": "cordova-plugin-appsflyer-sdk",
     "platforms": [
@@ -36,17 +40,30 @@
   },
   "homepage": "https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin#readme",
   "scripts": {
-    "test": "npm run jshint",
-    "jshint": "node node_modules/jshint/bin/jshint www && node node_modules/jshint/bin/jshint src",
+    "test": "vitest run",
+    "pretest": "npm run gen:version && npm run typecheck",
+    "gen:version": "node scripts/gen-version.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
+    "build": "npm run gen:version && esbuild src/index.ts --bundle --minify --platform=browser --format=cjs --target=es2017 --outfile=www/appsflyer.js --footer:js=\"module.exports=Object.assign(module.exports.default,module.exports);\" && node scripts/verify-bundle-shape.mjs",
     "setupIonicCordova": "cd examples/ionic-cordova; npm install; ionic cordova plugin rm cordova-plugin-appsflyer-sdk --save; ionic cordova platform rm android; ionic cordova platform rm ios; ionic cordova plugin add cordova-plugin-appsflyer-sdk --save; ionic cordova platform add android; ionic cordova platform add ios",
     "runIonicCordovaIos": "cd examples/ionic-cordova; ionic cordova prepare ios; ionic cordova run ios;",
     "runIonicCordovaAndroid": "cd examples/ionic-cordova; ionic cordova prepare android; ionic cordova run android;",
     "setupCordova": "cd examples/cordova; npm install; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova platform rm android; cordova platform rm ios; cordova plugin add cordova-plugin-appsflyer-sdk --save; cordova platform add android; cordova platform add ios",
     "runCordovaIos": "cd examples/cordova; cordova prepare ios; cordova run ios;",
-    "runCordovaAndroid": "cd examples/cordova; cordova prepare android; cordova run android;"
+    "runCordovaAndroid": "cd examples/cordova; cordova prepare android; cordova run android;",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "jshint": "^2.6.0"
+    "@types/cordova": "^11.0.3",
+    "@types/node": "^26.4.1",
+    "esbuild": "^0.28.2",
+    "typescript": "~5.7.0",
+    "vitest": "^4.1.11"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@appsflyer-sdk/js-core-plugin": "7.0.15"
+  },
+  "peerDependencies": {
+    "@appsflyer-sdk/js-core-plugin": "7.0.15"
+  }
 }

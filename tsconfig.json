@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "allowUnreachableCode": false,
+    "esModuleInterop": true,
+    "lib": ["dom", "es2017"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "pretty": true,
+    "resolveJsonModule": true,
+    "rootDir": "src",
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es2017",
+    "types": ["cordova", "node"]
+  },
+  "files": ["src/index.ts"]
+}
