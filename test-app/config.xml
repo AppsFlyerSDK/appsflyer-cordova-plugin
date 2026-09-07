@@ -22,8 +22,8 @@
     </plugin>
 
     <platform name="ios">
-        <!-- AppsFlyerFramework (plugin pod) requires iOS 12+; Cordova default is lower and breaks `pod install`. -->
-        <preference name="deployment-target" value="12.0" />
+        <!-- AppsFlyerRPC's own podspec requires iOS 13+ (was AppsFlyerFramework's 12+ pre-migration); Cordova's default is lower and breaks `pod install`. -->
+        <preference name="deployment-target" value="13.0" />
         <edit-config target="NSUserTrackingUsageDescription" file="*-Info.plist" mode="merge">
             <string>AppsFlyer QA automation</string>
         </edit-config>

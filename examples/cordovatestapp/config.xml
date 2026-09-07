@@ -7,6 +7,7 @@
     </author>
     <content src="index.html" />
     <test-framework src="/plugins/cordova-plugin-appsflyer-sdk-tests/tests.js" type="jasmine" />
+    <plugin name="cordova-plugin-appsflyer-sdk" spec="../../" />
     <!--    <content src="cdvtests/index.html" />-->
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
@@ -15,6 +16,8 @@
         <param name="android-package" value="org.apache.cordova.testframework.TestFramework" />
     </feature>
     <platform name="ios">
+        <!-- AppsFlyerRPC's own podspec requires iOS 13+; Cordova's default is lower and breaks `pod install`. -->
+        <preference name="deployment-target" value="13.0" />
         <edit-config target="NSUserTrackingUsageDescription" file="*-Info.plist" mode="merge">
             <string>My tracking usage description</string>
         </edit-config>

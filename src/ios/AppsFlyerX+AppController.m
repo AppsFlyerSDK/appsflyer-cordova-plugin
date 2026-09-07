@@ -6,7 +6,20 @@
 #import <Foundation/Foundation.h>
 #import "AppsFlyerX+AppController.h"
 #import <objc/runtime.h>
-#import "AppsFlyerAttribution.h"
+#import <AppsFlyerLib/AppsFlyerLib.h>
+
+// AppsFlyerAttribution.h was replaced by AppsFlyerAttribution.swift as part of the RPC-core
+// migration. A Cordova app compiles plugin sources directly into its single app target, so the
+// Xcode-generated "<AppModule>-Swift.h" interface header has no name knowable at plugin-authoring
+// time. This forward declaration mirrors AppsFlyerAttribution's @objc(AppsFlyerAttribution)
+// surface exactly, so the linker resolves it against the real Swift implementation at build time.
+@interface AppsFlyerAttribution : NSObject
++ (AppsFlyerAttribution *)shared;
+- (void)continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^_Nullable)(NSArray * _Nullable))restorationHandler;
+- (void)handleOpen:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options;
+- (void)handleOpen:(NSURL *)url sourceApplication:(NSString * _Nullable)sourceApplication annotation:(id _Nullable)annotation;
+- (void)handleLaunchOptions:(NSDictionary * _Nullable)launchOptions;
+@end
 
 @implementation AppDelegate (AppsFlyerX)
 #ifndef AFSDK_DISABLE_APP_DELEGATE
@@ -15,12 +28,21 @@
 static BOOL isOriginalContinueUserActivityExist;
 static BOOL isOriginalOpenURLExist;
 static BOOL isOriginalOpenURLOptionsExist;
+static BOOL isOriginalDidFinishLaunchingExist;
 
-#if AFSDK_SHOULD_SWIZZLE
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+        // application:didFinishLaunchingWithOptions: is always swizzled, never a direct category
+        // override (unlike the three methods below): Cordova's generated AppDelegate.m always
+        // implements this one itself -- it's where the WebView/root view controller get created.
+        // A category method with the same selector silently replaces that implementation instead
+        // of coexisting with it, which produces a launched-but-black-screen app with no crash.
+        SEL originalSelector4 = @selector(application:didFinishLaunchingWithOptions:);
+        SEL swizzledSelector4 = @selector(af_application:didFinishLaunchingWithOptions:);
+        [self addSwizzledMethodWithOriginalSelector:originalSelector4 swizzledSelector:swizzledSelector4 methodExistFlag:&isOriginalDidFinishLaunchingExist];
 
+#if AFSDK_SHOULD_SWIZZLE
         SEL originalSelector = @selector(application:continueUserActivity:restorationHandler:);
         SEL swizzledSelector = @selector(af_application: continueUserActivity: restorationHandler:);
         [self addSwizzledMethodWithOriginalSelector:originalSelector swizzledSelector:swizzledSelector methodExistFlag:&isOriginalContinueUserActivityExist];
@@ -32,14 +54,15 @@ static BOOL isOriginalOpenURLOptionsExist;
         SEL originalSelector3 = @selector(application:openURL:options:);
         SEL swizzledSelector3 = @selector(af_application:openURL:options:);
         [self addSwizzledMethodWithOriginalSelector:originalSelector3 swizzledSelector:swizzledSelector3 methodExistFlag:&isOriginalOpenURLOptionsExist];
+#endif
     });
 }
 
-#else
+#if !AFSDK_SHOULD_SWIZZLE
 #pragma mark - AppDelegate Deep Link implementation
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
     [self afLogger:@"[AppsFlyer Category] `application:openURL:options:`"];
-    [[AppsFlyerAttribution shared] handleOpenUrl:url options:options];
+    [[AppsFlyerAttribution shared] handleOpen:url options:options];
     return YES;
 }
 
@@ -51,7 +74,7 @@ static BOOL isOriginalOpenURLOptionsExist;
 
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
     [self afLogger:@"[AppsFlyer Category] `application:openURL:sourceApplication:annotation:`"];
-    [[AppsFlyerAttribution shared] handleOpenUrl:url sourceApplication:sourceApplication annotation:annotation];
+    [[AppsFlyerAttribution shared] handleOpen:url sourceApplication:sourceApplication annotation:annotation];
     return YES;
 }
 #endif
@@ -67,7 +90,7 @@ static BOOL isOriginalOpenURLOptionsExist;
 }
 - (BOOL)af_application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
     [self afLogger:@"[AppsFlyer Swizzled] `application:continueUserActivity:restorationHandler:`"];
-    [[AppsFlyerAttribution shared] handleOpenUrl:url sourceApplication:sourceApplication annotation:annotation];
+    [[AppsFlyerAttribution shared] handleOpen:url sourceApplication:sourceApplication annotation:annotation];
     if (isOriginalOpenURLExist) {
         return [self af_application:application openURL:url sourceApplication:sourceApplication annotation:annotation];
     }
@@ -76,9 +99,18 @@ static BOOL isOriginalOpenURLOptionsExist;
 
 - (BOOL)af_application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
     [self afLogger:@"[AppsFlyer Swizzled] `application:openURL:options:`"];
-    [[AppsFlyerAttribution shared] handleOpenUrl:url options:options];
+    [[AppsFlyerAttribution shared] handleOpen:url options:options];
     if (isOriginalOpenURLOptionsExist) {
         return [self af_application:app openURL:url options:options];
+    }
+    return YES;
+}
+
+- (BOOL)af_application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    [self afLogger:@"[AppsFlyer Swizzled] `application:didFinishLaunchingWithOptions:`"];
+    [[AppsFlyerAttribution shared] handleLaunchOptions:launchOptions];
+    if (isOriginalDidFinishLaunchingExist) {
+        return [self af_application:application didFinishLaunchingWithOptions:launchOptions];
     }
     return YES;
 }
@@ -117,4 +149,3 @@ static BOOL isOriginalOpenURLOptionsExist;
 
 #endif
 @end
-
