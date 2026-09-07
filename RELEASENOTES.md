@@ -1,3 +1,52 @@
+## 7.0.2
+ Release date: *2026-09-02*
+
+Migrated onto the shared RPC core: `AppsFlyerRPC` (iOS), `af-android-plugin-bridge` (Android),
+`@appsflyer-sdk/js-core-plugin` (JS). Native per-method code and the old callback-based JS API are
+gone. **This is a breaking release** — every call site needs updating.
+
+### Breaking
+
+- **Every SDK method is now Promise-based.** `fn(args, successCallback, errorCallback)` →
+  `await AppsFlyer.fn(params)`, one params object. Failures throw `AppsFlyerRpcError` (transport
+  failures, `code: number`) or `AppsFlyerError` (SDK failures, `code: string`) instead of calling
+  an error callback.
+- **Renamed:** `initSdk`→`init`, `startSdk`→`start`, `setAppUserId`→`setCustomerUserId`,
+  `Stop`→`stop`, `setAppInviteOneLinkID`→`setAppInviteOneLink`,
+  `logCrossPromotionImpression`→`logCrossPromoteImpression`,
+  `logCrossPromotionAndOpenStore`→`logAndOpenStore`,
+  `disableCollectASA`→`setDisableCollectASA`,
+  `setDisableAdvertisingIdentifier`→`setDisableAdvertisingIdentifiers`,
+  `setOneLinkCustomDomains`→`setOneLinkCustomDomain`, `setPhoneNumber`→`setUserPhone` (now also
+  requires `countryCode`), `setUserEmails`→`setUserEmail` (now a single email, not an array),
+  `disableSKAD`→`setDisableSKAdNetwork`, `validateAndLogInAppPurchaseV2`→
+  `validateAndLogInAppPurchase` (the old unqualified V1 method and its raw-receipt fields are
+  gone). Every other method keeps its name but moves its arguments into one params object — see
+  `docs/API.md` for the full per-method signatures.
+- **Removed:** `registerOnAppOpenAttribution` (folded into `registerDeepLinkListener`'s
+  `onDeepLinking` callback), `registerUninstall` (no equivalent in the new RPC schema),
+  `setSharingFilter`/`setSharingFilterForAllPartners` (already deprecated pre-7.0, superseded by
+  `setSharingFilterForPartners`), the `AppsFlyerConsent` and `AFPurchaseDetails` classes (pass a
+  plain object matching the new params shape instead).
+- **`start()` no longer runs implicitly after `init()`.** Call it from inside
+  `registerSessionReadyListener`'s callback (see `docs/Guides.md`).
+- **`init()`'s old flags are gone** — `isDebug`→`enableDebug({enabled})`,
+  `useUninstallSandbox`→`setUseUninstallSandbox({sandbox})`,
+  `collectAndroidID`→`setCollectAndroidID({isCollect})`,
+  `onInstallConversionDataListener`→`registerConversionListener`. `collectIMEI` is removed with no
+  replacement (not part of the SDK 7 RPC surface); `shouldStartSdk` has no setter — start is now
+  always explicit via `registerSessionReadyListener`.
+- **Dependencies:** iOS pod changed from `AppsFlyerFramework` to `AppsFlyerRPC` (`7.0.13`, pulls in
+  `AppsFlyerFramework` `7.0.2` transitively). Android moved to the `af-android-sdk-bom` form plus an
+  explicit `af-android-plugin-bridge` (`7.0.12`) pin. Building the Android side now requires
+  **JDK 21** (was 17).
+
+### Also
+
+- Deep-link status values are now `'FOUND' | 'NOT_FOUND' | 'ERROR'` (was ad hoc per platform).
+- Removed the Android plugin's `onNewIntent` override — `af-android-plugin-bridge` observes intents
+  itself.
+
 ## 6.18.0
  Release date: *2026-05-07*
 
