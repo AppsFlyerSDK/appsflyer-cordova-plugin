@@ -31,6 +31,7 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
 ## Table of content  
   
 - [SDK versions](#plugin-build-for)  
+- [V7 Breaking Changes](#breakingChangesV7)  
 - [V6 Breaking Changes](#breakingChanges)  
 - [Installation](#installation)  
 - [Add or Remove Strict mode for App-kids](#appKids)  
@@ -43,8 +44,33 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
   
 ### <a id="plugin-build-for"> This plugin is built for  
   
-- iOS AppsFlyerSDK **v6.18.1**  
-- Android AppsFlyerSDK **v6.18.1**
+- iOS AppsFlyerSDK **v7.0.13**  
+- Android AppsFlyerSDK **v7.0.1**
+
+### <a id="breakingChangesV7"> ❗v7 Breaking Changes — no backward compatibility
+
+Plugin **v7.0.2** moves onto AppsFlyer's shared RPC core (`AppsFlyerRPC` on iOS,
+`af-android-plugin-bridge` on Android, `@appsflyer-sdk/js-core-plugin` in JS). This is a **major,
+intentionally breaking release** — old method names, callback-style calls, and a few methods with
+no equivalent in the new schema are gone, not deprecated. There is no compatibility shim; update
+every call site. Full method-by-method mapping: [RELEASENOTES.md](/RELEASENOTES.md#702) /
+[API.md](/docs/API.md).
+
+- **Every method is now Promise-based.** `fn(args, successCB, errorCB)` → `await AppsFlyer.fn(params)`.
+  Failures throw (`AppsFlyerRpcError` for transport failures, `AppsFlyerError` for SDK failures)
+  instead of calling an error callback.
+- **Renamed:** `initSdk`→`init`, `startSdk`→`start`, `setAppUserId`→`setCustomerUserId`,
+  `Stop`→`stop`, `logCrossPromotionAndOpenStore`→`logAndOpenStore`,
+  `setPhoneNumber`→`setUserPhone` (now requires `countryCode`), `setUserEmails`→`setUserEmail`
+  (single email, not an array), and more — see [API.md](/docs/API.md) for every signature.
+- **Removed, no replacement:** `registerOnAppOpenAttribution` (folded into
+  `registerDeepLinkListener`), `registerUninstall`, `setSharingFilter`/`setSharingFilterForAllPartners`
+  (already deprecated, superseded by `setSharingFilterForPartners`), the `AppsFlyerConsent` and
+  `AFPurchaseDetails` classes (pass a plain object instead).
+- **`start()` is no longer implicit after `init()`** — call it from inside
+  `registerSessionReadyListener`'s callback. See the updated example below.
+- **Dependencies:** iOS pod is now `AppsFlyerRPC` (was `AppsFlyerFramework`). Android needs
+  **JDK 21** to build (was 17). See [Installation.md](/docs/Installation.md).
 
 ### <a id="breakingChanges"> ❗v6.15.11 Breaking Changes
 
@@ -136,16 +162,26 @@ Add the following lines to your code to be able to initialize tracking with your
   
   
 ```javascript  
-document.addEventListener('deviceready', function() {  
-  
-  window.plugins.appsFlyer.initSdk({  
-  devKey: 'K2***************99', // your AppsFlyer devKey  
-  isDebug: false,  
-  appId: '41*****44', // your ios appID  
-  waitForATTUserAuthorization: 10, //time for the sdk to wait before launch - IOS 14 ONLY!  
- }, (result) => {  console.log(result);  
- }, (error) => {  console.error(error);  
- } );  }, false);  
+document.addEventListener('deviceready', async function() {  
+
+  const AppsFlyer = window.plugins.appsFlyer;
+
+  // Register the deep-link listener before init().
+  await AppsFlyer.registerDeepLinkListener({
+    onDeepLinking: (data) => console.log(data),
+  });
+
+  await AppsFlyer.init({
+    devKey: 'K2***************99', // your AppsFlyer devKey
+    appId: '41*****44', // your iOS appID
+  });
+
+  // start() is no longer implicit after init() — call it once the session is ready.
+  await AppsFlyer.registerSessionReadyListener(() => {
+    AppsFlyer.start().catch((error) => console.error(error));
+  });
+
+}, false);  
 ```  
 ---  
   
@@ -180,8 +216,13 @@ declare var window;
 ...  
 export class HomePage {  
   constructor(public platform: Platform) {  
-  this.platform.ready().then(() => {  
-  window.plugins.appsFlyer.initSdk(options, success, error);  
+  this.platform.ready().then(async () => {  
+  const AppsFlyer = window.plugins.appsFlyer;
+  await AppsFlyer.registerDeepLinkListener({ onDeepLinking: (data) => console.log(data) });
+  await AppsFlyer.init({ devKey, appId });
+  await AppsFlyer.registerSessionReadyListener(() => {
+    AppsFlyer.start().catch((error) => console.error(error));
+  });
  }); }}  
 ```  
   

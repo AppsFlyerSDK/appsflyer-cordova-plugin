@@ -10,115 +10,178 @@
 
 The list of available methods for this plugin is described below.
 
+### Removed in 7.0
+
+The following methods were removed with no replacement — see [RELEASENOTES.md](../RELEASENOTES.md) for the full breaking-change list:
+
+- `registerOnAppOpenAttribution` — folded into [`registerDeepLinkListener`](#registerDeepLink)'s `onDeepLinking` callback.
+- `registerUninstall` (iOS APNs token) — no equivalent method in the new RPC schema.
+- `setSharingFilter` / `setSharingFilterForAllPartners` — already deprecated pre-7.0; superseded by [`setSharingFilterForPartners`](#setSharingFilterForPartners).
+
+Every remaining method is now **Promise-based**: `fn(args, successCallback, errorCallback)` calls became `await AppsFlyer.fn(params)`, with a single params object. Failures throw `AppsFlyerRpcError` or `AppsFlyerError` instead of invoking an error callback.
+
 | method name                                                           | params                                                                    | description                                                                                             |
 |-----------------------------------------------------------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| [`initSdk`](#initSdk)                                                 | `(Object args, function success, function error)`                         | Initialize the SDK                                                                                      |
-| [`startSdk`](#startSdk)                                               | `()`                                                                      | Starts the SDK - Must call initSdk first in order to make this work                                     |
-| [`logEvent`](#trackEvent)                                             | `(String eventName, Object eventValue, function success, function error)` | Track rich in-app events                                                                                |
-| [`registerOnAppOpenAttribution`](#registerOnAppOpenAttribution)       | `(function success, function error)`                                      | Get the deeplink data                                                                                   |
-| [`registerDeepLink`](#registerDeepLink)                               | `(function callBack)`                                                     | Get unified deep link data                                                                              |
-| [`setCurrencyCode`](#setCurrencyCode)                                 | `(String currencyId)`                                                     | Set currency code                                                                                       |
-| [`setAppUserId`](#setAppUserId)                                       | `(String customerUserId)`                                                 | Set custom_user_id                                                                                      |
-| [`setGCMProjectNumber`](#initSdk)                                     | `(String gcmProjectNumber)`                                               |                                                                                                         |
-| [`getAppsFlyerUID`](#getAppsFlyerUID)                                 | `(function success)`                                                      | Get AppsFlyer’s proprietary Device ID                                                                   |
-| [`anonymizeUser`](#deviceTrackingDisabled)                            | `(Boolean isDisabled)`                                                    | Anonymize user data                                                                                     |
-| [`Stop`](#stopTracking)                                               | `(Boolean isStopTracking)`                                                | Shut down all SDK tracking                                                                              |
-| [`updateServerUninstallToken`](#updateServerUninstallToken)           | `(String token)`                                                          | (Android) Pass GCM/FCM Tokens                                                                           |
-| [`registerUninstall`](#registerUninstall)                             | `(String token)`                                                          | (iOS) Pass APNs Tokens                                                                                  |
-| [`setAppInviteOneLinkID`](#setAppInviteOneLinkID)                     | `(Object args)`                                                           | Set AppsFlyer’s OneLink ID                                                                              |
-| [`generateInviteLink`](#generateInviteLink)                           | `(Object args, function success, function error)`                         | Error callback                                                                                          |
-| [`logCrossPromotionImpression`](#trackCrossPromotionImpression)       | `(String appId, String campaign)`                                         | Track cross promotion impression                                                                        |
-| [`logCrossPromotionAndOpenStore`](#trackAndOpenStore)                 | `(String appId, String campaign, Object params)`                          | Launch the app store's app page (via Browser)                                                           |
-| [`handleOpenUrl`](#deep-linking-tracking)                             | `(String url)`                                                            |                                                                                                         |
-| [`getSdkVersion`](#getSdkVersion)                                     | `((function success)`                                                     | Get the current SDK version                                                                             |
-| [`setSharingFilterForAllPartners`](#setSharingFilterForAllPartners)   |                                                                           | Used by advertisers to exclude all networks/integrated partners from getting data                       |
-| [`setSharingFilter`](#setSharingFilter)                               | `(partners)`                                                              | Used by advertisers to exclude specified networks/integrated partners from getting data                 |
-| [`setSharingFilterForPartners`](#setSharingFilterForPartners)         | `(partners)`                                                              | Used by advertisers to exclude specified networks/integrated partners from getting data                 |
-| [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase)         | `(Object purchaseInfo, function success, function error)`                 | Deprecated. Please use `validateAndLogInAppPurchaseV2`                                 |
-| [`validateAndLogInAppPurchaseV2`](#validateAndLogInAppPurchaseV2)     | `(Object purchaseDetails, Object additionalParameters, function success, function error)` | API for server verification of in-app purchases using V2 API (BETA)                                     |
-| [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox)   | `(boolean isSandbox, function success, function error)`                   | In app purchase receipt validation Apple environment                                                    |
-| [`disableCollectASA`](#disableCollectASA)                             | `(boolean collectASA, function success)`                                  | **iOS**  - set the SDK to load OR not to load iAd.framework dynamically                                 |
-| [`setDisableAdvertisingIdentifier`](#setDisableAdvertisingIdentifier) | `(boolean disableAdvertisingIdentifier, function success)`                | Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).          |
-| [`setOneLinkCustomDomains`](#setOneLinkCustomDomains)                 | `(domains, function success, function error)`                             | Set Onelink custom/branded domains                                                                      |
-| [`enableFacebookDeferredApplinks`](#enableFacebookDeferredApplinks)   | `(boolean isEnabled)`                                                     | support deferred deep linking from Facebook Ads                                                         |
-| [`setUserEmails`](#setUserEmails)                                     | `(emails, function success)`                                              | Set user emails for FB Advanced Matching                                                                |
-| [`setPhoneNumber`](#setPhoneNumber)                                   | `(String phoneNumber, function success)`                                  | Set phone number for FB Advanced Matching                                                               |
-| [`setHost`](#setHost)                                                 | `(String hostPrefix, String hostName)`                                    | Set custom host prefix and host name                                                                    |
-| [`addPushNotificationDeepLinkPath`](#addPushNotificationDeepLinkPath) | `(path)`                                                                  | configure push notification deep link resolution                                                        |
-| [`setResolveDeepLinkURLs`](#setResolveDeepLinkURLs)                   | `(urls)`                                                                  | get the OneLink from click domains                                                                      |
-| [`disableSKAD`](#disableSKAD)                                         | `(boolean disableSkad)`                                                   | disable or enable SKAD                                                                                  |
-| [`setCurrentDeviceLanguage`](#setCurrentDeviceLanguage)               | `(string language)`                                                       | Set the language of the device.                                                                         |
-| [`setAdditionalData`](#setAdditionalData)                             | `(Object additionalData)`                                                 | Allows you to add custom data to events sent from the SDK.                                              |
-| [`setPartnerData`](#setPartnerData)                                   | `(partnerId, data)`                                                       | Allows sending custom data for partner integration purposes.                                            |
-| [`sendPushNotificationData`](#sendPushNotificationData)               | `(Object data)`                                                           | Measure and get data from push-notification campaigns.                                                  |
-| [`setDisableNetworkData`](#setDisableNetworkData)                     | `(boolean disable)`                                                       | Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device. |
-| [`setConsentData`](#setConsentData)                                   | `(AppsFlyerConsent consent)`                                              | Set consent fields manually (e.g. by prompting user and collecting results).                            |                                           
-| [`enableTCFDataCollection`](#enableTCFDataCollection)                 | `(boolean enable)`                                                        | instruct the SDK to collect the TCF data from the device.                                               |                                           
-| [`logAdRevenue`](#logAdRevenue)                                       | `(Object adRevenueData, Object additionalParams)`                         | Log ad revenue event.                                                                                   |                                           
-| [`disableAppSetId`](#disableAppSetId)                                 |                                                                           | **Android only** - Disables App Set ID collection (enabled by default)                                  |                                           
+| [`init`](#initSdk)                                                    | `({devKey, appId?}): Promise<void>`                                       | Initialize the SDK                                                                                      |
+| [`start`](#startSdk)                                                  | `(params?: {awaitResponse?}): Promise<void>`                              | Starts the SDK - must be called from inside `registerSessionReadyListener`'s callback                   |
+| [`logEvent`](#trackEvent)                                             | `({eventName, eventValues?, awaitResponse?}): Promise<void>`              | Track rich in-app events                                                                                |
+| [`registerDeepLinkListener`](#registerDeepLink)               | `({onDeepLinking}): Promise<void>`                                        | Get unified deep link data (also covers what used to be app-open attribution)                           |
+| [`setCurrencyCode`](#setCurrencyCode)                                 | `({currencyCode}): Promise<void>`                                         | Set currency code                                                                                       |
+| [`setCustomerUserId`](#setAppUserId)                                  | `({customerId}): Promise<void>`                                           | Set custom_user_id                                                                                      |
+| [`getAppsFlyerUID`](#getAppsFlyerUID)                                 | `(): Promise<string \| null>`                                             | Get AppsFlyer’s proprietary Device ID                                                                   |
+| [`anonymizeUser`](#deviceTrackingDisabled)                            | `({shouldAnonymize}): Promise<void>`                                      | Anonymize user data                                                                                     |
+| [`stop`](#stopTracking)                                               | `({shouldStop}): Promise<void>`                                           | Shut down all SDK tracking                                                                              |
+| [`updateServerUninstallToken`](#updateServerUninstallToken)           | `({token}): Promise<void>`                                                | (Android) Pass GCM/FCM Tokens                                                                           |
+| [`setAppInviteOneLink`](#setAppInviteOneLinkID)                       | `({oneLinkId}): Promise<void>`                                            | Set AppsFlyer’s OneLink ID                                                                              |
+| [`generateInviteLink`](#generateInviteLink)                           | `(params?: {parameters?, awaitResponse?}): Promise<string>`               | Generate a user-invite link                                                                             |
+| [`logCrossPromoteImpression`](#trackCrossPromotionImpression)         | `({appId, campaign?, userParams?}): Promise<void>`                        | Track cross promotion impression                                                                        |
+| [`logAndOpenStore`](#trackAndOpenStore)                               | `({promotedAppId, campaign?, userParams?}): Promise<void>`                | Launch the app store's app page (via Browser)                                                           |
+| [`handleOpenUrl`](#handleOpenUrl)                                     | `({url, options?}): Promise<void>`                                        | **iOS only.** Forward a URL-scheme open to the SDK                                                      |
+| [`handleOpenURL`](#handleOpenURL)                                     | `({url, options?}): Promise<void>`                                        | **iOS only.** Case-variant of `handleOpenUrl`, kept for hand-integrated `AppDelegate`s                  |
+| [`getSdkVersion`](#getSdkVersion)                                     | `(): Promise<string>`                                                     | Get the current SDK version                                                                             |
+| [`setSharingFilterForPartners`](#setSharingFilterForPartners)         | `({partners}): Promise<void>`                                             | Used by advertisers to exclude specified networks/integrated partners from getting data                 |
+| [`validateAndLogInAppPurchase`](#validateAndLogInAppPurchase)         | `({purchase, additionalParameters?}): Promise<Record<string, unknown>>`   | API for server verification of in-app purchases                                                         |
+| [`setUseReceiptValidationSandbox`](#setUseReceiptValidationSandbox)   | `({sandbox}): Promise<void>`                                              | In app purchase receipt validation Apple environment                                                    |
+| [`setDisableCollectASA`](#disableCollectASA)                          | `({disable}): Promise<void>`                                              | **iOS**  - set the SDK to load OR not to load iAd.framework dynamically                                 |
+| [`setDisableAdvertisingIdentifiers`](#setDisableAdvertisingIdentifier)| `({disable}): Promise<void>`                                              | Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).          |
+| [`setOneLinkCustomDomain`](#setOneLinkCustomDomains)                  | `({domains}): Promise<void>`                                              | Set Onelink custom/branded domains                                                                      |
+| [`enableFacebookDeferredApplinks`](#enableFacebookDeferredApplinks)   | `({isEnabled}): Promise<void>`                                            | support deferred deep linking from Facebook Ads                                                         |
+| [`setUserEmail`](#setUserEmails)                                      | `({email}): Promise<void>`                                                | Set a single user email for FB Advanced Matching                                                        |
+| [`setUserPhone`](#setPhoneNumber)                                     | `({countryCode, phoneNumber}): Promise<void>`                             | Set phone number for FB Advanced Matching                                                               |
+| [`setHost`](#setHost)                                                 | `({hostPrefixName, hostName}): Promise<void>`                             | Set custom host prefix and host name                                                                    |
+| [`addPushNotificationDeepLinkPath`](#addPushNotificationDeepLinkPath) | `({deepLinkPath}): Promise<void>`                                         | configure push notification deep link resolution                                                        |
+| [`setResolveDeepLinkURLs`](#setResolveDeepLinkURLs)                   | `({urls}): Promise<void>`                                                 | get the OneLink from click domains                                                                      |
+| [`setDisableSKAdNetwork`](#disableSKAD)                               | `({disable}): Promise<void>`                                              | disable or enable SKAdNetwork support                                                                   |
+| [`setCurrentDeviceLanguage`](#setCurrentDeviceLanguage)               | `({language}): Promise<void>`                                             | Set the language of the device.                                                                         |
+| [`setAdditionalData`](#setAdditionalData)                             | `({customData}): Promise<void>`                                           | Allows you to add custom data to events sent from the SDK.                                              |
+| [`setPartnerData`](#setPartnerData)                                   | `({partnerId, data}): Promise<void>`                                      | Allows sending custom data for partner integration purposes.                                            |
+| [`sendPushNotificationData`](#sendPushNotificationData)               | `({campaign, pid, isRetargeting?, additionalParameters?}): Promise<void>` | Measure and get data from push-notification campaigns.                                                  |
+| [`setDisableNetworkData`](#setDisableNetworkData)                     | `({isDisable}): Promise<void>`                                            | Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device. |
+| [`setConsentData`](#setConsentData)                                   | `({isUserSubjectToGDPR, hasConsentForDataUsage?, hasConsentForAdsPersonalization?, hasConsentForAdStorage?}): Promise<void>` | Set consent fields manually (e.g. by prompting user and collecting results). |
+| [`enableTCFDataCollection`](#enableTCFDataCollection)                 | `({shouldCollect}): Promise<void>`                                        | instruct the SDK to collect the TCF data from the device.                                               |
+| [`logAdRevenue`](#logAdRevenue)                                       | `({monetizationNetwork, mediationNetwork, currencyIso4217Code, revenue, additionalParameters?}): Promise<void>` | Log ad revenue event. |
+| [`disableAppSetId`](#disableAppSetId)                                 | `(): Promise<void>`                                                       | **Android only** - Disables App Set ID collection (enabled by default)                                  |
+| [`registerConversionListener`](#registerConversionListener)          | `({onConversionDataSuccess?, onConversionDataFail?}): Promise<void>`      | Get conversion/attribution data, replacing the old `onInstallConversionDataListener` init flag           |
+| [`enableDebug`](#enableDebug)                                         | `({enabled}): Promise<void>`                                              | Toggle debug mode, replacing the old `isDebug` init flag                                                 |
+| [`setUseUninstallSandbox`](#setUseUninstallSandbox)                   | `({sandbox}): Promise<void>`                                              | **iOS only** - test uninstall in the Sandbox environment, replacing the old `useUninstallSandbox` init flag |
+| [`setCollectAndroidID`](#setCollectAndroidID)                         | `({isCollect}): Promise<void>`                                            | **Android only** - opt in/out of Android ID collection, replacing the old `collectAndroidID` init flag   |
 
   
 ---
 
-##### <a id="initSdk"> **`initSdk(options, onSuccess, onError): void`**
+##### <a id="initSdk"> **`init(params): Promise<void>`**
 
-initialize the SDK.
+initialize the SDK. No longer implicitly starts tracking — see [`start`](#startSdk) below, which must be called from inside [`registerSessionReadyListener`](#registerSessionReadyListener)'s callback. Client-side arg validation is gone; failures reject with `AppsFlyerError`/`AppsFlyerRpcError`.
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `options` | `Object` | SDK configuration |
-| `onSuccess` | `(message: string)=>void` | Success callback - called after successful SDK initialization. |
-| `onError` | `(message: string)=>void` | Error callback - called when error occurs during initialization. |
+| `params` | `{devKey: string, appId?: string}` | SDK configuration |
 
-**`options`**
+**`params`**
 
-| name                              | type | default | description |
-|-----------------------------------|---------|---------|------------------------|
-| `devKey`                          |`string` |         | [Appsflyer Dev key](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android) |
-| `appId`                           |`string` |         | [Apple Application ID](https://support.appsflyer.com/hc/en-us/articles/207032066-AppsFlyer-SDK-Integration-iOS) (for iOS only) |
-| `isDebug`                         |`boolean`| `false` | debug mode (optional)|
-| `useUninstallSandbox`             |`boolean`| `false` | For iOS only, to test uninstall in Sandbox environment (optional)|
-| `collectIMEI`                     | `boolean` | `false` |opt-out of collection of IMEI |
-| `collectAndroidID`                | `boolean` | `false` |opt-out of collection of collectAndroidID |
-| `onInstallConversionDataListener` |`boolean`| `false` | Accessing AppsFlyer Attribution / Conversion Data from the SDK (Deferred Deeplinking). Read more: [Android](http://support.appsflyer.com/entries/69796693-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deep-linking-), [iOS](http://support.appsflyer.com/entries/22904293-Testing-AppsFlyer-iOS-SDK-Integration-Before-Submitting-to-the-App-Store-). AppsFlyer plugin will return attribution data in `onSuccess` callback. |
-| `shouldStartSdk`                  |`boolean`| `true`  | Prevents from the SDK from sending the launch request after using appsFlyer.initSdk(...). When using this property, the apps needs to manually trigger the appsFlyer.startSdk() API to report the app launch. read more here. (Optional, default=true)|
-.
+| name                              | type | description |
+|-----------------------------------|---------|------------------------|
+| `devKey`                          |`string` | [Appsflyer Dev key](https://support.appsflyer.com/hc/en-us/articles/207032126-AppsFlyer-SDK-Integration-Android) |
+| `appId`                           |`string` (optional) | [Apple Application ID](https://support.appsflyer.com/hc/en-us/articles/207032066-AppsFlyer-SDK-Integration-iOS) (for iOS only) |
+
+**Note:** these old `initSdk` flags are gone from `init`'s params — most moved to their own setter, called after `init()`:
+
+| old `initSdk` flag | replacement |
+|---------------------|-------------|
+| `isDebug` | [`enableDebug({enabled})`](#enableDebug) |
+| `useUninstallSandbox` | `setUseUninstallSandbox({sandbox})` |
+| `collectAndroidID` | `setCollectAndroidID({isCollect})` |
+| `onInstallConversionDataListener` | [`registerConversionListener`](#registerConversionListener) |
+| `shouldStartSdk` | nothing to set — start is now always explicit via [`registerSessionReadyListener`](#registerSessionReadyListener) |
+| `collectIMEI` | **removed, no replacement** — IMEI collection isn't part of the SDK 7 RPC surface |
+
+See [Guides.md](./Guides.md#init-sdk) for the full init/start sequencing.
 
 *Example:*
 
 ```javascript
-var  onSuccess = function(result) {
-// handle result
-};
-
-var  onError = function(err) {
-// handle error
+try {
+  await window.plugins.appsFlyer.init({
+    devKey: 'd3Ac9qPardVYZxfWmCspwL',
+    appId: '123456789'
+  });
+} catch (err) {
+  // handle error
 }
-
-var  options = {
-devKey:  'd3Ac9qPardVYZxfWmCspwL',
-appId:  '123456789',
-isDebug:  false,
-onInstallConversionDataListener:  true  //optional
-};
-
-window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
 ```
 
 ---
 
-##### <a id="startSdk"> **`startSdk(): void`**
+##### <a id="startSdk"> **`start(params?): Promise<void>`**
 
-Starts the SDK
+Starts the SDK. **Must** be called from inside [`registerSessionReadyListener`](#registerSessionReadyListener)'s callback per SDK 7's manual startup model — it is no longer called implicitly after `init`. See [Guides.md](./Guides.md#init-sdk) for the full sequencing example.
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `params` | `{awaitResponse?: boolean}` (optional) | |
 
 *Example:*
 
 ```javascript
-window.plugins.appsFlyer.initSdk(options, onSuccess, onError);
-window.plugins.appsFlyer.startSdk();
+await window.plugins.appsFlyer.init({ devKey, appId });
+
+await window.plugins.appsFlyer.registerSessionReadyListener(() => {
+  window.plugins.appsFlyer.start();
+});
 ```
 ---
-##### <a id="trackEvent"> **`logEvent(eventName, eventValues, onSuccess, onError): void`** (optional)
+
+##### <a id="registerSessionReadyListener"> **`registerSessionReadyListener(onReady): Promise<void>`**
+
+Registers a callback for the session-ready event. `start()` must be called from inside this callback — see [Guides.md](./Guides.md#init-sdk).
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `onReady` | `() => void` | called once the SDK session is ready to start |
+
+---
+
+##### <a id="registerConversionListener"> **`registerConversionListener(callbacks): Promise<void>`**
+
+Registers a callback for conversion/attribution data, replacing the old `onInstallConversionDataListener` init flag. Call after `init()` — see [Guides.md](./Guides.md#init-sdk).
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `onConversionDataSuccess` | `(data) => void` (optional) | called with the conversion data |
+| `onConversionDataFail` | `(error) => void` (optional) | called if fetching conversion data fails |
+
+---
+
+##### <a id="enableDebug"> **`enableDebug(params): Promise<void>`**
+
+Toggles debug mode, replacing the old `isDebug` init flag.
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `enabled` | `boolean` | whether debug logging is on |
+
+---
+
+##### <a id="setUseUninstallSandbox"> **`setUseUninstallSandbox(params): Promise<void>`**
+
+**iOS only.** Tests uninstall in the Sandbox environment, replacing the old `useUninstallSandbox` init flag.
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `sandbox` | `boolean` | whether to use the Sandbox environment |
+
+---
+
+##### <a id="setCollectAndroidID"> **`setCollectAndroidID(params): Promise<void>`**
+
+**Android only.** Opts in/out of Android ID collection, replacing the old `collectAndroidID` init flag.
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `isCollect` | `boolean` | whether to collect the Android ID |
+
+---
+##### <a id="trackEvent"> **`logEvent(params): Promise<void>`** (optional)
 
 - These in-app events help you track how loyal users discover your app, and attribute them to specific
 campaigns/media-sources. Please take the time define the event/s you want to measure to allow you
@@ -127,67 +190,62 @@ to track ROI (Return on Investment) and LTV (Lifetime Value).
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `eventName` | `String` | custom event name, is presented in your dashboard. See the Event list [HERE](https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/blob/master/src/ios/AppsFlyerTracker.h) |
-| `eventValue` | `Object` | event details |
-| `onSuccess` | `function` | triggered when the event was sent successfully. returns the event's name. can be Null |
-| `onError` | `function` | triggered when an error occurred. returns an error message. can be Null |
+| `eventName` | `string` | custom event name, is presented in your dashboard. See the Event list [HERE](https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/blob/master/src/ios/AppsFlyerTracker.h) |
+| `eventValues` | `Object` (optional) | event details |
+| `awaitResponse` | `boolean` (optional) | |
 
 *Example:*
 
 ```javascript
-var  successTrackEvent = function(success){
-alert(success);
+try {
+  await window.plugins.appsFlyer.logEvent({
+    eventName: 'af_add_to_cart',
+    eventValues: {
+      'af_content_id': 'id123',
+      'af_currency': 'USD',
+      'af_revenue': '2'
+    }
+  });
+} catch (err) {
+  // handle error
 }
-
-var  failureTrackEvent = function(failure){
-alert(failure);
-}
-
-var  eventName = 'af_add_to_cart';
-var  eventValues = {
-'af_content_id':  'id123',
-'af_currency':  'USD',
-'af_revenue':  '2'
-};
-
-window.plugins.appsFlyer.logEvent(eventName, eventValues, successTrackEvent, failureTrackEvent);
-//OR
-window.plugins.appsFlyer.logEvent(eventName, eventValues, null, null);
 ```
 ---
 
-##### <a id="deviceTrackingDisabled"> **`anonymizeUser(bool): void`**
+##### <a id="deviceTrackingDisabled"> **`anonymizeUser(params): Promise<void>`**
 
 **End User Opt-Out (Optional)**
 
 AppsFlyer provides you a method to opt‐out specific users from AppsFlyer analytics. This method complies with the latest privacy requirements and complies with Facebook data and privacy policies. Default is FALSE, meaning tracking is enabled by default.
 
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `shouldAnonymize` | `boolean` | |
+
 *Examples:*
 
 ```javascript
-window.plugins.appsFlyer.anonymizeUser(true);
+await window.plugins.appsFlyer.anonymizeUser({ shouldAnonymize: true });
 ```
 
 ---
 
-##### <a id="setCurrencyCode"> **`setCurrencyCode(currencyId): void`**
+##### <a id="setCurrencyCode"> **`setCurrencyCode(params): Promise<void>`**
 
 | parameter | type | Default | description |
 | ----------- |-----------------------|-------------|-------------|
-| `currencyId`| `String` | `USD` | [ISO 4217 Currency Codes](http://www.xe.com/iso4217.php) |
+| `currencyCode`| `string` | `USD` | [ISO 4217 Currency Codes](http://www.xe.com/iso4217.php) |
 
 *Examples:*
 
 ```javascript
-
-window.plugins.appsFlyer.setCurrencyCode('USD');
-window.plugins.appsFlyer.setCurrencyCode('GBP'); // British Pound
-
+await window.plugins.appsFlyer.setCurrencyCode({ currencyCode: 'USD' });
+await window.plugins.appsFlyer.setCurrencyCode({ currencyCode: 'GBP' }); // British Pound
 ```
 
 ---
 
-##### <a id="setAppUserId"> **`setAppUserId(customerUserId): void`**
+##### <a id="setAppUserId"> **`setCustomerUserId(params): Promise<void>`**
 
 Setting your own Custom ID enables you to cross-reference your own unique ID with AppsFlyer’s user ID and the other devices’ IDs. This ID is available in AppsFlyer CSV reports along with postbacks APIs for cross-referencing with you internal IDs.
 
@@ -195,420 +253,300 @@ Setting your own Custom ID enables you to cross-reference your own unique ID wit
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `customerUserId` | `String` | |
+| `customerId` | `string` | |
 
 *Example:*
 
 ```javascript
-window.plugins.appsFlyer.setAppUserId(userId);
+await window.plugins.appsFlyer.setCustomerUserId({ customerId: userId });
 ```
 
 ---
 
-##### <a id="stopTracking"> **`Stop(isStopTracking): void`**
+##### <a id="stopTracking"> **`stop(params): Promise<void>`**
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `Stop` | `boolean` |In some extreme cases you might want to shut down all SDK tracking due to legal and privacy compliance. This can be achieved with the isStopTracking API. Once this API is invoked, our SDK will no longer communicate with our servers and stop functioning. |
+| `shouldStop` | `boolean` |In some extreme cases you might want to shut down all SDK tracking due to legal and privacy compliance. This can be achieved with the `shouldStop` param. Once this API is invoked, our SDK will no longer communicate with our servers and stop functioning. |
 
 *Example:*
 
 ```javascript
-window.plugins.appsFlyer.Stop(true);
+await window.plugins.appsFlyer.stop({ shouldStop: true });
 ```
 
-In any event, the SDK can be reactivated by calling the same API, but to pass false.
+In any event, the SDK can be reactivated by calling the same API, but passing `shouldStop: false`.
 
 ---
 
-##### <a id="registerOnAppOpenAttribution"> **`registerOnAppOpenAttribution(onSuccess, onError): void`**
+##### <a id="registerDeepLink"> **`registerDeepLinkListener(params): Promise<void>`**
+
+Registers the unified deep-link callback. This also covers what used to be the separate `registerOnAppOpenAttribution` API — that method was removed in 7.0 and folded into `onDeepLinking` here.
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `onSuccess` | `(message: stringifed JSON)=>void` | Success callback - called after receiving data on App Open Attribution.|
-| `onError` | `(message: stringifed JSON)=>void` | Error callback - called when error occurs.|
+| `onDeepLinking` | `(data: DeepLinkData) => void` | called after receiving deep link data. `data.status` is one of `'FOUND' \| 'NOT_FOUND' \| 'ERROR'`. |
 
 *Example:*
 
 ```javascript
-window.plugins.appsFlyer.registerOnAppOpenAttribution(function(res) {
-        console.log('AppsFlyer OAOA ==> ' + res);
-        alert('AppsFlyer OAOA ==> ' + res);
-     },
-     function onAppOpenAttributionError(err) {
-         console.log(err);
-     });
-
-```
----
-##### <a id="registerDeepLink"> **`registerDeepLink(callBack): void`**
-
-**Note:** most be called before `initSdk()` and it overrides `registerOnAppOpenAttribution`.
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `callBack` | `(message: stringifed JSON)=>void` | function called after receiving dep link data|
-
-*Example:*
-
-```javascript
-window.plugins.appsFlyer.registerDeepLink(function(res) {
-    console.log('AppsFlyer DDL ==> ' + res);
-    alert('AppsFlyer DDL ==> ' + res);
+await window.plugins.appsFlyer.registerDeepLinkListener({
+  onDeepLinking: (data) => {
+    console.log('AppsFlyer DDL ==> ' + JSON.stringify(data));
+  }
 });
 ```
 ---
 
-##### <a id="updateServerUninstallToken"> **`updateServerUninstallToken("token"): void`**
+##### <a id="updateServerUninstallToken"> **`updateServerUninstallToken(params): Promise<void>`**
 
 (Android) Allows to pass GCM/FCM Tokens that where collected by third party plugins to the AppsFlyer server.
 Can be used for Uninstall Tracking.
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `token` | `String` | GCM/FCM Token|
+| `token` | `string` | GCM/FCM Token|
 
-----
+*Example:*
 
-##### <a id="registerUninstall"> **`registerUninstall("<token>"): void`**
-
-(iOS) Allows to pass APN Tokens that where collected by third party plugins to the AppsFlyer server.
-Can be used for Uninstall Tracking.
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `token` | `String` | APN Token|
+```javascript
+await window.plugins.appsFlyer.updateServerUninstallToken({ token });
+```
 
 ---
 
-##### <a id="getAppsFlyerUID"> **`getAppsFlyerUID(successCB): void`** (Advanced)
+##### <a id="getAppsFlyerUID"> **`getAppsFlyerUID(): Promise<string | null>`** (Advanced)
 
 Get AppsFlyer’s proprietary Device ID. The AppsFlyer Device ID is the main ID used by AppsFlyer in Reports and APIs.
 
-```javascript
-function  getUserIdCallbackFn(id){/* ... */}
-
-window.plugins.appsFlyer.getAppsFlyerUID(getUserIdCallbackFn);
-```
 *Example:*
 
 ```javascript
-var  getUserIdCallbackFn = function(id) {
-alert('received id is: ' + id);
-}
-
-window.plugins.appsFlyer.getAppsFlyerUID(getUserIdCallbackFn);
+const uid = await window.plugins.appsFlyer.getAppsFlyerUID();
 ```
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `getUserIdCallbackFn` | `() => void` | Success callback |
 
 ---
 
-##### <a id="setAppInviteOneLinkID"> **`setAppInviteOneLinkID(OneLinkID): void`** (User Invite / Cross Promotion)
+##### <a id="setAppInviteOneLinkID"> **`setAppInviteOneLink(params): Promise<void>`** (User Invite / Cross Promotion)
 
 Set AppsFlyer’s OneLink ID. Setting a valid OneLink ID will result in shortened User Invite links, when one is generated. The OneLink ID can be obtained on the AppsFlyer Dashboard.
 
-*Example:*
-```javascript
-window.plugins.appsFlyer.setAppInviteOneLinkID('Ab1C');
-```
-
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `OneLinkID` | `String` | OneLink ID |
+| `oneLinkId` | `string` | OneLink ID |
+
+*Example:*
+```javascript
+await window.plugins.appsFlyer.setAppInviteOneLink({ oneLinkId: 'Ab1C' });
+```
 
 ---
 
-##### <a id="generateInviteLink"> **`generateInviteLink(options, onSuccess, onError): void`** (User Invite)
+##### <a id="generateInviteLink"> **`generateInviteLink(params?): Promise<string>`** (User Invite)
 
 Allowing your existing users to invite their friends and contacts as new users to your app can be a key growth factor for your app. AppsFlyer allows you to track and attribute new installs originating from user invites within your app.
 
-*Example:*
-```javascript
-var  inviteOptions {
-channel: 'gmail',
-campaign: 'myCampaign',
-customerID: '1234',
-userParams {
-myParam: 'newUser',
-anotherParam: 'fromWeb',
-amount: 1
-}
-};
-
-var  onInviteLinkSuccess = function(link) {
-console.log(link); // Handle Generated Link Here
-}
-
-function  onInviteLinkError(err) {
-console.log(err);
-}
-
-window.plugins.appsFlyer.generateInviteLink(inviteOptions, onInviteLinkSuccess, onInviteLinkError);
-```
-
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `inviteOptions` | `Object` |Parameters for Invite link |
-| `onInviteLinkSuccess` | `() => void` | Success callback (generated link) |
-| `onInviteLinkError` | `() => void` | Error callback |
+| `parameters` | `Object` (optional) | Parameters for the Invite link |
+| `awaitResponse` | `boolean` (optional) | |
+
+*Example:*
+```javascript
+try {
+  const link = await window.plugins.appsFlyer.generateInviteLink({
+    parameters: {
+      channel: 'gmail',
+      campaign: 'myCampaign',
+      customerID: '1234',
+      userParams: {
+        myParam: 'newUser',
+        anotherParam: 'fromWeb',
+        amount: 1
+      }
+    }
+  });
+  console.log(link); // Handle Generated Link Here
+} catch (err) {
+  console.log(err);
+}
+```
 
 A complete list of supported parameters is available <a  href="https://support.appsflyer.com/hc/en-us/articles/115004480866-User-Invite-Tracking">here</a>.
 Custom parameters can be passed using a `userParams{}` nested object, as in the example above.
 
 ---
 
-##### <a id="trackCrossPromotionImpression"> **`logCrossPromotionImpression("appID", "campaign"): void`** (Cross Promotion)
+##### <a id="trackCrossPromotionImpression"> **`logCrossPromoteImpression(params): Promise<void>`** (Cross Promotion)
 
 Use this call to track an impression use the following API call. Make sure to use the promoted App ID as it appears within the AppsFlyer dashboard.
 
-*Example:*
-```javascript
-window.plugins.appsFlyer.logCrossPromotionImpression("com.myandroid.app", "myCampaign");
-```
-
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `appID` | `String` | Promoted Application ID |
-| `campaign` | `String` | Promoted Campaign |
+| `appId` | `string` | Promoted Application ID |
+| `campaign` | `string` (optional) | Promoted Campaign |
+| `userParams` | `Object` (optional) | Additional parameters to track |
+
+*Example:*
+```javascript
+await window.plugins.appsFlyer.logCrossPromoteImpression({
+  appId: 'com.myandroid.app',
+  campaign: 'myCampaign'
+});
+```
 
 For more details about Cross-Promotion tracking please see <a  href="https://support.appsflyer.com/hc/en-us/articles/115004481946-Cross-Promotion-Tracking">here</a>.
 
 ---
 
-##### <a id="trackAndOpenStore"> **`logCrossPromotionAndOpenStore("appID","campaign", options): void`** (Cross Promotion)
+##### <a id="trackAndOpenStore"> **`logAndOpenStore(params): Promise<void>`** (Cross Promotion)
 
 Use this call to track the click and launch the app store's app page (via Browser)
 
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `promotedAppId` | `string` | Promoted Application ID |
+| `campaign` | `string` (optional) | Promoted Campaign |
+| `userParams` | `Object` (optional) | Additional Parameters to track |
+
 *Example:*
 
 ```javascript
-var  crossPromOptions {
-customerID: '1234',
-myCustomParameter: 'newUser'
-};
-
-window.plugins.appsFlyer.logCrossPromotionAndOpenStore('com.myandroid.app', 'myCampaign', crossPromOptions);
+await window.plugins.appsFlyer.logAndOpenStore({
+  promotedAppId: 'com.myandroid.app',
+  campaign: 'myCampaign',
+  userParams: {
+    customerID: '1234',
+    myCustomParameter: 'newUser'
+  }
+});
 ```
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `appID` | `String` | Promoted Application ID |
-| `campaign` | `String` | Promoted Campaign |
-| `options` | `Object` | Additional Parameters to track |
 
 For more details about Cross-Promotion tracking please see <a  href="https://support.appsflyer.com/hc/en-us/articles/115004481946-Cross-Promotion-Tracking">here</a>.
 
 ---
 
-##### <a id="getSdkVersion"> **`getSdkVersion(successCB): void`**
+##### <a id="getSdkVersion"> **`getSdkVersion(): Promise<string>`**
 
 Get the current SDK version
 
 *Example:*
 
 ```javascript
-var  getSdkVersionCallbackFn = function(v) {
-alert('SDK version: ' + v);
-}
-window.plugins.appsFlyer.getSdkVersion(getSdkVersionCallbackFn);
+const version = await window.plugins.appsFlyer.getSdkVersion();
 ```
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `getSdkVersionCallbackFn` | `void` | Success callback |
 
 ---
 
-##### <a id="setSharingFilterForAllPartners"> **`setSharingFilterForAllPartners(): void`**
-
-Used by advertisers to exclude all networks/integrated partners from getting data. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032126#additional-apis-exclude-partners-from-getting-data)
-
-*Example:*
-
-```javascript
-window.plugins.appsFlyer.setSharingFilterForAllPartners();
-```
----
-
-##### <a id="setSharingFilter"> **`setSharingFilter(partners): void`**
+##### <a id="setSharingFilterForPartners"> **`setSharingFilterForPartners(params): Promise<void>`**
 
 Used by advertisers to exclude specified networks/integrated partners from getting data. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032126#additional-apis-exclude-partners-from-getting-data)
 
-*Example:*
-
-```javascript
-let  partners = ["facebook_int","googleadwords_int","snapchat_int","doubleclick_int"];
-
-window.plugins.appsFlyer.setSharingFilter(partners);
-```
-
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `partners` | `array` | Comma separated array of partners that need to be excluded |
-
----
-
-##### <a id="setSharingFilterForPartners"> **`setSharingFilterForPartners(partners): void`**
-
-Used by advertisers to exclude specified networks/integrated partners from getting data networks Comma separated array of partners that need to be excluded. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032126#additional-apis-exclude-partners-from-getting-data)
+| `partners` | `string[] \| null` | Array of partners that need to be excluded. Pass `null` to exclude all partners. |
 
 *Example:*
 
 ```javascript
-let  partners = ["facebook_int","googleadwords_int","snapchat_int","doubleclick_int"];
+let partners = ["facebook_int","googleadwords_int","snapchat_int","doubleclick_int"];
 
-window.plugins.appsFlyer.setSharingFilterForPartners(partners);
+await window.plugins.appsFlyer.setSharingFilterForPartners({ partners });
 ```
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `partners` | `array` | Comma separated array of partners that need to be excluded |
 
 ---
 
-##### <a id="validateAndLogInAppPurchase"> **`validateAndLogInAppPurchase(purchaseInfo, successC, failureC): void`**
-
-Deprecated, please use `validateAndLogInAppPurchaseV2`.
+##### <a id="validateAndLogInAppPurchase"> **`validateAndLogInAppPurchase(params): Promise<Record<string, unknown>>`**
 
 Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported. [Learn more here](https://support.appsflyer.com/hc/en-us/articles/207032106-Receipt-validation-for-in-app-purchases)
 
-*Example:*
-
-```javascript
- purchaseInfo = {
-        productIdentifier: 'identifier', //iOS
-        transactionId: '12xxx56', //iOS
-        publicKey: "key",
-        currency: 'biz',
-        signature: "sig",
-        purchaseData: "data",
-        price: '123',
-        additionalParameters: {'foo': 'bar'},
-    };
-    window.plugins.appsFlyer.setUseReceiptValidationSandbox(true); // iOS -> for testing in sandbox environment
-    window.plugins.appsFlyer.validateAndLogInAppPurchase(purchaseInfo, successC, failureC);
-```
+> 📘Note
+>
+> Before 7.0 this repo had two purchase-validation methods: a deprecated `validateAndLogInAppPurchase` (V1, raw receipt fields — `publicKey`/`signature`/`purchaseData`) and `validateAndLogInAppPurchaseV2`. In 7.0 the V1 raw-receipt shape is gone entirely, and this unqualified name is now V2's successor.
+>
+> Generates an `af_purchase` in-app event upon successful validation. Sending this event yourself will cause duplicate event reporting.
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `purchaseInfo` | `Object` | In-App Purchase parameters |
-| `successC` | `function` | success callback |
-| `failureC` | `function` | failure callback |
+| `purchase` | `Object` | Purchase details — Android: `{purchaseType, productId, purchaseToken}`; iOS: `{purchaseType, productId, transactionId}` |
+| `additionalParameters` | `Object` (optional) | Additional parameters to include with the purchase event |
 
 *Purchase parameters:*
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `publicKey` | `string` | License Key obtained from the Google Play Console |
-| `signature` | `string` | data.INAPP_DATA_SIGNATURE |
-| `purchaseData` | `string` | data.INAPP_PURCHASE_DATA |
-| `price` | `string` | The product price |
-| `additionalParameters` | `Object` | The additional param, which you want to receive it in the raw reports. |
-| `productIdentifier` | `string` | The product identifier. *FOR iOS* |
-| `transactionId` | `string` | The purchase transaction Id. *FOR iOS* |
-| `currency` | `string` | The product currency |
----
-
-##### <a id="validateAndLogInAppPurchaseV2"> **`validateAndLogInAppPurchaseV2(purchaseDetails, additionalParameters, successC, failureC): void`**
-
-Receipt validation is a secure mechanism whereby the payment platform (e.g. Apple or Google) validates that an in-app purchase indeed occurred as reported. This method uses V2 API.
-
-*Example:*
-
-```javascript
-var purchaseDetails = new AFPurchaseDetails(
-    "my-product-id",           // productId
-    "12345-transaction-id",    // purchaseToken/transactionId
-    "subscription"             // purchaseType: "subscription" or "one_time_purchase"
-);
-
-var additionalParameters = {
-    custom_param_1: "value1",
-    custom_param_2: "value2"
-};
-
-window.plugins.appsFlyer.validateAndLogInAppPurchaseV2(
-    purchaseDetails, 
-    additionalParameters, 
-    function(success) {
-        console.log("Purchase validation successful:", success);
-    }, 
-    function(error) {
-        console.log("Purchase validation failed:", error);
-    }
-);
-```
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
-| `purchaseDetails` | `Object` | Purchase details object containing productId, purchaseToken, and purchaseType |
-| `additionalParameters` | `Object` | Additional parameters to include with the purchase event (optional) |
-| `successC` | `function` | Success callback - called when validation is successful |
-| `failureC` | `function` | Failure callback - called when validation fails |
-
-*Purchase details parameters:*
-
-| parameter | type | description |
-| ----------- |-----------------------------|--------------|
+| `purchaseType` | `string` | `"subscription"` or `"one_time_purchase"` (see `AFPurchaseType`) |
 | `productId` | `string` | The product identifier |
-| `purchaseToken` | `string` | The purchase token from Google Play Store (Android) or transaction ID (iOS) |
-| `purchaseType` | `string` | The purchase type: "subscription" or "one_time_purchase" |
-
-> 📘Note
-> 
-> `validateAndLogInAppPurchaseV2` generates an `af_purchase` in-app event upon successful validation. Sending this event yourself will cause duplicate event reporting.
-
----
-
-##### <a id="setUseReceiptValidationSandbox"> **`setUseReceiptValidationSandbox(isSandbox, successC, failureC): void`**
-
-In app purchase receipt validation Apple environment(production or sandbox)<br>Callback functions are optional.
+| `purchaseToken` | `string` | The purchase token from Google Play Store. *Android only* |
+| `transactionId` | `string` | The purchase transaction Id. *iOS only* |
 
 *Example:*
 
 ```javascript
-window.plugins.appsFlyer.setUseReceiptValidationSandbox(true);
+try {
+  const result = await window.plugins.appsFlyer.validateAndLogInAppPurchase({
+    purchase: {
+      purchaseType: AFPurchaseType.subscription,
+      productId: 'my-product-id',
+      transactionId: '12345-transaction-id' // iOS; use purchaseToken on Android
+    },
+    additionalParameters: {
+      custom_param_1: 'value1',
+      custom_param_2: 'value2'
+    }
+  });
+  console.log('Purchase validation successful:', result);
+} catch (error) {
+  console.log('Purchase validation failed:', error);
+}
+```
+
+---
+
+##### <a id="setUseReceiptValidationSandbox"> **`setUseReceiptValidationSandbox(params): Promise<void>`**
+
+In app purchase receipt validation Apple environment(production or sandbox)
+
+*Example:*
+
+```javascript
+await window.plugins.appsFlyer.setUseReceiptValidationSandbox({ sandbox: true });
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `isSandbox` | `boolean` | true if In app purchase is done with sandbox |
+| `sandbox` | `boolean` | true if In app purchase is done with sandbox |
 
 ---
 
-##### <a id="disableCollectASA"> **`disableCollectASA(collectASA, successC): void`**
+##### <a id="disableCollectASA"> **`setDisableCollectASA(params): Promise<void>`**
 **iOS ONLY**<br>
 AppsFlyer SDK dynamically loads the Apple iAd.framework. This framework is required to record and measure the performance of Apple Search Ads in your app.<br>
 If you don't want AppsFlyer to dynamically load this framework, set this property to true.<br>
 *Example:*
 
 ```javascript
-window.plugins.appsFlyer.disableCollectASA(true, successC);
+await window.plugins.appsFlyer.setDisableCollectASA({ disable: true });
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `collectASA` | `boolean` | If you don't want AppsFlyer to dynamically load iAd.framework, set this property to true |
-| `successC` | `function` | success callback |
+| `disable` | `boolean` | If you don't want AppsFlyer to dynamically load iAd.framework, set this property to true |
 ---
-##### <a id="setDisableAdvertisingIdentifier"> **`setDisableAdvertisingIdentifier(disableAdvertisingIdentifier, successC): void`**
+##### <a id="setDisableAdvertisingIdentifier"> **`setDisableAdvertisingIdentifiers(params): Promise<void>`**
 Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).<br>
 *Example:*
 
 ```javascript
-window.plugins.appsFlyer.setDisableAdvertisingIdentifier(true, successC);
+await window.plugins.appsFlyer.setDisableAdvertisingIdentifiers({ disable: true });
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `disableAdvertisingIdentifier` | `boolean` |Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).|
-| `successC` | `function` | success callback |
+| `disable` | `boolean` |Disable collection of Apple, Google, Amazon and Open advertising ids (IDFA, GAID, AAID, OAID).|
 ---
 
-##### <a id="setOneLinkCustomDomains"> **`setOneLinkCustomDomains(domains, successC, errorC): void`**
+##### <a id="setOneLinkCustomDomains"> **`setOneLinkCustomDomain(params): Promise<void>`**
 Set Onelink custom/branded domains<br>
 Use this API during the SDK Initialization to indicate branded domains. For more information [Learn here](https://support.appsflyer.com/hc/en-us/articles/360002329137-Implementing-Branded-Links)
 
@@ -616,17 +554,15 @@ Use this API during the SDK Initialization to indicate branded domains. For more
 
 ```javascript
 let domains = ["promotion.greatapp.com", "click.greatapp.com", "deals.greatapp.com"];
-window.plugins.appsFlyer.setOneLinkCustomDomains(domains, successC, errorC);
+await window.plugins.appsFlyer.setOneLinkCustomDomain({ domains });
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `domains` | `String array` | String array of branded domains |
-| `successC` | `function` | will trigger if the domains were sent successfully |
-| `errorC` | `function` | will trigger if an error occurred |
+| `domains` | `string[]` | String array of branded domains |
 
 ---
-##### <a id="enableFacebookDeferredApplinks"> **`enableFacebookDeferredApplinks(boolean isEnabled): void`**
+##### <a id="enableFacebookDeferredApplinks"> **`enableFacebookDeferredApplinks(params): Promise<void>`**
 support deferred deep linking from Facebook Ads<br>
 
 **NOTE:** use this api before ```init```.<br>For more information [Learn here](https://support.appsflyer.com/hc/en-us/articles/207033826-Facebook-Ads-setup-guide#integration)
@@ -634,7 +570,7 @@ support deferred deep linking from Facebook Ads<br>
 *Example:*
 
 ```javascript
-window.plugins.appsFlyer.enableFacebookDeferredApplinks(true);
+await window.plugins.appsFlyer.enableFacebookDeferredApplinks({ isEnabled: true });
 ```
 
 | parameter | type | description |
@@ -642,112 +578,106 @@ window.plugins.appsFlyer.enableFacebookDeferredApplinks(true);
 | `isEnabled` | `boolean` | enable support deferred deep linking from Facebook Ads |
 
 ---
-##### <a id="setUserEmails"> **`setUserEmails(emails, successC: void`**
-Set user emails for FB Advanced Matching<br>
+##### <a id="setUserEmails"> **`setUserEmail(params): Promise<void>`**
+Set a single user email for FB Advanced Matching. Callers previously passing multiple emails need to make one call per email.<br>
 
 *Example:*
 
 ```javascript
-let emails = ["foo@gmail.com", "bar@foo.com"];
-window.plugins.appsFlyer.setUserEmails(emails, successC);
+await window.plugins.appsFlyer.setUserEmail({ email: 'foo@gmail.com' });
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `emails` | `String array` | String array of emails |
-| `successC` | `function` | will trigger if the emails were sent successfully |
+| `email` | `string` | User email |
 
 ---
-##### <a id="setPhoneNumber"> **`setPhoneNumber(phoneNumber, successC: void`**
-Set phone number for FB Advanced Matching<br>
+##### <a id="setPhoneNumber"> **`setUserPhone(params): Promise<void>`**
+Set phone number for FB Advanced Matching. Now also requires `countryCode`.<br>
 
 *Example:*
 
 ```javascript
-let phoneNumber = "0548561587";
-window.plugins.appsFlyer.setPhoneNumber(phoneNumber, successC);
+await window.plugins.appsFlyer.setUserPhone({ countryCode: '972', phoneNumber: '0548561587' });
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `phoneNumber` | `String` | String phone number |
-| `successC` | `function` | will trigger if the number was sent successfully |
+| `countryCode` | `string` | Country code |
+| `phoneNumber` | `string` | Phone number |
 
 ---
-##### <a id="setHost"> **`setHost(String hostPrefix, String hostName): void`**
+##### <a id="setHost"> **`setHost(params): Promise<void>`**
 Set custom host prefix and host name<br>
 
 *Example:*
 
 ```javascript
-let prefix = "another"
-let name = "host"
-window.plugins.appsFlyer.setHost(prefix, name);
+await window.plugins.appsFlyer.setHost({ hostPrefixName: 'another', hostName: 'host' });
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `hostPrefix` | `String` | host prefix |
-| `hostName` | `String` | host name |
+| `hostPrefixName` | `string` | host prefix |
+| `hostName` | `string` | host name |
 
 ---
-##### <a id="addPushNotificationDeepLinkPath"> **`addPushNotificationDeepLinkPath(path): void`**
+##### <a id="addPushNotificationDeepLinkPath"> **`addPushNotificationDeepLinkPath(params): Promise<void>`**
 The addPushNotificationDeepLinkPath method provides app owners with a flexible interface for configuring how deep links are extracted from push notification payloads. for more information: [here](https://support.appsflyer.com/hc/en-us/articles/207032126-Android-SDK-integration-for-developers#core-apis-65-configure-push-notification-deep-link-resolution)
-❗Important❗ addPushNotificationDeepLinkPath must be called before calling initSDK
+❗Important❗ addPushNotificationDeepLinkPath must be called before calling `init`
 
 *Example:*
 
 ```javascript
-let path = ["go", "to", "this", "path"]
-window.plugins.appsFlyer.addPushNotificationDeepLinkPath(path);
+let deepLinkPath = ["go", "to", "this", "path"]
+await window.plugins.appsFlyer.addPushNotificationDeepLinkPath({ deepLinkPath });
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `path` | `String[]` | strings array of the path |
+| `deepLinkPath` | `string[]` | strings array of the path |
 
 ---
 
----
-##### <a id="setResolveDeepLinkURLs"> **`setResolveDeepLinkURLs(urls): void`**
+##### <a id="setResolveDeepLinkURLs"> **`setResolveDeepLinkURLs(params): Promise<void>`**
 Use this API to get the OneLink from click domains that launch the app. Make sure to call this API before SDK initialization.
 
 *Example:*
 
 ```javascript
 let urls = ['clickdomain.com', 'anotherclickdomain.com'];
-window.plugins.appsFlyer.setResolveDeepLinkURLs(urls);
+await window.plugins.appsFlyer.setResolveDeepLinkURLs({ urls });
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `urls` | `String[]` | strings array of domains |
+| `urls` | `string[]` | strings array of domains |
 
 ---
 
-##### <a id="disableSKAD"> **`disableSKAD(disableSkad): void`**
-enable or disable SKAD support. set True if you want to disable it!<br>
-`disableSKAD` must be called before calling `initSDK` and for iOS ONLY!.
+##### <a id="disableSKAD"> **`setDisableSKAdNetwork(params): Promise<void>`**
+enable or disable SKAdNetwork support. set `disable: true` if you want to disable it!<br>
+`setDisableSKAdNetwork` must be called before calling `init` and for iOS ONLY!.
 
 *Example:*
 
 ```javascript
-appsFlyer.disableSKAD(true);
+await window.plugins.appsFlyer.setDisableSKAdNetwork({ disable: true });
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `disableSkad` | `boolean` | disable or enable SKAD support |
+| `disable` | `boolean` | disable or enable SKAdNetwork support |
 
 ---
-##### <a id="setCurrentDeviceLanguage"> **`setCurrentDeviceLanguage(language): void`**
+##### <a id="setCurrentDeviceLanguage"> **`setCurrentDeviceLanguage(params): Promise<void>`**
 Set the language of the device. The data will be displayed in Raw Data Reports<br>
-`setCurrentDeviceLanguage` must be called before calling `initSDK` and for iOS ONLY!.
+`setCurrentDeviceLanguage` must be called before calling `init` and for iOS ONLY!.
 
 *Example:*
 
 ```javascript
-appsFlyer.setCurrentDeviceLanguage('en');
+await window.plugins.appsFlyer.setCurrentDeviceLanguage({ language: 'en' });
 ```
 
 | parameter | type | description |
@@ -755,162 +685,198 @@ appsFlyer.setCurrentDeviceLanguage('en');
 | `language` |  `string` | Set the language of the device. |
 
 ---
-##### <a id="setAdditionalData"> **`setAdditionalData(additionalData): void`**
+##### <a id="setAdditionalData"> **`setAdditionalData(params): Promise<void>`**
 The setAdditionalData API allows you to add custom data to events sent from the SDK.<br>
 Typically it is used to integrate on the SDK level with several external partner platforms.
 
 *Example:*
 
 ```javascript
-appsFlyer.setAdditionalData({"aa":"cc",
-        "af":"cordova",
-        "ts":195659889569,
-        "revenue": 15});
+await window.plugins.appsFlyer.setAdditionalData({
+  customData: {
+    "aa": "cc",
+    "af": "cordova",
+    "ts": 195659889569,
+    "revenue": 15
+  }
+});
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `additionalData` |  `Object` | Set the language of the device. |
+| `customData` |  `Object` | Custom data to attach to events sent from the SDK. |
 
 ---
-##### <a id="setPartnerData"> **`setPartnerData(partnerId, data): void`**
+##### <a id="setPartnerData"> **`setPartnerData(params): Promise<void>`**
 Allows sending custom data for partner integration purposes.
 
 *Example:*
 
 ```javascript
-appsFlyer.setPartnerData("af_int", {apps: "Flyer", cuid: "123abc"});
+await window.plugins.appsFlyer.setPartnerData({
+  partnerId: "af_int",
+  data: { apps: "Flyer", cuid: "123abc" }
+});
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `partnerId` |  `String` | ID of the partner (usually suffixed with "_int"). |
+| `partnerId` |  `string` | ID of the partner (usually suffixed with "_int"). |
 | `data` |  `Object` | Customer data, depends on the integration configuration with the specific partner. |
 
 ------
-##### <a id="sendPushNotificationData"> **`sendPushNotificationData(pushData): void`**
-Measure and get data from push-notification campaigns.
+##### <a id="sendPushNotificationData"> **`sendPushNotificationData(params): Promise<void>`**
+Measure and get data from push-notification campaigns. The old opaque `pushData` object is gone — the new schema requires specific fields.
+
 *Example:*
- 
+
 ```javascript
-appsFlyer.sendPushNotificationData({apps: "Flyer", cuid: "123abc", someKey: "Some Value"});
+await window.plugins.appsFlyer.sendPushNotificationData({
+  campaign: "myCampaign",
+  pid: "myMediaSource",
+  isRetargeting: true,
+  additionalParameters: { someKey: "Some Value" }
+});
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `pushData` |  `Object` | JSON object contains the push data |
+| `campaign` |  `string` | Campaign name |
+| `pid` |  `string` | Media source |
+| `isRetargeting` |  `boolean` (optional) | |
+| `additionalParameters` |  `Object` (optional) | Additional push-data fields |
 
 ---
-##### <a id="sendPushNotificationData"> **`setDisableNetworkData(disable): void`**
-Measure and get data from push-notification campaigns.
+##### <a id="setDisableNetworkData"> **`setDisableNetworkData(params): Promise<void>`**
+Use to opt-out of collecting the network operator name (carrier) and sim operator name from the device.
 *Example:*
- 
+
 ```javascript
-appsFlyer.setDisableNetworkData(true);
+await window.plugins.appsFlyer.setDisableNetworkData({ isDisable: true });
 ```
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `disable` |  `boolean` | If should opt out, default to false|
+| `isDisable` |  `boolean` | If should opt out, default to false|
 
 ---
 
-##### <a id="setConsentData"> **`setConsentData(appsFlyerConsent): void`**
+##### <a id="setConsentData"> **`setConsentData(params): Promise<void>`**
 When GDPR applies to the user and your app does not use a CMP compatible with TCF v2.2, use this API to provide the consent data directly to the SDK.
-The AppsFlyerConsent object has 4 parameters:
+`params` has 4 fields (pass a plain object — the `AppsFlyerConsent` class and its `forGDPRUser`/`forNonGDPRUser` factories were removed in 7.0):
 
 | parameter | type           | description                                                                                                                                                                     |
 | ----------- |----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `isUserSubjectToGDPR` | `boolean\null` | Indicates whether GDPR regulations apply to the user (true if the user is a subject of GDPR). It also serves as a flag for compliance with relevant aspects of DMA regulations. |
-| `hasConsentForDataUsage` | `boolean\null` | Indicates whether the user has consented to use their data for advertising purposes.  This can apply under GDPR, DMA, or other applicable privacy regulations.|
-| `hasConsentForAdsPersonalization` | `boolean\null` | Indicates whether the user has consented to use their data for personalized advertising.  This can apply under GDPR, DMA, or other applicable privacy regulations.              |
-| `hasConsentForAdStorage` | `boolean\null` | Indicates whether the user has provided consent for the storage of their advertising data. This can be relevant for GDPR, DMA, or other regulatory compliance purposes.         |
-
-<b>Deprecated functions</b>
-
-<s>AppsFlyerConsent.forNonGDPRUser: Indicates that GDPR doesn't apply to the user and generates nonGDPR consent object. This method doesn't accept any parameters.
-AppsFlyerConsent.forGDPRUser: create an AppsFlyerConsent object with 2 parameters.
-</s>
+| `isUserSubjectToGDPR` | `boolean\|null` | Indicates whether GDPR regulations apply to the user (true if the user is a subject of GDPR). It also serves as a flag for compliance with relevant aspects of DMA regulations. |
+| `hasConsentForDataUsage` | `boolean\|null` (optional) | Indicates whether the user has consented to use their data for advertising purposes.  This can apply under GDPR, DMA, or other applicable privacy regulations.|
+| `hasConsentForAdsPersonalization` | `boolean\|null` (optional) | Indicates whether the user has consented to use their data for personalized advertising.  This can apply under GDPR, DMA, or other applicable privacy regulations.              |
+| `hasConsentForAdStorage` | `boolean\|null` (optional) | Indicates whether the user has provided consent for the storage of their advertising data. This can be relevant for GDPR, DMA, or other regulatory compliance purposes.         |
 
 *Example:*
 
 ```javascript
-
-window.plugins.appsFlyer.setConsentData(AppsFlyerConsent.forGDPRUser(true, true));
-// OR
-window.plugins.appsFlyer.setConsentData(AppsFlyerConsent.forNonGDPRUser());
-
+await window.plugins.appsFlyer.setConsentData({
+  isUserSubjectToGDPR: true,
+  hasConsentForDataUsage: true,
+  hasConsentForAdsPersonalization: true,
+  hasConsentForAdStorage: true
+});
 ```
 
 ---
 
-##### <a id="enableTCFDataCollection"> **`enableTCFDataCollection(enable): void`**
+##### <a id="enableTCFDataCollection"> **`enableTCFDataCollection(params): Promise<void>`**
 instruct the SDK to collect the TCF data from the device.
 
 | parameter | type | description                                                                            |
 | ---------- |-----------------------------|----------------------------------------------------------------------------------------|
-| `enable` |  `boolean` | enable/disable TCF data collection                                                     |
+| `shouldCollect` |  `boolean` | enable/disable TCF data collection                                                     |
 
 *Example:*
 
 ```javascript
-
-window.plugins.appsFlyer.enableTCFDataCollection(true);
-
+await window.plugins.appsFlyer.enableTCFDataCollection({ shouldCollect: true });
 ```
 
 ---
 
-##### <a id="logAdRevenue"> **`logAdRevenue(adRevenueData, additionalParams): void`**
-log ad-revenue event.
+##### <a id="logAdRevenue"> **`logAdRevenue(params): Promise<void>`**
+log ad-revenue event. The fields that used to live in a nested `adRevenueData` object are now top-level params; `additionalParameters` moved from a second function argument into the same object.
 
 | parameter        | type     | description                                                                                                                                                                                                                                                |
 |------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `adRevenueData`  | `Object` | the object must contain the following fields:<br/>monetizationNetwork: String testMonetizationNetwork<br/> mediationNetwork: MediationNetwork testMediationNetwork<br/>currencyIso4217Code: String currencyByIso4217CodeFormat <br/>revenue:double revenue |
-| `additionalData` | `Object` | additional Params Data map, @Nullable                                                                                                                                                                                                                      |
+| `monetizationNetwork`  | `string` | Monetization network name |
+| `mediationNetwork` | `string` | See `MediationNetwork` in `constants.ts` |
+| `currencyIso4217Code` | `string` | Currency in ISO 4217 format |
+| `revenue` | `number` | Revenue amount |
+| `additionalParameters` | `Object` (optional) | additional Params Data map |
 
 
 *Example:*
 
 ```javascript
-
 let mediationNetwork = MediationNetwork.TOPON;
-let adRevenueData = {
-    'monetizationNetwork': 'testMonetizationNetwork',
-    'mediationNetwork': mediationNetwork,
-    'currencyIso4217Code': 'USD',
-    'revenue': 15.0
-};
-let additionalParams = {
-    'additionalKey1':'additionalValue1',
-    'additionalKey2':'additionalValue2'
-}
-window.plugins.appsFlyer.logAdRevenue(adRevenueData, additionalParams);
+
+await window.plugins.appsFlyer.logAdRevenue({
+    monetizationNetwork: 'testMonetizationNetwork',
+    mediationNetwork: mediationNetwork,
+    currencyIso4217Code: 'USD',
+    revenue: 15.0,
+    additionalParameters: {
+        'additionalKey1':'additionalValue1',
+        'additionalKey2':'additionalValue2'
+    }
+});
 ```
 
+By passing all the required fields, you help ensure accurate tracking within the AppsFlyer platform. This enables you to analyze your ad revenue alongside other user acquisition data to optimize your app's overall monetization strategy.
+
+**Note:**
+The `additionalParameters` object is optional. You can add any additional data you want to log with the ad revenue event in this object. This can be useful for detailed analytics or specific event tracking later on. Make sure that the custom parameters follow the data types and structures specified by AppsFlyer in their documentation.
 ---
 
-##### <a id="disableAppSetId"> **`disableAppSetId(): void`**
+##### <a id="disableAppSetId"> **`disableAppSetId(): Promise<void>`**
 Disables App Set ID collection (enabled by default). Please look on [App Set ID official documentation](https://developer.android.com/identity/app-set-id)
 
 *Example:*
 
 ```javascript
-
-window.plugins.appsFlyer.disableAppSetId();
-
+await window.plugins.appsFlyer.disableAppSetId();
 ```
-Here's how you use `appsFlyer.logAdRevenue` within a Cordova app:
 
-1. Prepare the `adRevenueData` object as shown, including any additional parameters you wish to track along with the ad revenue event.
-2. Call the `appsFlyer.logAdRevenue` method with the `adRevenueData` object.
-
-By passing all the required fields in `AFAdRevenueData`, you help ensure accurate tracking within the AppsFlyer platform. This enables you to analyze your ad revenue alongside other user acquisition data to optimize your app's overall monetization strategy.
-
-**Note:** 
-The `additionalParameters` object is optional. You can add any additional data you want to log with the ad revenue event in this object. This can be useful for detailed analytics or specific event tracking later on. Make sure that the custom parameters follow the data types and structures specified by AppsFlyer in their documentation.
 ---
 
+##### <a id="handleOpenUrl"> **`handleOpenUrl(params): Promise<void>`**
+**iOS only.** Forward a URL-scheme open to the SDK. See [Deep linking Tracking](#deep-linking-tracking) below for the integration context.
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `url` | `string` | The opened URL |
+| `options` | `Object` (optional) | Open-URL options, if any |
+
+*Example:*
+
+```javascript
+await window.plugins.appsFlyer.handleOpenUrl({ url });
+```
+
+---
+
+##### <a id="handleOpenURL"> **`handleOpenURL(params): Promise<void>`**
+**iOS only.** Case-variant of [`handleOpenUrl`](#handleOpenUrl), kept as a distinct method for hand-integrated `AppDelegate`s. Same param shape.
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `url` | `string` | The opened URL |
+| `options` | `Object` (optional) | Open-URL options, if any |
+
+*Example:*
+
+```javascript
+await window.plugins.appsFlyer.handleOpenURL({ url });
+```
+
+---
 
 ### <a id="deep-linking-tracking"> Deep linking Tracking
 
@@ -924,16 +890,18 @@ Add the following lines to your code to be able to track deeplinks with AppsFlye
 for pure Cordova - add a function 'handleOpenUrl' to your root, and call our SDK as shown:
 
 ```javascript
-window.plugins.appsFlyer.handleOpenUrl(url);
+await window.plugins.appsFlyer.handleOpenUrl({ url });
 ```
 
 It appears as follows:
 
 ```javascript
-var  handleOpenURL = function(url) {
-window.plugins.appsFlyer.handleOpenUrl(url);
+var handleOpenURL = async function(url) {
+  await window.plugins.appsFlyer.handleOpenUrl({ url });
 }
 ```
+
+You will get the deep link information via [`registerDeepLinkListener`](#registerDeepLink)'s `onDeepLinking` callback.
 
 #### <a id='dl-ul'>Universal Links in iOS
 To enable Universal Links in iOS please follow the guide <a  href="https://support.appsflyer.com/hc/en-us/articles/207032266-Setting-Deeplinking-on-iOS9-using-iOS-Universal-Links">here</a>.

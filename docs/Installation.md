@@ -1,6 +1,7 @@
 # Adding   cordova-plugin-appsflyer-sdk to your project
 
 - [Installation using CLI](#installation-using-cli)
+- [Native dependencies](#native-dependencies)
 - [Manual installation](#manual-installation)
   - [iOS](#manual-installation-ios)
   - [Android](#manual-installation-android)
@@ -13,6 +14,15 @@ directly from git branch:
 ```
 $ cordova plugin add https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk.git
 ```
+
+##  <a id="native-dependencies"> Native dependencies
+
+`cordova plugin add`/`cordova prepare` pulls in the native SDKs automatically — you don't add these yourself.
+
+- **iOS**: CocoaPods installs the `AppsFlyerRPC` pod (pinned in `plugin.xml`'s `<podspec>` block), which pulls in `AppsFlyerFramework` transitively. **Requires an iOS deployment target of 13.0+** — `AppsFlyerRPC`'s own podspec declares this minimum, and Cordova's default (`12.0`) fails `pod install`. Set it in your app's `config.xml`: `<platform name="ios"><preference name="deployment-target" value="13.0" /></platform>`.
+- **Android**: Gradle installs `com.appsflyer:af-android-sdk` via the `af-android-sdk-bom` platform BOM, plus an explicit `com.appsflyer:af-android-plugin-bridge` version pin (see `src/android/cordovaAF.gradle` for the exact pinned versions).
+
+If you're pinning a specific SDK version yourself (e.g. in a `Podfile`/`build.gradle` override), pin `AppsFlyerRPC` on iOS and `af-android-sdk-bom` + `af-android-plugin-bridge` on Android — not the older single `AppsFlyerFramework` pod or a standalone `af-android-sdk:X.Y.Z@aar` line, both of which predate this plugin's current RPC-core architecture.
 
 For Google Install referrer support:
 

@@ -22,25 +22,46 @@
   
   
 ##  <a id="init-sdk"> Init SDK  
-  To initialize the AppsFlyer SDK you need to call `initSdk()`. To see a full list of the `options` check our the API doc [here](./API.md#initSdk).   
-      
-Example:  
-      
-      
-```javascript  
-var onSuccess = function(result) {// handle result };  
-  
-function onError(err) {  
-// handle error  
-}  
-  
-var options = {  devKey: 'd3********wL',  
-  appId: '1******9',  
-  isDebug: false,  
-  waitForATTUserAuthorization: 10  
-};  
-  
-window.plugins.appsFlyer.initSdk(options, onSuccess, onError);  
+  To initialize the AppsFlyer SDK you need to call `init()`. `start()` is no longer implicit after `init()` — it must be called from inside `registerSessionReadyListener`'s callback. To see the full method list check our the API doc [here](./API.md#initSdk).
+
+Every call is now Promise-based, so the recommended order is: register the deep-link listener → `init()` → register the conversion listener / any other config calls → `registerSessionReadyListener(() => { AppsFlyer.start() })`.
+
+Example:
+
+```javascript
+async function initAppsFlyer() {
+  // 1. Register the deep-link listener before init
+  await window.plugins.appsFlyer.registerDeepLinkListener({
+    onDeepLinking: (data) => {
+      console.log('AppsFlyer DL ==> ' + JSON.stringify(data));
+    }
+  });
+
+  // 2. Initialize the SDK
+  await window.plugins.appsFlyer.init({
+    devKey: 'd3********wL',
+    appId: '1******9' // iOS only
+  });
+
+  // 3. Register the conversion listener (replaces the old onInstallConversionDataListener init flag)
+  await window.plugins.appsFlyer.registerConversionListener({
+    onConversionDataSuccess: (data) => {
+      console.log('AppsFlyer conversion data ==> ' + JSON.stringify(data));
+    },
+    onConversionDataFail: (err) => {
+      console.log(err);
+    }
+  });
+
+  // 4. Start the SDK once the session is ready - start() is no longer implicit after init()
+  await window.plugins.appsFlyer.registerSessionReadyListener(() => {
+    window.plugins.appsFlyer.start();
+  });
+}
+
+initAppsFlyer().catch((err) => {
+  // handle error
+});
 ```  
   
 ##  <a id="ios14"> Set plugin for IOS 14  
@@ -80,89 +101,59 @@ For more info please check out the [OneLink™ Deep Linking Guide](https://suppo
   
 Check out the deferred deeplinkg guide from the AppFlyer knowledge base [here](https://support.appsflyer.com/hc/en-us/articles/207032096-Accessing-AppsFlyer-Attribution-Conversion-Data-from-the-SDK-Deferred-Deeplinking-#Introduction)  
   
-Code Sample to handle the conversion data:  
+Conversion data is no longer requested via an `onInstallConversionDataListener` init flag — register a conversion listener with `registerConversionListener` instead (call it after `init()`, per the sequencing shown in [Init SDK](#init-sdk)):  
   
 ```javascript  
-function onSuccess(result) {  
- var conversionData = JSON.parse(result);  
+await window.plugins.appsFlyer.init({  
+  devKey: 'K2aMGPY3SkC9WckYUgHJ99',  
+  appId: "4166357985"  
+});  
   
- if (conversionData.data.is_first_launch === true) {  
-         if(conversionData.data.af_status === 'Non-organic') {  
-             var media_source = conversionData.data.media_source;  
- var campaign = conversionData.data.campaign;  
-  console.log('This is a Non-Organic install. Media source: ' + media_source + ' Campaign: ' + campaign);  
-         } else if(af_status === 'Organic'){  
-  console.log('Organic Install');  
- }  
- } else if (conversionData.data.is_first_launch === false) {  
- // Not first launch    }  
-}  
-  
-function onError(err) {  
-  console.log(err);  
-}  
-  
-var options = {  devKey:  'K2aMGPY3SkC9WckYUgHJ99',  
-  isDebug: true,  
-  appId: "4166357985",  
-  onInstallConversionDataListener: true  // required for get conversion data };  
-  
-window.plugins.appsFlyer.initSdk(options , onSuccess , onError);  
+await window.plugins.appsFlyer.registerConversionListener({  
+  onConversionDataSuccess: (data) => {  
+    if (data.is_first_launch === true) {  
+      if (data.af_status === 'Non-organic') {  
+        console.log('This is a Non-Organic install. Media source: ' + data.media_source + ' Campaign: ' + data.campaign);  
+      } else if (data.af_status === 'Organic') {  
+        console.log('Organic Install');  
+      }  
+    } else if (data.is_first_launch === false) {  
+      // Not first launch  
+    }  
+  },  
+  onConversionDataFail: (err) => {  
+    console.log(err);  
+  }  
+});  
 ```  
   
   
   
   
 ###  <a id="handle-deeplinking"> 2. Direct Deeplinking  
-  In order to implement deeplink with AppsFlyer, you must call `registerOnAppOpenAttribution` **before** `initSdk`<br>  
+`registerOnAppOpenAttribution` was removed in 7.0 — its functionality is now folded into `registerDeepLinkListener`'s `onDeepLinking` callback, the same API used for [Unified deep linking](#Unified-deep-linking) below. Use that section's example for both direct and unified deep linking.  
 For more information on deeplinks, please read [here](https://dev.appsflyer.com/docs/getting-started)  
   
-  
-  
-  
-```javascript  
-window.plugins.appsFlyer.registerOnAppOpenAttribution(function(res) {  
-  
-  console.log(res);  
- var deeplinkData = JSON.parse(res);  
-     if(deeplinkData.type === 'onAppOpenAttribution'){         var link = deeplinkData.data.link;  
-  console.log(link);  
- // redirect here     } else {  
-  console.log('onAppOpenAttribution error');  
- }}, function onAppOpenAttributionError(err){  
-  console.log(err);  
-});  
-  
-```  
-  
 ###  <a id="Unified-deep-linking"> 3. Unified deep linking  
-In order to use the unified deep link you need to send the `onDeepLinkListener: true` flag inside the object that sent to the sdk.<br>  
-**NOTE:** when sending this flag, the sdk will ignore `onAppOpenAttribution`!<br>  
+Register the unified deep-link callback with `registerDeepLinkListener` **before** `init()`.<br>  
 For more information about this api, please check [OneLink Guide Here](https://dev.appsflyer.com/docs/android-unified-deep-linking)  
   
   
 ```javascript  
-window.plugins.appsFlyer.registerDeepLink(function(res) {  
-  console.log('AppsFlyer DDL ==> ' + res);  
-  alert('AppsFlyer DDL ==> ' + res);  
+await window.plugins.appsFlyer.registerDeepLinkListener({  
+  onDeepLinking: (data) => {  
+    console.log('AppsFlyer DDL ==> ' + JSON.stringify(data));  
+    // data.status is 'FOUND' | 'NOT_FOUND' | 'ERROR'  
+  }  
 });  
   
-let options = {  devKey: 'UsxXxXxed',  
-  isDebug: true,  
-  appId: '74xXxXx91',  
-  onInstallConversionDataListener: true,  
-  onDeepLinkListener: true // by default onDeepLinkListener is false!  
-};  
-  
-window.plugins.appsFlyer.initSdk(options, function(res) {  
-  console.log('AppsFlyer GCD ==>' + res);  
-  alert('AppsFlyer GCD ==> ' + res);  
-  
- }, function(err) {  console.log(`AppsFlyer GCD ==> ${err}`);  
+await window.plugins.appsFlyer.init({  
+  devKey: 'UsxXxXxed',  
+  appId: '74xXxXx91'  
 });  
 ```  
   
-**Note:** The code implementation for `onDeepLink` must be made **prior to the initialization** code of the SDK.  
+**Note:** The code implementation for `registerDeepLinkListener` must be made **prior to the initialization** code of the SDK.  
   
 ###  <a id="android-deeplink"> Android Deeplink Setup  
        
@@ -213,15 +204,16 @@ Add the following lines to your code to be able to track deeplinks with AppsFlye
   
 for pure Cordova - add a function 'handleOpenUrl' to your root, and call our SDK as shown:  
 ```javascript  
-window.plugins.appsFlyer.handleOpenUrl(url);  
+await window.plugins.appsFlyer.handleOpenUrl({ url });  
 ```  
 It appears as follows:  
   
 ```javascript  
-var handleOpenURL = function(url) {window.plugins.appsFlyer.handleOpenUrl(url);  
+var handleOpenURL = async function(url) {  
+  await window.plugins.appsFlyer.handleOpenUrl({ url });  
 }  
 ```  
-Now you will get deep link information in the onAppOpenAttribution callback  
+You will get deep link information via `registerDeepLinkListener`'s `onDeepLinking` callback (see [Unified deep linking](#Unified-deep-linking)).  
   
 #### <a id="ios-universal"> If you are using Ionic+Capacitor or Ionic+Cordova:<br>  
 ##### import:<br>  
@@ -235,12 +227,12 @@ In both cases, you need to add this code before the `@end` tag:<br>
 // Deep linking  
 // Open URI-scheme for iOS 9 and above  
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url options:(NSDictionary *) options {  
- // version >= 6.2.30 [[AppsFlyerAttribution shared] handleOpenUrl:url options:options];  
+ // version >= 7.0 [[AppsFlyerAttribution shared] handleOpen:url options:options];  
  // version < 6.2.30    [[AppsFlyerLib shared] handleOpenUrl:url options:options];  
  return YES;}  
 // Open URI-scheme for iOS 8 and below  
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString*)sourceApplication annotation:(id)annotation {  
- // version >= 6.2.30 [[AppsFlyerAttribution shared] handleOpenUrl:url sourceApplication:sourceApplication annotation:annotation];  
+ // version >= 7.0 [[AppsFlyerAttribution shared] handleOpen:url sourceApplication:sourceApplication annotation:annotation];  
  // version < 6.2.30 [[AppsFlyerLib shared] handleOpenUrl:url sourceApplication:sourceApplication withAnnotation:annotation]; return YES;}  
 // Open Universal Links  
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler {  
@@ -285,44 +277,16 @@ Plugin depends on cordova-support-google-services for setting up google services
 2. Send the token to AppsFlyer by calling `updateServerUninstallToken`.<br>  
   
 ```javascript  
-window.plugins.appsFlyer.initSdk(options , onSuccess , onError);  
+await window.plugins.appsFlyer.init(options);  
 cordova.plugins.firebase.messaging.onTokenRefresh(function() {  
   console.log("Device token updated");  
  cordova.plugins.firebase.messaging.getToken().then(function(token) {  
-  window.plugins.appsFlyer.updateServerUninstallToken(token);  
+  window.plugins.appsFlyer.updateServerUninstallToken({ token });  
  });})  
   ```  
   
 ###  <a id="ios-uninstall"> iOS Uninstall Setup  
-  ##### Option 1 - Send the token as NSData to AppsFlyer natively  
-  
-Code sample for Classes/AppDelegate.m:  
-  
-```objectivec  
-#import "AppDelegate.h"  
-#import "MainViewController.h"  
-#import "AppsFlyerPlugin.h"  
-  
-@implementation AppDelegate  
-  
-- (BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)launchOptions  
-{  
- UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert | UIUserNotificationTypeBadge | UIUserNotificationTypeSound); UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes categories:nil]; [application registerUserNotificationSettings:settings]; [application registerForRemoteNotifications];     self.viewController = [[MainViewController alloc] init];  
- return [super application:application didFinishLaunchingWithOptions:launchOptions];}  
-  
-- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {  
- [[AppsFlyerTracker sharedTracker] registerUninstall:deviceToken];}  
-  
-  
-@end  
-```      
- ##### Option 2 - Pass the token as a String to AppsFlyer in the js code  
-  
-Note : If you use this method you will need to collect the APNs token using a third party platform of your choice.   
-  
-```javascript  
-window.plugins.appsFlyer.registerUninstall("<token>");  
-```  
+**Removed in 7.0.** `registerUninstall` (both the native `[[AppsFlyerTracker sharedTracker] registerUninstall:deviceToken]` call and the JS `window.plugins.appsFlyer.registerUninstall("<token>")` wrapper) has no equivalent in the new RPC schema and was removed with no replacement — see [RELEASENOTES.md](../RELEASENOTES.md).  
   
   
   
