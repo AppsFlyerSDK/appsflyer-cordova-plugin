@@ -37,8 +37,18 @@ function patchAppDelegateM(filePath) {
     return false;
   }
 
-  const importLine = '#import "AppsFlyerAttribution.h"';
-  if (!src.includes(importLine)) {
+  // AppsFlyerAttribution.h was replaced by AppsFlyerAttribution.swift in the RPC-core migration —
+  // there's no header left to #import. A Cordova app compiles plugin sources straight into its
+  // single app target, so the generated "<AppModule>-Swift.h" name isn't knowable here either;
+  // forward-declare the same surface AppsFlyerX+AppController.m already forward-declares for the
+  // same reason, so the linker resolves it against the real Swift implementation at build time.
+  const forwardDecl = [
+    '@interface AppsFlyerAttribution : NSObject',
+    '+ (AppsFlyerAttribution *)shared;',
+    '- (void)handleOpen:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options;',
+    '@end'
+  ].join('\n');
+  if (!src.includes(forwardDecl)) {
     const anchor = '#import "MainViewController.h"';
     if (!src.includes(anchor)) {
       console.warn(
@@ -47,7 +57,7 @@ function patchAppDelegateM(filePath) {
       );
       return false;
     }
-    src = src.replace(anchor, `${anchor}\n${importLine}`);
+    src = src.replace(anchor, `${anchor}\n\n${forwardDecl}`);
   }
 
   const needle =
@@ -85,7 +95,7 @@ function patchAppDelegateM(filePath) {
     '      }',
     '      if (afqaReplayUrl != nil) {',
     '        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{',
-    '          [[AppsFlyerAttribution shared] handleOpenUrl:afqaReplayUrl options:@{}];',
+    '          [[AppsFlyerAttribution shared] handleOpen:afqaReplayUrl options:@{}];',
     '        });',
     '      }',
     '    }',

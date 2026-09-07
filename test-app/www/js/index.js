@@ -19,7 +19,11 @@
     await afQaLog('[AF_QA][BOOT] deviceready');
 
     var env = window.__AF_QA_ENV__ || {};
-    if (!env.DEV_KEY) {
+    // AND_DEV_KEY is optional -- some AppsFlyer dashboard setups register the iOS and Android
+    // apps under different dev keys. Falls back to DEV_KEY when the app is registered under one
+    // shared key.
+    var devKey = (cordova.platformId === 'android' && env.AND_DEV_KEY) || env.DEV_KEY;
+    if (!devKey) {
       await afQaLog('[AF_QA][CONFIG] DEV_KEY missing');
       return;
     }
@@ -30,40 +34,60 @@
 
     var af = window.plugins.appsFlyer;
 
-    af.registerOnAppOpenAttribution(
-      function (res) {
-        void afQaLog('[AF_QA][CALLBACK][onAppOpenAttribution] received: ' + stringifyRes(res));
-      },
-      function (err) {
-        void afQaLog('[AF_QA][CALLBACK][onAppOpenAttribution] error: ' + stringifyRes(err));
+    // registerOnAppOpenAttribution removed -- folded into registerDeepLinkListener's onDeepLinking
+    // (see RENAME_AUDIT.md). Must be registered before init() per the new SDK's sequencing model.
+    af.registerDeepLinkListener({
+      onDeepLinking: function (res) {
+        void (async function () {
+          await afQaLog(formatOnDeepLinkingContractLine(res));
+          await afQaLog('[AF_QA][CALLBACK][onDeepLinking] raw: ' + stringifyRes(res));
+        })();
       }
-    );
-
-    af.registerDeepLink(function (res) {
-      void (async function () {
-        await afQaLog(formatOnDeepLinkingContractLine(res));
-        await afQaLog('[AF_QA][CALLBACK][onDeepLinking] raw: ' + stringifyRes(res));
-      })();
+    }).catch(function (err) {
+      void afQaLog('[AF_QA][CALLBACK][onDeepLinking] register error: ' + stringifyRes(err));
     });
 
     var initOpts = {
-      devKey: env.DEV_KEY,
-      appId: env.APP_ID,
-      isDebug: true,
-      onInstallConversionDataListener: true,
-      onDeepLinkListener: true,
-      shouldStartSdk: false
+      devKey: devKey,
+      appId: env.APP_ID
+      // isDebug -> enableDebug() below; onInstallConversionDataListener -> registerConversionListener
+      // below; onDeepLinkListener -> registerDeepLinkListener above; shouldStartSdk is moot -- init()
+      // never implicitly starts tracking anymore, see RENAME_AUDIT.md's initSdk row.
     };
 
     await initSdkWait(af, initOpts, 1500);
 
-    af.setAppUserId('e2e_user_42');
+    // Conversion listener + one-off config calls, registered after init() per the new sequencing
+    // model (RPC_MIGRATION Step 5 note): GCD used to arrive via initSdk's own success callback,
+    // now it's a standalone listener.
+    af.registerConversionListener({
+      onConversionDataSuccess: function (data) {
+        void afQaLog('[AF_QA][CALLBACK][onInstallConversionData] received: ' + stringifyRes(data));
+      },
+      onConversionDataFail: function (err) {
+        void afQaLog('[AF_QA][CALLBACK][onInstallConversionData] error: ' + stringifyRes(err));
+      }
+    }).catch(function (err) {
+      void afQaLog('[AF_QA][CALLBACK][onInstallConversionData] register error: ' + stringifyRes(err));
+    });
+
+    await af.enableDebug({ enabled: true }).catch(function (err) {
+      void afQaLog('[AF_QA][enableDebug] error: ' + stringifyRes(err));
+    });
+
+    await af.setCustomerUserId({ customerId: 'e2e_user_42' }).catch(function (err) {
+      void afQaLog('[AF_QA][setCustomerUserId] error: ' + stringifyRes(err));
+    });
     await afQaLog('[AF_QA][setCustomerUserId] result: e2e_user_42');
 
-    af.setCurrencyCode('EUR');
+    await af.setCurrencyCode({ currencyCode: 'EUR' }).catch(function (err) {
+      void afQaLog('[AF_QA][setCurrencyCode] error: ' + stringifyRes(err));
+    });
     await afQaLog('[AF_QA][setCurrencyCode] result: EUR');
 
-    af.setAdditionalData({ tenant: 'e2e_tenant', e2e_flag: '1' });
+    await af.setAdditionalData({ customData: { tenant: 'e2e_tenant', e2e_flag: '1' } }).catch(function (err) {
+      void afQaLog('[AF_QA][setAdditionalData] error: ' + stringifyRes(err));
+    });
     await afQaLog(
       '[AF_QA][setAdditionalData] keys: tenant,e2e_flag payload=' +
         JSON.stringify({ tenant: 'e2e_tenant', e2e_flag: '1' })
@@ -71,28 +95,36 @@
 
     await afQaLog('[AF_QA][AUTO_APIS] --- Pre-start auto APIs complete ---');
 
-    af.startSdk();
-    await afQaLog('[AF_QA][startSDK] result: SUCCESS');
+    // start() must be called from inside registerSessionReadyListener's callback per SDK 7's manual
+    // startup model (RENAME_AUDIT.md) -- no longer fired unconditionally right after init. Bounded
+    // with a timeout so the QA log always gets an unambiguous SUCCESS/error/timeout line for this
+    // call, instead of silently having no line at all if onSessionReady never fires.
+    // 10s, not 5s: AppsFlyerLib's own Universal Link readiness check (a session-ready
+    // precondition) has a longer bounded timeout than that on the native side -- a 5s QA
+    // timeout was racing it and losing on every real device/simulator run.
+    await awaitSessionReadyAndStart(af, 10000);
 
     await waitMs(400);
 
-    await new Promise(function (resolve) {
-      af.getSdkVersion(function (v) {
-        afQaLog('[AF_QA][getSDKVersion] result: ' + v);
-        resolve();
+    await af.getSdkVersion()
+      .then(function (v) {
+        return afQaLog('[AF_QA][getSDKVersion] result: ' + v);
+      })
+      .catch(function (err) {
+        return afQaLog('[AF_QA][getSDKVersion] error: ' + stringifyRes(err));
       });
-    });
 
-    await new Promise(function (resolve) {
-      af.getAppsFlyerUID(function (uid) {
-        afQaLog('[AF_QA][getAppsFlyerUID] result: ' + uid);
-        resolve();
+    await af.getAppsFlyerUID()
+      .then(function (uid) {
+        return afQaLog('[AF_QA][getAppsFlyerUID] result: ' + uid);
+      })
+      .catch(function (err) {
+        return afQaLog('[AF_QA][getAppsFlyerUID] error: ' + stringifyRes(err));
       });
-    });
 
     await afQaLog('[AF_QA][AUTO_APIS] --- Post-start auto APIs complete ---');
 
-    await afLogEvent(af, 'af_demo_launch', {}, '[AF_QA][logEvent(af_demo_launch)] result: SUCCESS');
+    await afLogEvent(af, 'qa_demo_launch', {}, '[AF_QA][logEvent(qa_demo_launch)] result: SUCCESS');
 
     await afLogEvent(
       af,
@@ -110,13 +142,13 @@
 
     await afLogEvent(
       af,
-      'af_qa_custom_purchase',
+      'qa_custom_purchase',
       {
         af_revenue: '9.99',
         af_currency: 'USD',
         metadata: { tier: 'gold', seats: 2 }
       },
-      '[AF_QA][logEvent] name=af_qa_custom_purchase payload=' +
+      '[AF_QA][logEvent] name=qa_custom_purchase payload=' +
         JSON.stringify({
           af_revenue: '9.99',
           af_currency: 'USD',
@@ -124,57 +156,49 @@
         })
     );
 
-    await new Promise(function (resolve) {
+    await (function () {
       var identityPayload = {
         customer_user_id: 'e2e_user_42',
         tenant: 'e2e_tenant',
         check: 'identity_round_trip'
       };
-      af.logEvent(
-        'af_qa_identity_check',
-        identityPayload,
-        function () {
-          afQaLog(
-            '[AF_QA][logEvent] name=af_qa_identity_check payload=' +
+      return af.logEvent({ eventName: 'qa_identity_check', eventValues: identityPayload })
+        .then(function () {
+          return afQaLog(
+            '[AF_QA][logEvent] name=qa_identity_check payload=' +
               JSON.stringify(identityPayload)
           ).then(function () {
             return afQaLog('[AF_QA][event_payload] customer_user_id=e2e_user_42');
-          }).then(function () {
-            resolve();
           });
-        },
-        function (err) {
-          afQaLog('[AF_QA][logEvent] error: af_qa_identity_check ' + stringifyRes(err));
-          resolve();
-        }
-      );
-    });
+        })
+        .catch(function (err) {
+          return afQaLog('[AF_QA][logEvent] error: qa_identity_check ' + stringifyRes(err));
+        });
+    })();
 
-    af.Stop(true);
+    await af.stop({ shouldStop: true }).catch(function (err) {
+      void afQaLog('[AF_QA][stop] error: ' + stringifyRes(err));
+    });
     await afQaLog('[AF_QA][stop] result: true');
 
-    await new Promise(function (resolve) {
-      af.logEvent(
-        'af_qa_suppressed',
-        { note: 'must_not_http_200_while_stopped' },
-        function () {
-          afQaLog('[AF_QA][logEvent] name=af_qa_suppressed (unexpected success while stopped)');
-          resolve();
-        },
-        function () {
-          resolve();
-        }
-      );
-    });
+    await af.logEvent({ eventName: 'qa_suppressed', eventValues: { note: 'must_not_http_200_while_stopped' } })
+      .then(function () {
+        return afQaLog('[AF_QA][logEvent] name=qa_suppressed (unexpected success while stopped)');
+      })
+      .catch(function () {
+        // Expected: SDK is stopped, logEvent should reject/no-op.
+      });
 
-    af.Stop(false);
+    await af.stop({ shouldStop: false }).catch(function (err) {
+      void afQaLog('[AF_QA][stop] error: ' + stringifyRes(err));
+    });
     await afQaLog('[AF_QA][stop] result: false');
 
     await afLogEvent(
       af,
-      'af_qa_resumed',
+      'qa_resumed',
       { note: 'after_stop_false' },
-      '[AF_QA][logEvent] name=af_qa_resumed result: SUCCESS'
+      '[AF_QA][logEvent] name=qa_resumed result: SUCCESS'
     );
 
     await waitMs(1500);
@@ -186,21 +210,15 @@
   function initSdkWait(af, initOpts, timeoutMs) {
     return new Promise(function (resolve, reject) {
       var settled = false;
-      af.initSdk(
-        initOpts,
-        function (gcd) {
-          void afQaLog(
-            '[AF_QA][CALLBACK][onInstallConversionData] received: ' + stringifyRes(gcd)
-          );
-        },
-        function (err) {
-          void afQaLog('[AF_QA][startSDK] error: initSdk ' + stringifyRes(err));
-          if (!settled) {
-            settled = true;
-            reject(new Error(stringifyRes(err)));
-          }
+      // init() no longer forwards GCD through its own success path -- that now arrives via
+      // registerConversionListener's onConversionDataSuccess (wired by the caller).
+      af.init(initOpts).catch(function (err) {
+        void afQaLog('[AF_QA][startSDK] error: initSdk ' + stringifyRes(err));
+        if (!settled) {
+          settled = true;
+          reject(err instanceof Error ? err : new Error(stringifyRes(err)));
         }
-      );
+      });
       setTimeout(function () {
         if (!settled) {
           settled = true;
@@ -210,21 +228,46 @@
     });
   }
 
-  function afLogEvent(af, eventName, eventValues, successLine) {
+  function awaitSessionReadyAndStart(af, timeoutMs) {
     return new Promise(function (resolve) {
-      af.logEvent(
-        eventName,
-        eventValues,
-        function () {
-          void afQaLog(successLine);
-          resolve();
-        },
-        function (err) {
-          void afQaLog('[AF_QA][logEvent] error: ' + eventName + ' ' + stringifyRes(err));
+      var settled = false;
+      function finish() {
+        if (!settled) {
+          settled = true;
           resolve();
         }
-      );
+      }
+      af.registerSessionReadyListener(function () {
+        af.start()
+          .then(function () {
+            void afQaLog('[AF_QA][startSDK] result: SUCCESS');
+          })
+          .catch(function (err) {
+            void afQaLog('[AF_QA][startSDK] error: ' + stringifyRes(err));
+          })
+          .then(finish);
+      }).catch(function (err) {
+        void afQaLog('[AF_QA][startSDK] error: registerSessionReadyListener ' + stringifyRes(err));
+        finish();
+      });
+      setTimeout(function () {
+        if (!settled) {
+          settled = true;
+          void afQaLog('[AF_QA][startSDK] error: onSessionReady did not fire within ' + timeoutMs + 'ms');
+          resolve();
+        }
+      }, timeoutMs);
     });
+  }
+
+  function afLogEvent(af, eventName, eventValues, successLine) {
+    return af.logEvent({ eventName: eventName, eventValues: eventValues })
+      .then(function () {
+        void afQaLog(successLine);
+      })
+      .catch(function (err) {
+        void afQaLog('[AF_QA][logEvent] error: ' + eventName + ' ' + stringifyRes(err));
+      });
   }
 
   function afQaAppendFileLine(line) {
@@ -428,7 +471,10 @@
     if (!o || typeof o !== 'object') {
       return { statusLabel: 'Status.ERROR', deepLinkValue: '' };
     }
-    var ds = o.deepLinkStatus != null ? String(o.deepLinkStatus) : '';
+    // `status` is the new normalized DeepLinkData field (registerDeepLinkListener's onDeepLinking
+    // always delivers 'FOUND'|'NOT_FOUND'|'ERROR' here now); `deepLinkStatus` is the old raw-payload
+    // field name, kept as a fallback in case anything upstream ever leaks the pre-normalization shape.
+    var ds = o.status != null ? String(o.status) : (o.deepLinkStatus != null ? String(o.deepLinkStatus) : '');
     var statusLabel = 'Status.ERROR';
     if (ds === 'FOUND' || ds === 'Found' || ds.indexOf('FOUND') !== -1) {
       statusLabel = 'Status.FOUND';
