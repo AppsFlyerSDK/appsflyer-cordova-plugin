@@ -5,6 +5,7 @@
   "description": "A sample Apache Cordova application that responds to the deviceready event.",
   "main": "index.js",
   "scripts": {
+    "prepare": "node scripts/gen-af-config.js",
     "test": "jasmine",
     "setEnv": "testsScripts/setEnv.sh",
     "runAndroidUnitTestsOnEmulator": "testsScripts/cordovaParamedicRunUnitTestsOnAndroid.sh",
@@ -18,12 +19,10 @@
   "devDependencies": {
     "cordova-android": "^13.0.0",
     "cordova-ios": "^7.1.1",
+    "cordova-plugin-appsflyer-sdk": "file:../..",
+    "cordova-plugin-customurlscheme": "^5.0.2",
     "cordova-plugin-idfa": "^3.0.0",
-    "cordova-plugin-test-framework": "^1.1.6",
-    "cordova-support-android-plugin": "~2.0.4",
-    "jasmine": "^4.5.0",
-    "jasmine-reporters": "^2.5.2",
-    "jasmine-spec-reporter": "^7.0.0"
+    "cordova-support-android-plugin": "~2.0.4"
   },
   "cordova": {
     "platforms": [
@@ -34,11 +33,11 @@
       "cordova-plugin-test-framework": {},
       "cordova-plugin-idfa": {
         "ANDROID_PLAY_ADID_VERSION": "17.0.+"
+      },
+      "cordova-plugin-appsflyer-sdk": {},
+      "cordova-plugin-customurlscheme": {
+        "URL_SCHEME": "aftestapp"
       }
     }
-  },
-  "dependencies": {
-    "@material-ui/core": "^4.12.4",
-    "cordova-paramedic": "github:apache/cordova-paramedic"
   }
 }
