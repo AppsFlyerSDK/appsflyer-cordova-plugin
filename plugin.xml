@@ -1,4 +1,4 @@
-<?xml version="6.18.1" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   Licensed to the Apache Software Foundation (ASF) under one
   or more contributor license agreements.  See the NOTICE file
@@ -21,7 +21,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         xmlns:android="http://schemas.android.com/apk/res/android"
         id="cordova-plugin-appsflyer-sdk"
-        version="6.18.0">
+        version="7.0.2">
     <name>AppsFlyer</name>
     <description>Cordova Plugin AppsFlyer</description>
     <license>Apache 2.0</license>
@@ -35,13 +35,17 @@
         <clobbers target="window.plugins.appsFlyer"/>
     </js-module>
 
-    <js-module src="www/AppsFlyerError.js" name="AppsFlyerError">
-        <clobbers target="AppsFlyerError"/>
-    </js-module>
-
 
     <!-- android -->
     <platform name="android">
+        <!-- cordova-android only applies the kotlin-android Gradle plugin (and wires up the
+             src/main/kotlin source set / kotlinc task) when this preference is set; it is NOT
+             auto-detected from the presence of .kt source files. Without it, AppsFlyerPlugin.kt
+             is silently skipped by the build (no Gradle error), so `cordova.exec` calls into it
+             hang forever waiting on a native handler that was never registered. -->
+        <config-file target="config.xml" parent="/*">
+            <preference name="GradlePluginKotlinEnabled" value="true"/>
+        </config-file>
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="AppsFlyerPlugin">
                 <param name="android-package" value="com.appsflyer.cordova.plugin.AppsFlyerPlugin"/>
@@ -60,10 +64,17 @@
             </receiver>
         </config-file>
 
-        <source-file src="src/android/com/appsflyer/cordova/plugin/AppsFlyerPlugin.java"
-                     target-dir="src/com/appsflyer/cordova/plugin"/>
-        <source-file src="src/android/com/appsflyer/cordova/plugin/AppsFlyerConstants.java"
-                     target-dir="src/com/appsflyer/cordova/plugin"/>
+        <!-- cordova-android's source-file installer only special-cases the ".java" extension
+             (pluginHandlers.js getInstallDestination); a ".kt" target-dir without the "app/"
+             prefix falls through to app/src/main/<target-dir>, landing outside both the default
+             Java source set and the src/main/kotlin dir cordovaAF's build.gradle registers. That
+             leaves the class uncompiled silently (Gradle doesn't error on an unreferenced source
+             dir), so `cordova.exec` calls into AppsFlyerPlugin hang forever: Cordova's
+             PluginManager fails ClassNotFoundException and never calls back. Target the app/
+             directory explicitly so the installer copies it verbatim into the real Kotlin
+             source set. -->
+        <source-file src="src/android/com/appsflyer/cordova/plugin/AppsFlyerPlugin.kt"
+                     target-dir="app/src/main/kotlin/com/appsflyer/cordova/plugin"/>
         <framework src="src/android/cordovaAF.gradle" custom="true" type="gradleReference"/>
     </platform>
 
@@ -75,23 +86,18 @@
                 <param name="ios-package" value="AppsFlyerPlugin"/>
             </feature>
         </config-file>
-        <header-file src="src/ios/AppsFlyerPlugin.h"/>
-        <header-file src="src/ios/AppsFlyerDeepLink.h"/>
-        <header-file src="src/ios/AppsFlyerDeepLinkResult.h"/>
-        <header-file src="src/ios/AppsFlyerAttribution.h"/>
-        <header-file src="src/ios/AppsFlyerLib.h"/>
-        <source-file src="src/ios/AppsFlyerPlugin.m"/>
-        <source-file src="src/ios/AppsFlyerAttribution.m"/>
-        <header-file src="src/ios/AppsFlyerLinkGenerator.h"/>
-        <header-file src="src/ios/AppsFlyerCrossPromotionHelper.h"/>
-        <header-file src="src/ios/AppsFlyerShareInviteHelper.h"/>
+        <!-- This plugin ships Swift source; cordova-ios doesn't set SWIFT_VERSION on a project
+             that had none of its own, and Xcode then refuses to build at all. -->
+        <hook type="after_prepare" src="hooks/af_set_swift_version.js"/>
         <header-file src="src/ios/AppsFlyerX+AppController.h"/>
         <source-file src="src/ios/AppsFlyerX+AppController.m"/>
+        <source-file src="src/ios/AppsFlyerPlugin.swift"/>
+        <source-file src="src/ios/AppsFlyerAttribution.swift"/>
         <podspec>
             <config>
             </config>
             <pods use-frameworks="true">
-               <pod name="AppsFlyerFramework" spec="6.18.1"/>
+               <pod name="AppsFlyerRPC" spec="7.0.13"/>
             </pods>
         </podspec>
     </platform>
