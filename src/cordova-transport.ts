@@ -27,15 +27,15 @@ function isRpcEvent(value: unknown): value is RpcEvent {
 }
 
 export class CordovaTransport implements RpcTransport {
-  // RpcTransport requires 'ios' | 'android'; `as` is an intentional type-lie for any other
-  // cordova.platformId value (e.g. 'browser') -- construction must never fail since `AppsFlyer`
-  // is a module-level singleton (index.ts) built at import time. An unsupported platform surfaces
-  // per-call instead, the same way cordova.exec itself would fail to reach a real native handler.
-  readonly platform = cordova.platformId as 'ios' | 'android';
+  // `as` is an intentional type-lie for any non-ios/android cordova.platformId (e.g. 'browser'). Lazy getter, not a constructor field read: `AppsFlyer` is a module-level singleton (index.ts) built at import time, before cordova.js may have run — reading the bare `cordova` global eagerly would throw before any consumer gets to wait for deviceready.
+  get platform(): 'ios' | 'android' {
+    return (typeof cordova !== 'undefined' ? cordova.platformId : 'ios') as 'ios' | 'android';
+  }
 
   call<T = void>(method: string, params: Record<string, unknown> = {}): Promise<T> {
     const requestJson = JSON.stringify({ method, params });
     return new Promise<T>((resolve, reject) => {
+      // esbuild bundles this with --bundle for the browser, so `require('cordova/exec')` would resolve as a real module and fail the build; fall back to the documented global instead, same as `platform` above.
       cordova.exec(
         (responseJson: string) => {
           let parsed: unknown;
@@ -54,7 +54,8 @@ export class CordovaTransport implements RpcTransport {
           }
           resolve((parsed as RpcSuccess<T>).data);
         },
-        reject,
+        // Native failure callback can hand back a generic Error or a bare string; normalize so every rejection from this transport is a real Error instance.
+        (err: unknown) => reject(typeof err === 'string' ? new Error(err) : err),
         PLUGIN_SERVICE,
         EXECUTE_RPC_ACTION,
         [{ requestJson }],
@@ -62,58 +63,45 @@ export class CordovaTransport implements RpcTransport {
     });
   }
 
-  // Guards against a second native listener: two would each dispatch every RPC event once,
-  // double-firing every registered callback (conversion data, deep links, ...). js-core-plugin's
-  // own AppsFlyerSDK already calls subscribe() at most once per instance, but this class
-  // implements the public RpcTransport interface, so nothing stops a second caller from calling
-  // it again on the same transport instance.
-  private subscribed = false;
+  // No native "unsubscribeRpcEvents" primitive: both native plugins latch onto the FIRST subscribeRpcEvents call's callbackId for the app's life (Cordova's keepCallback) and never unsubscribe it, so this registry does the real add/remove, fanning the single native slot out to whatever's in `listeners` — otherwise subscribe(cb1) -> remove() -> subscribe(cb2) would orphan cb2 while stale cb1 kept firing.
+  private listeners: Array<(event: RpcEvent) => void> = [];
+  private nativeSubscribed = false;
 
   subscribe(listener: (event: RpcEvent) => void): ListenerHandle {
-    if (this.subscribed) {
-      // eslint-disable-next-line no-console -- misuse (double subscribe), not debug noise
-      console.warn('[AppsFlyer] subscribe() called more than once on the same transport instance — ignoring.');
-      // eslint-disable-next-line @typescript-eslint/no-empty-function -- ignored second subscription has nothing to remove
-      return { remove: () => {} };
-    }
-    this.subscribed = true;
+    this.listeners.push(listener);
 
-    cordova.exec(
-      // Both native shims send the raw JSON string as the plugin result message (same shape as
-      // call()'s responseJson above) -- not an { envelopeJson } object. Destructuring it as one
-      // silently reads `envelopeJson` off a string (always undefined), so JSON.parse(undefined)
-      // throws and every native event -- including onSessionReady -- got dropped as "malformed".
-      (envelopeJson: string) => {
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(envelopeJson);
-        } catch {
-          parsed = undefined;
-        }
-        if (!isRpcEvent(parsed)) {
-          // eslint-disable-next-line no-console -- a malformed native event is unexpected but
-          // shouldn't crash the listener callback; surface it instead of throwing. Never log the
-          // envelope itself -- rpcEvent carries deep-link URLs with PII query params.
-          console.warn('[AppsFlyer] Malformed rpcEvent payload, dropping.');
-          return;
-        }
-        listener(parsed);
-      },
-      // eslint-disable-next-line no-console -- native rejecting subscribeRpcEvents means the
-      // bridge is gone; nothing meaningful to do but avoid an unhandled failure.
-      (error: unknown) => console.warn('[AppsFlyer] subscribeRpcEvents failed:', error),
-      PLUGIN_SERVICE,
-      SUBSCRIBE_RPC_EVENTS_ACTION,
-      [],
-    );
+    if (!this.nativeSubscribed) {
+      this.nativeSubscribed = true;
+      cordova.exec(
+        // Both native shims send the raw JSON string directly (same shape as call()'s responseJson), not an { envelopeJson } object — destructuring it as one silently read `envelopeJson` off a string (always undefined), dropping every native event as "malformed".
+        (envelopeJson: string) => {
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(envelopeJson);
+          } catch {
+            parsed = undefined;
+          }
+          if (!isRpcEvent(parsed)) {
+            // eslint-disable-next-line no-console -- never log the envelope itself, rpcEvent carries deep-link URLs with PII query params.
+            console.warn('[AppsFlyer] Malformed rpcEvent payload, dropping.');
+            return;
+          }
+          for (const registered of this.listeners) {
+            registered(parsed);
+          }
+        },
+        // eslint-disable-next-line no-console -- native rejecting subscribeRpcEvents means the
+        // bridge is gone; nothing meaningful to do but avoid an unhandled failure.
+        (error: unknown) => console.warn('[AppsFlyer] subscribeRpcEvents failed:', error),
+        PLUGIN_SERVICE,
+        SUBSCRIBE_RPC_EVENTS_ACTION,
+        [],
+      );
+    }
 
     return {
-      // There is no native "unsubscribeRpcEvents" primitive (native re-sends via Cordova's
-      // keepCallback on the one callbackId registered above for the life of the app) -- remove()
-      // can only reset the local guard so a legitimate subscribe -> remove -> subscribe sequence
-      // still works, not actually unregister the native callback.
       remove: () => {
-        this.subscribed = false;
+        this.listeners = this.listeners.filter((registered) => registered !== listener);
       },
     };
   }

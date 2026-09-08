@@ -23,10 +23,15 @@ describe('CordovaTransport', () => {
     expect(transport.platform).toBe('android');
   });
 
+  it('does not throw on construction when the global cordova does not exist yet', () => {
+    // The module-level `AppsFlyer` singleton (index.ts) constructs this at import time, which can race cordova.js — only `.platform`, read lazily, may touch the bare `cordova` global.
+    vi.unstubAllGlobals();
+    expect(() => new CordovaTransport()).not.toThrow();
+    vi.stubGlobal('cordova', { platformId: 'android', exec: execMock });
+  });
+
   it('does not throw on construction when cordova.platformId is outside ios|android', () => {
-    // Construction must never fail: `AppsFlyer` is a module-level singleton (index.ts), so
-    // throwing here would crash on import for any consumer also building an unsupported target
-    // (e.g. Cordova's 'browser' platform).
+    // Construction must never fail: `AppsFlyer` is a module-level singleton (index.ts), so throwing here would crash on import for an unsupported target like Cordova's 'browser' platform.
     vi.stubGlobal('cordova', { platformId: 'browser', exec: execMock });
     const transport = new CordovaTransport();
     expect(transport.platform).toBe('browser');
@@ -73,6 +78,14 @@ describe('CordovaTransport', () => {
     execMock.mockImplementation((_success, fail) => fail(new Error('bridge unavailable')));
     const transport = new CordovaTransport();
 
+    await expect(transport.call('start')).rejects.toThrow('bridge unavailable');
+  });
+
+  it('wraps a bare-string native failure in a real Error instance', async () => {
+    execMock.mockImplementation((_success, fail) => fail('bridge unavailable'));
+    const transport = new CordovaTransport();
+
+    await expect(transport.call('start')).rejects.toBeInstanceOf(Error);
     await expect(transport.call('start')).rejects.toThrow('bridge unavailable');
   });
 
@@ -126,20 +139,18 @@ describe('CordovaTransport', () => {
     warnSpy.mockRestore();
   });
 
-  it('ignores a second subscribe() on the same instance instead of double-registering', () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  it('opens only one native subscription for a second subscribe() on the same instance', () => {
     execMock.mockImplementation(() => undefined);
     const transport = new CordovaTransport();
 
     transport.subscribe(() => undefined);
     transport.subscribe(() => undefined);
 
+    // Only one native slot ever opens — the second subscribe() registers a second *local* listener instead (see the two-listeners test below).
     expect(execMock).toHaveBeenCalledTimes(1);
-    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('subscribe() called more than once'));
-    warnSpy.mockRestore();
   });
 
-  it('allows re-subscribing after remove()', () => {
+  it('does not re-subscribe natively after remove() (no native unsubscribe primitive exists)', () => {
     execMock.mockImplementation(() => undefined);
     const transport = new CordovaTransport();
 
@@ -147,6 +158,30 @@ describe('CordovaTransport', () => {
     handle.remove();
     transport.subscribe(() => undefined);
 
-    expect(execMock).toHaveBeenCalledTimes(2);
+    expect(execMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('dispatches one native event to every registered listener, and remove() only drops its own', () => {
+    let handler: ExecSuccess | undefined;
+    execMock.mockImplementation((success) => {
+      handler = success;
+    });
+    const transport = new CordovaTransport();
+    const listener1 = vi.fn();
+    const listener2 = vi.fn();
+
+    const handle1 = transport.subscribe(listener1);
+    transport.subscribe(listener2);
+    handler?.(JSON.stringify({ event: 'onConversionDataSuccess', data: { af_status: 'Organic' } }));
+
+    expect(listener1).toHaveBeenCalledTimes(1);
+    expect(listener2).toHaveBeenCalledTimes(1);
+
+    handle1.remove();
+    handler?.(JSON.stringify({ event: 'onConversionDataSuccess', data: { af_status: 'Organic' } }));
+
+    // listener1 was removed -- still only 1 call; listener2 is unaffected and gets the second event.
+    expect(listener1).toHaveBeenCalledTimes(1);
+    expect(listener2).toHaveBeenCalledTimes(2);
   });
 });
