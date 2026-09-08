@@ -1,5 +1,6 @@
 package com.appsflyer.cordova.plugin
 
+import android.content.Intent
 import com.appsflyer.pluginbridge.model.RpcResponse
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
@@ -7,17 +8,14 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-/**
- * Exercises the pure JSON-normalization/routing logic in AppsFlyerPlugin.kt against the real
- * org.json and af-android-plugin-bridge artifacts -- CordovaPlugin/CallbackContext/executor
- * wiring itself needs a real Activity and isn't covered here (see the test report).
- */
+// Exercises the pure JSON-normalization/routing logic against real org.json/af-android-plugin-bridge artifacts; CordovaPlugin/CallbackContext/executor wiring needs a real Activity and isn't covered here (see the test report).
 class AppsFlyerPluginTest {
 
-    // --- normalize()/normalizeError(): must match iOS's { success, data|error } envelope. ---
+    // normalize()/normalizeError() must match iOS's { success, data|error } envelope.
 
     @Test
     fun `normalize wraps a Success result under data`() {
@@ -55,7 +53,7 @@ class AppsFlyerPluginTest {
         assertEquals("boom", envelope.getJSONObject("error").getString("message"))
     }
 
-    // --- isAwaitResponseCall(): routes exactly the wire methods that block on an async response. ---
+    // isAwaitResponseCall() routes exactly the wire methods that block on an async response.
 
     @Test
     fun `isAwaitResponseCall is true for every await-response method`() {
@@ -73,12 +71,28 @@ class AppsFlyerPluginTest {
 
     @Test
     fun `isAwaitResponseCall does not throw on malformed JSON`() {
-        // parseJsonOrDefault must swallow this, not propagate -- a malformed requestJson would
-        // otherwise crash dispatch before either executor lane ever ran.
+        // parseJsonOrDefault must swallow this, not propagate, or dispatch crashes before either executor lane runs.
         assertFalse(isAwaitResponseCall("not json"))
     }
 
-    // --- normalizeDeepLinkEvent(): Android FOUND/NOT_FOUND/ERROR -> lowercase, everything else untouched. ---
+    // deepLinkRequestJsonForIntent(): builds onNewIntent's performDeepLinking forward, or opts out.
+
+    @Test
+    fun `deepLinkRequestJsonForIntent builds a performDeepLinking request for a VIEW intent`() {
+        val requestJson = JSONObject(
+            deepLinkRequestJsonForIntent(Intent.ACTION_VIEW, "afqa-cordova://deeplink?deep_link_value=x")
+        )
+        assertEquals("performDeepLinking", requestJson.getString("method"))
+        assertEquals("afqa-cordova://deeplink?deep_link_value=x", requestJson.getJSONObject("params").getString("url"))
+    }
+
+    @Test
+    fun `deepLinkRequestJsonForIntent is null for a non-VIEW action or a missing url`() {
+        assertEquals(null, deepLinkRequestJsonForIntent(Intent.ACTION_MAIN, "afqa-cordova://deeplink"))
+        assertEquals(null, deepLinkRequestJsonForIntent(Intent.ACTION_VIEW, null))
+    }
+
+    // normalizeDeepLinkEvent(): Android FOUND/NOT_FOUND/ERROR -> lowercase, everything else untouched.
 
     @Test
     fun `normalizeDeepLinkEvent lowercases only the error field, leaves status untouched`() {
@@ -107,8 +121,7 @@ class AppsFlyerPluginTest {
 
         normalizeDeepLinkEvent(envelope.toString())
 
-        // The function must copy before lowercasing -- pluginNotifier fires from arbitrary
-        // native threads and `data` here is the caller's own object, not owned by this call.
+        // Must copy before lowercasing: pluginNotifier fires from arbitrary native threads and `data` isn't owned by this call.
         assertEquals("ERR", data.getString("error"))
     }
 
@@ -117,32 +130,33 @@ class AppsFlyerPluginTest {
         assertEquals("not json", normalizeDeepLinkEvent("not json"))
     }
 
-    // --- Two lanes, not three: a slow awaitResponse call must not delay an unrelated queued RPC. ---
-    // Exercises the exact factory calls + sizing constant AppsFlyerPlugin uses for its two
-    // executors, not a reimplementation -- proves the isolation property the two-lane design
-    // exists for, without driving the real rpcHandler (which needs a live Activity/AppsFlyerLib).
+    // Two lanes, not three: a slow awaitResponse call must not delay an unrelated queued RPC.
+    // Uses AppsFlyerPlugin's exact executor factory calls + sizing constant (not a reimplementation) to prove the isolation the two-lane design exists for, without driving the real rpcHandler (needs a live Activity/AppsFlyerLib).
 
     @Test
     fun `a slow awaitResponse call does not delay a concurrently queued general-lane call`() {
         val awaitResponseExecutor = Executors.newFixedThreadPool(AWAIT_RESPONSE_METHODS.size)
         val rpcExecutor = Executors.newSingleThreadExecutor()
         try {
+            val slowStarted = CountDownLatch(1)
+            val releaseSlow = CountDownLatch(1)
+
+            // Simulates a slow awaitResponse call (e.g. validateAndLogInAppPurchase's store round trip); releaseSlow (not a sleep) keeps this a rendezvous, not a wall-clock race.
+            awaitResponseExecutor.execute {
+                slowStarted.countDown()
+                releaseSlow.await()
+            }
+            assertTrue("slow awaitResponse call should start", slowStarted.await(2, TimeUnit.SECONDS))
+
+            // A concurrently queued general-lane call (e.g. setCurrencyCode) is on rpcExecutor, an entirely separate lane, and must still complete while the slow call is blocked.
             val fastLatch = CountDownLatch(1)
-
-            // Simulates a slow awaitResponse call (e.g. validateAndLogInAppPurchase's store round trip)
-            // occupying the pooled lane.
-            awaitResponseExecutor.execute { Thread.sleep(300) }
-
-            // A concurrently queued general-lane call (e.g. setCurrencyCode) must still complete
-            // fast -- it's on rpcExecutor, an entirely separate lane from the slow call above.
-            val start = System.nanoTime()
             rpcExecutor.execute { fastLatch.countDown() }
 
             assertTrue(
-                "general-lane call should not wait on the awaitResponse lane's slow call",
-                fastLatch.await(100, TimeUnit.MILLISECONDS),
+                "general-lane call should not wait on the awaitResponse lane's still-blocked slow call",
+                fastLatch.await(2, TimeUnit.SECONDS),
             )
-            assertTrue((System.nanoTime() - start) < TimeUnit.MILLISECONDS.toNanos(300))
+            releaseSlow.countDown()
         } finally {
             awaitResponseExecutor.shutdownNow()
             rpcExecutor.shutdownNow()
@@ -153,15 +167,13 @@ class AppsFlyerPluginTest {
     fun `the awaitResponse lane is pooled so two concurrent slow calls don't block each other`() {
         val awaitResponseExecutor = Executors.newFixedThreadPool(AWAIT_RESPONSE_METHODS.size)
         try {
-            val bothStarted = CountDownLatch(2)
-            awaitResponseExecutor.execute { bothStarted.countDown(); Thread.sleep(200) }
-            awaitResponseExecutor.execute { bothStarted.countDown(); Thread.sleep(200) }
+            // A 2-party barrier only trips once both tasks run concurrently; a single-threaded lane would leave the first task stuck at the barrier until its own await times out, proving pooling deterministically instead of racing a sleep.
+            val barrier = CyclicBarrier(2)
+            val first = awaitResponseExecutor.submit { barrier.await(2, TimeUnit.SECONDS) }
+            val second = awaitResponseExecutor.submit { barrier.await(2, TimeUnit.SECONDS) }
 
-            assertTrue(
-                "both awaitResponse calls should start concurrently -- a single-threaded lane " +
-                    "would run the second only after the first's 200ms sleep",
-                bothStarted.await(100, TimeUnit.MILLISECONDS),
-            )
+            first.get(3, TimeUnit.SECONDS)
+            second.get(3, TimeUnit.SECONDS)
         } finally {
             awaitResponseExecutor.shutdownNow()
         }
