@@ -39,12 +39,15 @@
     "url": "https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin/issues"
   },
   "homepage": "https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin#readme",
+  "main": "www/appsflyer.js",
+  "types": "dist-types/index.d.ts",
   "scripts": {
     "test": "vitest run",
     "pretest": "npm run gen:version && npm run typecheck",
     "gen:version": "node scripts/gen-version.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.test.json",
-    "build": "npm run gen:version && esbuild src/index.ts --bundle --minify --platform=browser --format=cjs --target=es2017 --outfile=www/appsflyer.js --footer:js=\"module.exports=Object.assign(module.exports.default,module.exports);\" && node scripts/verify-bundle-shape.mjs",
+    "build:types": "tsc -p tsconfig.json --declaration --emitDeclarationOnly --outDir dist-types",
+    "build": "npm run gen:version && npm run typecheck && npm run build:types && esbuild src/index.ts --bundle --minify --platform=browser --format=cjs --target=es2017 --outfile=www/appsflyer.js --footer:js=\"module.exports=Object.assign(module.exports.default,module.exports);\" && node scripts/verify-bundle-shape.mjs",
     "setupIonicCordova": "cd examples/ionic-cordova; npm install; ionic cordova plugin rm cordova-plugin-appsflyer-sdk --save; ionic cordova platform rm android; ionic cordova platform rm ios; ionic cordova plugin add cordova-plugin-appsflyer-sdk --save; ionic cordova platform add android; ionic cordova platform add ios",
     "runIonicCordovaIos": "cd examples/ionic-cordova; ionic cordova prepare ios; ionic cordova run ios;",
     "runIonicCordovaAndroid": "cd examples/ionic-cordova; ionic cordova prepare android; ionic cordova run android;",
@@ -61,9 +64,6 @@
     "vitest": "^4.1.11"
   },
   "dependencies": {
-    "@appsflyer-sdk/js-core-plugin": "7.0.15"
-  },
-  "peerDependencies": {
     "@appsflyer-sdk/js-core-plugin": "7.0.15"
   }
 }
