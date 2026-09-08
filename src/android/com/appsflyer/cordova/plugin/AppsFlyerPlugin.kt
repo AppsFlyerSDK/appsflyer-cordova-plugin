@@ -1,5 +1,6 @@
 package com.appsflyer.cordova.plugin
 
+import android.content.Intent
 import android.util.Log
 import com.appsflyer.pluginbridge.handler.AppsFlyerRpcHandler
 import com.appsflyer.pluginbridge.model.RpcResponse
@@ -36,6 +37,15 @@ private inline fun <T> parseJsonOrDefault(json: String, default: T, block: (JSON
         Log.w(TAG, "Failed to parse RPC event JSON, passing through unmodified", e)
         default
     }
+}
+
+// Cordova's PluginManager calls onNewIntent on every registered plugin for a warm-resume Intent (CordovaActivity.onNewIntent -> appView.onNewIntent), so this covers cordova-plugin-customurlscheme's redelivered Intent natively, without a JS-level handleOpenURL shim. Primitives, not Intent, so it's testable without an Android framework mock -- see the class-level comment on why onNewIntent itself isn't covered here.
+internal fun deepLinkRequestJsonForIntent(action: String?, url: String?): String? {
+    if (action != Intent.ACTION_VIEW || url.isNullOrEmpty()) return null
+    return JSONObject().apply {
+        put("method", "performDeepLinking")
+        put("params", JSONObject().apply { put("url", url) })
+    }.toString()
 }
 
 // `status` is left as-is — js-core-plugin's normalizeDeepLinkStatus() already re-normalizes it for every consumer; duplicating that here would just drift out of sync.
@@ -125,6 +135,17 @@ class AppsFlyerPlugin : CordovaPlugin() {
             }
         } catch (e: RejectedExecutionException) {
             callbackContext.error("Plugin is shutting down")
+        }
+    }
+
+    // Fire-and-forget: no JS caller is waiting on this, unlike executeRpc's callbackContext-driven dispatch.
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        val requestJson = deepLinkRequestJsonForIntent(intent?.action, intent?.dataString) ?: return
+        try {
+            rpcExecutor.execute { safeDispatchToNative(requestJson) }
+        } catch (e: RejectedExecutionException) {
+            Log.w(TAG, "Dropped onNewIntent deep link forward: plugin is shutting down")
         }
     }
 

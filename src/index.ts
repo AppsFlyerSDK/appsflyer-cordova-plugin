@@ -16,19 +16,12 @@ const AppsFlyer = new AppsFlyerSDK(new CordovaTransport(), {
   pluginVersion: version,
 });
 
-// cordova-plugin-customurlscheme's Android bridge (LaunchMyApp.js) delivers every custom-scheme
-// URL by calling a global `window.handleOpenURL(url)` it expects the app/a plugin to define --
-// there is no native OS callback for this on Android the way there is on iOS (which AppsFlyerX+
-// AppController.m already swizzles directly, so it must not also go through this path or the
-// deep link would fire twice). `handleOpenURL` isn't in the RPC schema for android; the schema's
-// android-supported equivalent is performDeepLinking.
-if (cordova.platformId === 'android' && typeof window !== 'undefined') {
-  (window as unknown as { handleOpenURL?: (url: string) => void }).handleOpenURL = (url: string) => {
-    AppsFlyer.performDeepLinking({ url }).catch((error: unknown) => {
-      // eslint-disable-next-line no-console -- surfaces a bridge-not-ready/malformed-url failure;
-      // never log `url` itself, it carries the OneLink's query-param PII.
-      console.warn('[AppsFlyer] performDeepLinking failed:', error);
-    });
+// cordova-plugin-customurlscheme's Android native layer calls `loadUrl("javascript:handleOpenURL(...)")` directly, expecting a global `handleOpenURL` function — without it the WebView throws `ReferenceError: handleOpenURL is not defined`. AppsFlyerPlugin.kt's onNewIntent forwards the deep link natively now, so this only needs to exist to not crash; chains to any pre-existing handler rather than clobbering it.
+if (typeof cordova !== 'undefined' && cordova.platformId === 'android' && typeof window !== 'undefined') {
+  const globalWindow = window as unknown as { handleOpenURL?: (url: string) => void };
+  const previousHandleOpenURL = globalWindow.handleOpenURL;
+  globalWindow.handleOpenURL = (url: string) => {
+    previousHandleOpenURL?.(url);
   };
 }
 

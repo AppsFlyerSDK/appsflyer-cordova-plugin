@@ -8,9 +8,7 @@ dependencies {
 	implementation 'com.appsflyer:af-android-sdk'
 	// Pinned explicitly — af-android-sdk-bom does not yet carry this version.
 	implementation 'com.appsflyer:af-android-plugin-bridge:7.0.12'
-	implementation 'com.android.support:support-annotations:28.0.0'
-	implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.20'
-	// Real org.json impl for JVM unit tests — Android's mockable android.jar stubs org.json
-	// methods to throw, which parseJsonOrDefault would otherwise silently swallow.
+	// No explicit kotlin-stdlib pin: cordova-android's kotlin-android plugin (GradlePluginKotlinEnabled, see plugin.xml) auto-adds the stdlib matching its own Kotlin version; pinning here separately would just drift stale again (last pin, 1.6.20, was from 2022).
+	// Real org.json impl for JVM unit tests — Android's mockable android.jar stubs org.json methods to throw, which parseJsonOrDefault would otherwise silently swallow.
 	testImplementation 'org.json:json:20240303'
 }
