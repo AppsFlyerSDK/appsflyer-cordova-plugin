@@ -1,13 +1,4 @@
-//
-//  CordovaTestSupport.swift
-//
-//  Minimal stand-in for the handful of CordovaLib (`Cordova` module) symbols
-//  AppsFlyerPlugin.swift touches — CDVPlugin, CDVInvokedUrlCommand, CDVPluginResult,
-//  CDVCommandDelegate, CDVCommandStatus. CordovaLib itself isn't distributed as an SPM/CocoaPods
-//  package consumable outside a `cordova platform add ios`-generated project, so this test target
-//  provides a source-accurate shim of just that surface instead of vendoring the real framework.
-//  Real integration coverage against actual CordovaLib still requires building inside a generated
-//  Cordova iOS project (see the test report for what this harness does and doesn't cover).
+// Minimal shim of the CordovaLib symbols AppsFlyerPlugin.swift touches (CDVPlugin, CDVInvokedUrlCommand, CDVPluginResult, CDVCommandDelegate, CDVCommandStatus) — CordovaLib isn't distributable as an SPM/CocoaPods package outside a generated Cordova iOS project, so real integration coverage still requires one (see the test report).
 
 import Foundation
 
@@ -17,19 +8,23 @@ public enum CDVCommandStatus: Int {
 }
 
 public final class CDVPluginResult: NSObject {
+    // Test seam for the real (Obj-C, Optional-returning) initializer's nil path, driving AppsFlyerPlugin's guard-let-or-bail branch; single-shot, reset on next init so it can't leak into another test.
+    public static var forceNilOnNextInit = false
+
     public let status: CDVCommandStatus
     public let message: Any?
     private var keepCallback = false
 
     public init?(status: CDVCommandStatus, messageAs message: String) {
+        if Self.forceNilOnNextInit {
+            Self.forceNilOnNextInit = false
+            return nil
+        }
         self.status = status
         self.message = message
     }
 
-    // Real CDVPluginResult's Obj-C selector is still setKeepCallbackAsBool:, but Swift's Clang
-    // importer auto-renames the Bool-suffixed setter to setKeepCallbackAs(_:) on import -- match
-    // that renamed spelling here too, or this double silently drifts from what production code
-    // actually calls (as it did until the real e2e build caught it).
+    // Swift's Clang importer renames the real setKeepCallbackAsBool: to setKeepCallbackAs(_:); match that here or this double silently drifts from what production code calls (as it did until e2e caught it).
     public func setKeepCallbackAs(_ bKeepCallback: Bool) {
         keepCallback = bKeepCallback
     }
@@ -57,4 +52,7 @@ open class CDVPlugin: NSObject {
     public override init() {
         super.init()
     }
+
+    // Cordova calls onReset() on WebView reload; AppsFlyerPlugin overrides it, so this fake base needs the method to exist.
+    open func onReset() {}
 }
