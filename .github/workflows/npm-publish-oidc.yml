@@ -1,7 +1,4 @@
-# Single workflow file for npm trusted publishing (OIDC). npm allows one trusted
-# publisher workflow name per package. RC and production entry workflows trigger
-# this file via workflow_dispatch so the executing workflow matches npm config.
-# See https://docs.npmjs.com/trusted-publishers#troubleshooting (workflow_call caveat).
+# Single workflow name for npm trusted publishing (OIDC) — npm allows only one per package. RC/production entry workflows trigger this via workflow_dispatch to keep the executing workflow matching npm config. See https://docs.npmjs.com/trusted-publishers#troubleshooting.
 
 name: npm publish (OIDC)
 
@@ -60,8 +57,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          # Release branches cut before metadata fixes may still have the old repo URL;
-          # npm provenance requires repository.url to match this GitHub repository.
+          # npm provenance requires repository.url to match this GitHub repository; older release branches may still have the old URL.
           node <<'NODE'
           const fs = require('fs');
           const repo = `https://github.com/${process.env.GITHUB_REPOSITORY}`;
@@ -75,23 +71,7 @@ jobs:
           fs.writeFileSync('package.json', JSON.stringify(pj, null, 2) + '\n');
           console.log(`[npm-publish-oidc] repository.url=${pj.repository.url}`);
           NODE
-          cat > .npmignore <<'EOF'
-          examples/
-          tests/
-          testsScripts/
-          docs/
-          .github/
-          .claude/
-          .cursor/
-          .idea/
-          .af-e2e/
-          .af-smoke/
-          test-app/
-          test-app_rc_smoke/
-          RELEASENOTES.md
-          .travis.yml
-          EOF
-          echo "Prepared package.json repository metadata and .npmignore"
+          echo "Prepared package.json repository metadata"
 
       - name: Install plugin dependencies
         run: npm install
