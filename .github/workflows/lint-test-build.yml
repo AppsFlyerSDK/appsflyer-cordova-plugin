@@ -1,16 +1,5 @@
-# =============================================================================
-# Lint, Test & Build — reusable only (workflow_call)
-# =============================================================================
-#
-# 1) vitest + tsc --noEmit on the TS transport layer (src/). Cordova Jasmine tests under
-#    tests/ are not run in CI.
-# 2) ./gradlew testDebugUnitTest against the real Android shim source (android-tests/ — a
-#    scratch Gradle module, mirrors ios-tests/'s SPM harness; not part of the plugin's own
-#    distribution).
-# 3) Optional Cordova debug builds for Android + iOS (same scripts as android-e2e / ios-e2e).
-#
-# Trigger: workflow_call only. Caller: rc-release.yml (and any future workflows that reuse it).
-# =============================================================================
+# Lint, Test & Build — reusable workflow (workflow_call), invoked by rc-release.yml.
+# Runs vitest/tsc on src/, gradlew tests against android-tests/ (scratch module, not part of the plugin's own distribution), and optional debug builds. Jasmine tests under tests/ are not run in CI.
 
 name: Lint, Test & Build
 
@@ -81,6 +70,15 @@ jobs:
         working-directory: android-tests
         run: ./gradlew testDebugUnitTest
 
+  ios-unit-tests:
+    name: iOS shim unit tests
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      - name: xcodebuild test
+        working-directory: ios-tests
+        run: xcodebuild -scheme AppsFlyerCordovaShim -destination 'platform=iOS Simulator,name=iPhone 16' test
+
   build-android:
     name: Build Cordova E2E app (Android)
     runs-on: ubuntu-latest
@@ -115,8 +113,8 @@ jobs:
   build-ios:
     name: Build Cordova E2E app (iOS)
     runs-on: macos-15
-    needs: test
-    if: ${{ (needs.test.result == 'success' || needs.test.result == 'skipped') && inputs.skip_builds != true }}
+    needs: [test, check-native-version-pairs, ios-unit-tests]
+    if: ${{ (needs.test.result == 'success' || needs.test.result == 'skipped') && needs.check-native-version-pairs.result == 'success' && needs.ios-unit-tests.result == 'success' && inputs.skip_builds != true }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v7
