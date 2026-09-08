@@ -1,14 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-/**
- * After `cordova prepare ios`, patch the generated AppDelegate.m (Flutter-style):
- * `simctl launch … -deepLinkURL "<url>"` does not call `application:openURL:options:`.
- * Schedule the same URL through AppsFlyerAttribution after a short delay so JS initSdk
- * can run first (mirrors appsflyer-flutter-plugin example/ios/Runner/AppDelegate.swift).
- *
- * Idempotent: wrapped in AFQA_SIMCTL_DEEPLINK_REPLAY markers.
- */
+// After `cordova prepare ios`, patches the generated AppDelegate.m so `simctl launch … -deepLinkURL "<url>"` (which doesn't call `application:openURL:options:`) still schedules that URL through AppsFlyerAttribution after a short delay, giving JS initSdk time to run first (mirrors appsflyer-flutter-plugin's AppDelegate.swift). Idempotent via AFQA_SIMCTL_DEEPLINK_REPLAY markers.
 
 const fs = require('fs');
 const path = require('path');
@@ -29,6 +22,19 @@ function walkFiles(dir, predicate) {
   return out;
 }
 
+// Reads the AppsFlyerAttribution forward declaration straight out of AppsFlyerX+AppController.m (see that file's header comment) instead of keeping an independent hand-written copy here.
+function readForwardDeclFromAppController() {
+  const appControllerPath = path.join(__dirname, '..', '..', 'src', 'ios', 'AppsFlyerX+AppController.m');
+  const src = fs.readFileSync(appControllerPath, 'utf8');
+  const match = src.match(/@interface AppsFlyerAttribution : NSObject[\s\S]*?\n@end/);
+  if (!match) {
+    throw new Error(
+      `[afqa-ios-simctl-deeplink-replay] Could not find AppsFlyerAttribution forward declaration in ${appControllerPath}`
+    );
+  }
+  return match[0];
+}
+
 function patchAppDelegateM(filePath) {
   let src = fs.readFileSync(filePath, 'utf8');
   const begin = '/* AFQA_SIMCTL_DEEPLINK_REPLAY_BEGIN */';
@@ -37,17 +43,7 @@ function patchAppDelegateM(filePath) {
     return false;
   }
 
-  // AppsFlyerAttribution.h was replaced by AppsFlyerAttribution.swift in the RPC-core migration —
-  // there's no header left to #import. A Cordova app compiles plugin sources straight into its
-  // single app target, so the generated "<AppModule>-Swift.h" name isn't knowable here either;
-  // forward-declare the same surface AppsFlyerX+AppController.m already forward-declares for the
-  // same reason, so the linker resolves it against the real Swift implementation at build time.
-  const forwardDecl = [
-    '@interface AppsFlyerAttribution : NSObject',
-    '+ (AppsFlyerAttribution *)shared;',
-    '- (void)handleOpen:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options;',
-    '@end'
-  ].join('\n');
+  const forwardDecl = readForwardDeclFromAppController();
   if (!src.includes(forwardDecl)) {
     const anchor = '#import "MainViewController.h"';
     if (!src.includes(anchor)) {

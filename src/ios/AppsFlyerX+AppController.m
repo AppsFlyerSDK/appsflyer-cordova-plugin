@@ -8,11 +8,8 @@
 #import <objc/runtime.h>
 #import <AppsFlyerLib/AppsFlyerLib.h>
 
-// AppsFlyerAttribution.h was replaced by AppsFlyerAttribution.swift as part of the RPC-core
-// migration. A Cordova app compiles plugin sources directly into its single app target, so the
-// Xcode-generated "<AppModule>-Swift.h" interface header has no name knowable at plugin-authoring
-// time. This forward declaration mirrors AppsFlyerAttribution's @objc(AppsFlyerAttribution)
-// surface exactly, so the linker resolves it against the real Swift implementation at build time.
+// Forward declaration mirroring AppsFlyerAttribution.swift's @objc(AppsFlyerAttribution) surface: a Cordova app compiles plugin sources into its own app target, so the Xcode-generated "<AppModule>-Swift.h" name isn't knowable at plugin-authoring time, and this lets the linker resolve it at build time instead.
+// test-app/hooks/afqa-ios-simctl-deeplink-replay.js reads this declaration straight out of this file at run time (rather than keeping its own copy) to inject the same @interface into generated AppDelegate.m for simctl deep-link replay — this block is the single source of truth for both.
 @interface AppsFlyerAttribution : NSObject
 + (AppsFlyerAttribution *)shared;
 - (void)continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^_Nullable)(NSArray * _Nullable))restorationHandler;
@@ -33,11 +30,7 @@ static BOOL isOriginalDidFinishLaunchingExist;
 + (void)load {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        // application:didFinishLaunchingWithOptions: is always swizzled, never a direct category
-        // override (unlike the three methods below): Cordova's generated AppDelegate.m always
-        // implements this one itself -- it's where the WebView/root view controller get created.
-        // A category method with the same selector silently replaces that implementation instead
-        // of coexisting with it, which produces a launched-but-black-screen app with no crash.
+        // Always swizzled, never a direct category override like the three methods below: Cordova's generated AppDelegate.m always implements this one itself (it creates the WebView/root view controller), and a same-selector category method would silently replace it, producing a launched-but-black-screen app with no crash.
         SEL originalSelector4 = @selector(application:didFinishLaunchingWithOptions:);
         SEL swizzledSelector4 = @selector(af_application:didFinishLaunchingWithOptions:);
         [self addSwizzledMethodWithOriginalSelector:originalSelector4 swizzledSelector:swizzledSelector4 methodExistFlag:&isOriginalDidFinishLaunchingExist];
