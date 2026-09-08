@@ -105,30 +105,23 @@ the native SDK's) actual `MediationNetworkType` string matcher before deciding w
 this in a follow-up (which would itself be a breaking wire-value change requiring its own
 changelog entry, separate from this migration).
 
-## `plugin.xml` stale entry (not removed here — flagged for Step 4)
+## `plugin.xml` stale entry — resolved
 
-`plugin.xml`'s `<js-module src="www/AppsFlyerError.js" name="AppsFlyerError"><clobbers
-target="AppsFlyerError"/></js-module>` entry now points at a deleted file
-(`www/AppsFlyerError.js` was removed as part of this step). `AppsFlyerError` is a named export
-inside the new `www/appsflyer.js` bundle (from `@appsflyer-sdk/js-core-plugin`), not a second
-`js-module`/`clobbers` target — nothing needs a second entry. **This was intentionally left in
-`plugin.xml` per this step's constraints (`DO NOT touch ... plugin.xml`)** — Step 4 must remove
-that `<js-module>` block or the plugin will reference a missing file at Cordova `prepare` time.
+The `<js-module src="www/AppsFlyerError.js" name="AppsFlyerError"><clobbers
+target="AppsFlyerError"/></js-module>` entry that pointed at the deleted `www/AppsFlyerError.js`
+has already been removed from `plugin.xml` (current `plugin.xml` has a single `js-module` entry,
+for `www/appsflyer.js`). No further action needed here.
 
-## Consumption-shape consequence worth flagging for Step 4/5 (not a rename, but adjacent)
+## Consumption-shape consequence — resolved
 
-`plugin.xml`'s existing `<clobbers target="window.plugins.appsFlyer"/>` was written for the old
+`plugin.xml`'s `<clobbers target="window.plugins.appsFlyer"/>` was written for the old
 `module.exports = new AppsFlyer()` pattern, where `window.plugins.appsFlyer` **was** the SDK
-instance directly (`window.plugins.appsFlyer.initSdk(...)`). The new `src/index.ts` (per this
-step's mandated shape: `export * from '@appsflyer-sdk/js-core-plugin'; export * from
-'./constants'; export { AppsFlyer }; export default AppsFlyer;`) bundles to a CJS module whose
-`module.exports` is an **object of named exports** (`AppsFlyer`, `default`, `AppsFlyerSDK`,
-`AppsFlyerError`, `AFPurchaseType`, `MediationNetwork`, …), not a reassignment to the SDK instance
-itself — confirmed by inspecting the built `www/appsflyer.js` (`module.exports =
-__toCommonJS(index_exports)`, not `module.exports = AppsFlyer`). That means after this migration,
-callers reach the SDK via `window.plugins.appsFlyer.default.init(...)` (or `.AppsFlyer.init(...)`),
-**not** `window.plugins.appsFlyer.init(...)` directly. This is a consumption-shape change on top of
-every individual method rename above. Flagged here rather than silently patched with a bundler
-footer hack, since the actual intended shape of `window.plugins.appsFlyer` after migration is a
-packaging decision for Step 4 (which owns `plugin.xml` and the npm/CHANGELOG story), not something
-to invent in this step.
+instance directly (`window.plugins.appsFlyer.initSdk(...)`). The new `src/index.ts` bundles to a
+CJS module whose `module.exports` is an **object of named exports** (`AppsFlyer`, `default`,
+`AppsFlyerSDK`, `AppsFlyerError`, `AFPurchaseType`, `MediationNetwork`, …), which would otherwise
+make callers reach the SDK via `window.plugins.appsFlyer.default.init(...)` instead of
+`window.plugins.appsFlyer.init(...)` directly. This has already been resolved: `package.json`'s
+`build` script appends an esbuild `--footer:js` that runs
+`module.exports=Object.assign(module.exports.default,module.exports)`, merging the default export's
+methods onto the exports object itself so `window.plugins.appsFlyer.init(...)` keeps working
+alongside the named exports. No further action needed here.
