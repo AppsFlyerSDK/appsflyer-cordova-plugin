@@ -29,6 +29,9 @@
     <repo>https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin.git</repo>
     <engines>
         <engine name="cordova" version=">=4.3.0"/>
+        <!-- Kotlin and Swift build support require these platform minimums; below them `cordova.exec` calls hang forever instead of failing loudly. Matches the versions this repo actually builds/tests against (test-app/package.json). -->
+        <engine name="cordova-android" version=">=13.0.0"/>
+        <engine name="cordova-ios" version=">=7.1.1"/>
     </engines>
 
     <js-module src="www/appsflyer.js" name="appsflyer">
