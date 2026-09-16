@@ -7,7 +7,7 @@
 #       <ios_framework_x.y.z> <android_plugin_bridge_x.y.z>
 #
 # Example:
-#   ./scripts/rc-update-cordova-versions.sh 7.0.0-rc1 7.0.13 7.0.1 7.0.2 7.0.12
+#   ./scripts/rc-update-cordova-versions.sh 7.0.0-rc1 7.0.13 7.0.1 7.0.2 7.0.13
 #
 # ios_sdk = AppsFlyerRPC pod version. ios_framework = AppsFlyerFramework it depends on
 # transitively (CocoaPods resolves this automatically — no explicit second pod in plugin.xml;
@@ -17,7 +17,8 @@
 #
 # Updates: package.json (version + all 4 native version fields), plugin.xml (plugin version +
 # AppsFlyerRPC pod spec), README.md "This plugin is built for" SDK lines,
-# src/android/cordovaAF.gradle (af-android-sdk-bom + af-android-plugin-bridge).
+# src/android/cordovaAF.gradle (af-android-sdk-bom + af-android-plugin-bridge),
+# android-tests/build.gradle.kts, and ios-tests/Package.swift.
 
 set -euo pipefail
 
@@ -30,7 +31,10 @@ export RC_ANDROID_SDK="${3:?usage: $0 <plugin_version> <ios_sdk> <android_sdk> <
 export RC_IOS_FRAMEWORK="${4:?usage: $0 <plugin_version> <ios_sdk> <android_sdk> <ios_framework> <android_plugin_bridge>}"
 export RC_ANDROID_PLUGIN_BRIDGE="${5:?usage: $0 <plugin_version> <ios_sdk> <android_sdk> <ios_framework> <android_plugin_bridge>}"
 
-"$ROOT/scripts/check-native-version-pairs.sh" "$RC_IOS_SDK" "$RC_IOS_FRAMEWORK" "$RC_ANDROID_SDK" "$RC_ANDROID_PLUGIN_BRIDGE"
+# Allowlist gate before mutating; harness pin assertions run after rewrite (files still hold prior pins).
+SKIP_HARNESS_PIN_CHECK=1 \
+  "$ROOT/scripts/check-native-version-pairs.sh" \
+  "$RC_IOS_SDK" "$RC_IOS_FRAMEWORK" "$RC_ANDROID_SDK" "$RC_ANDROID_PLUGIN_BRIDGE"
 
 node <<'NODE'
 const fs = require('fs');
@@ -83,5 +87,29 @@ gradle = gradle.replace(
 );
 fs.writeFileSync(path.join(root, 'src/android/cordovaAF.gradle'), gradle);
 
-console.log('[rc-update-cordova-versions] updated package.json, plugin.xml, README.md, cordovaAF.gradle');
+let androidTests = fs.readFileSync(path.join(root, 'android-tests/build.gradle.kts'), 'utf8');
+androidTests = androidTests.replace(
+  /com\.appsflyer:af-android-sdk-bom:[^"]+/,
+  `com.appsflyer:af-android-sdk-bom:${and}`
+);
+androidTests = androidTests.replace(
+  /com\.appsflyer:af-android-plugin-bridge:[^"]+/,
+  `com.appsflyer:af-android-plugin-bridge:${androidPluginBridge}`
+);
+fs.writeFileSync(path.join(root, 'android-tests/build.gradle.kts'), androidTests);
+
+let packageSwift = fs.readFileSync(path.join(root, 'ios-tests/Package.swift'), 'utf8');
+packageSwift = packageSwift.replace(
+  /appsflyer-apple-rpc\.git", exact: "[^"]+"/,
+  `appsflyer-apple-rpc.git", exact: "${ios}"`
+);
+packageSwift = packageSwift.replace(
+  /AppsFlyerFramework-Static\.git", exact: "[^"]+"/,
+  `AppsFlyerFramework-Static.git", exact: "${iosFramework}"`
+);
+fs.writeFileSync(path.join(root, 'ios-tests/Package.swift'), packageSwift);
+
+console.log('[rc-update-cordova-versions] updated package.json, plugin.xml, README.md, cordovaAF.gradle, android-tests/build.gradle.kts, ios-tests/Package.swift');
 NODE
+
+"$ROOT/scripts/check-native-version-pairs.sh" "$RC_IOS_SDK" "$RC_IOS_FRAMEWORK" "$RC_ANDROID_SDK" "$RC_ANDROID_PLUGIN_BRIDGE"

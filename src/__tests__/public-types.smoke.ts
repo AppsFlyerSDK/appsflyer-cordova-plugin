@@ -12,6 +12,9 @@ import type {
   PluginIdentity,
   RpcEvent,
   RpcTransport,
+  SetAndroidIdDataParams,
+  SetImeiDataParams,
+  SetOaidDataParams,
 } from '../index';
 
 // Referencing each type keeps `noUnusedLocals`/import-elision from silently dropping the check.
@@ -25,4 +28,7 @@ export type PublicTypesSmokeTest = [
   PluginIdentity,
   RpcEvent,
   RpcTransport,
+  SetAndroidIdDataParams,
+  SetImeiDataParams,
+  SetOaidDataParams,
 ];

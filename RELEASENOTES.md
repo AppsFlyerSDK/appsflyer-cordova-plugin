@@ -33,19 +33,21 @@ gone. **This is a breaking release** — every call site needs updating.
 - **`init()`'s old flags are gone** — `isDebug`→`enableDebug({enabled})`,
   `useUninstallSandbox`→`setUseUninstallSandbox({sandbox})`,
   `collectAndroidID`→`setCollectAndroidID({isCollect})`,
-  `onInstallConversionDataListener`→`registerConversionListener`. `collectIMEI` is removed with no
-  replacement (not part of the SDK 7 RPC surface); `shouldStartSdk` has no setter — start is now
-  always explicit via `registerSessionReadyListener`.
+  `onInstallConversionDataListener`→`registerConversionListener`,
+  `onDeepLinkListener`→`registerDeepLinkListener`. `waitForATTUserAuthorization` is removed with no
+  RPC equivalent (handle ATT via the AppTrackingTransparency framework before `start`).
+  `collectIMEI` is removed with no replacement (not part of the SDK 7 RPC surface);
+  `shouldStartSdk` has no setter — start is now always explicit via `registerSessionReadyListener`.
 - **Dependencies:** iOS pod changed from `AppsFlyerFramework` to `AppsFlyerRPC` (`7.0.13`, pulls in
   `AppsFlyerFramework` `7.0.2` transitively). Android moved to the `af-android-sdk-bom` form plus an
-  explicit `af-android-plugin-bridge` (`7.0.12`) pin. Building the Android side now requires
+  explicit `af-android-plugin-bridge` (`7.0.13`) pin. Building the Android side now requires
   **JDK 21** (was 17).
 
 ### Also
 
 - Deep-link status values are now `'FOUND' | 'NOT_FOUND' | 'ERROR'` (was ad hoc per platform).
-- Removed the Android plugin's `onNewIntent` override — `af-android-plugin-bridge` observes intents
-  itself.
+- `AppsFlyerPlugin.kt` keeps an `onNewIntent` override so Cordova can forward warm-start deep
+  links to the native SDK.
 
 ## 6.18.0
  Release date: *2026-05-07*

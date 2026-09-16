@@ -24,6 +24,7 @@ Every remaining method is now **Promise-based**: `fn(args, successCallback, erro
 |-----------------------------------------------------------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
 | [`init`](#initSdk)                                                    | `({devKey, appId?}): Promise<void>`                                       | Initialize the SDK                                                                                      |
 | [`start`](#startSdk)                                                  | `(params?: {awaitResponse?}): Promise<void>`                              | Starts the SDK - must be called from inside `registerSessionReadyListener`'s callback                   |
+| [`registerSessionReadyListener`](#registerSessionReadyListener)       | `(onReady): Promise<void>`                                                | Register the session-ready callback; call `start()` inside it                                           |
 | [`logEvent`](#trackEvent)                                             | `({eventName, eventValues?, awaitResponse?}): Promise<void>`              | Track rich in-app events                                                                                |
 | [`registerDeepLinkListener`](#registerDeepLink)               | `({onDeepLinking}): Promise<void>`                                        | Get unified deep link data (also covers what used to be app-open attribution)                           |
 | [`setCurrencyCode`](#setCurrencyCode)                                 | `({currencyCode}): Promise<void>`                                         | Set currency code                                                                                       |
@@ -65,6 +66,9 @@ Every remaining method is now **Promise-based**: `fn(args, successCallback, erro
 | [`enableDebug`](#enableDebug)                                         | `({enabled}): Promise<void>`                                              | Toggle debug mode, replacing the old `isDebug` init flag                                                 |
 | [`setUseUninstallSandbox`](#setUseUninstallSandbox)                   | `({sandbox}): Promise<void>`                                              | **iOS only** - test uninstall in the Sandbox environment, replacing the old `useUninstallSandbox` init flag |
 | [`setCollectAndroidID`](#setCollectAndroidID)                         | `({isCollect}): Promise<void>`                                            | **Android only** - opt in/out of Android ID collection, replacing the old `collectAndroidID` init flag   |
+| [`setAndroidIdData`](#setAndroidIdData)                               | `({androidId}): Promise<void>`                                            | **Android only.** Explicitly set the Android ID                                                         |
+| [`setImeiData`](#setImeiData)                                         | `({imei}): Promise<void>`                                                 | **Android only.** Explicitly set the device IMEI                                                        |
+| [`setOaidData`](#setOaidData)                                         | `({oaid}): Promise<void>`                                                 | **Android only.** Explicitly set the Open Anonymous Device Identifier (OAID)                           |
 
   
 ---
@@ -90,10 +94,12 @@ initialize the SDK. No longer implicitly starts tracking — see [`start`](#star
 |---------------------|-------------|
 | `isDebug` | [`enableDebug({enabled})`](#enableDebug) |
 | `useUninstallSandbox` | `setUseUninstallSandbox({sandbox})` |
-| `collectAndroidID` | `setCollectAndroidID({isCollect})` |
+| `collectAndroidID` | [`setCollectAndroidID({isCollect})`](#setCollectAndroidID) (or [`setAndroidIdData({androidId})`](#setAndroidIdData) to pass manually) |
 | `onInstallConversionDataListener` | [`registerConversionListener`](#registerConversionListener) |
-| `shouldStartSdk` | nothing to set — start is now always explicit via [`registerSessionReadyListener`](#registerSessionReadyListener) |
-| `collectIMEI` | **removed, no replacement** — IMEI collection isn't part of the SDK 7 RPC surface |
+| `onDeepLinkListener` | [`registerDeepLinkListener`](#registerDeepLinkListener) |
+| `waitForATTUserAuthorization` | removed (no direct RPC equivalent; handle ATT via AppTrackingTransparency framework before start) |
+| `shouldStartSdk` | nothing to set; start is now always explicit via [`registerSessionReadyListener`](#registerSessionReadyListener) |
+| `collectIMEI` | automatic collection removed; use [`setImeiData({imei})`](#setImeiData) to pass the identifier manually |
 
 See [Guides.md](./Guides.md#init-sdk) for the full init/start sequencing.
 
@@ -174,7 +180,7 @@ Toggles debug mode, replacing the old `isDebug` init flag.
 
 ##### <a id="setCollectAndroidID"> **`setCollectAndroidID(params): Promise<void>`**
 
-**Android only.** Opts in/out of Android ID collection, replacing the old `collectAndroidID` init flag.
+**Android only.** Opts in/out of automatic Android ID collection, replacing the old `collectAndroidID` init flag. To pass a specific Android ID manually instead of having the SDK collect it, use [`setAndroidIdData`](#setAndroidIdData).
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
@@ -190,7 +196,7 @@ to track ROI (Return on Investment) and LTV (Lifetime Value).
 
 | parameter | type | description |
 | ----------- |-----------------------------|--------------|
-| `eventName` | `string` | custom event name, is presented in your dashboard. See the Event list [HERE](https://github.com/AppsFlyerSDK/cordova-plugin-appsflyer-sdk/blob/master/src/ios/AppsFlyerTracker.h) |
+| `eventName` | `string` | custom event name, is presented in your dashboard. See the [in-app events overview](https://dev.appsflyer.com/hc/docs/in-app-events-overview) |
 | `eventValues` | `Object` (optional) | event details |
 | `awaitResponse` | `boolean` (optional) | |
 
@@ -486,7 +492,7 @@ Receipt validation is a secure mechanism whereby the payment platform (e.g. Appl
 try {
   const result = await window.plugins.appsFlyer.validateAndLogInAppPurchase({
     purchase: {
-      purchaseType: AFPurchaseType.subscription,
+      purchaseType: window.plugins.appsFlyer.AFPurchaseType.subscription,
       productId: 'my-product-id',
       transactionId: '12345-transaction-id' // iOS; use purchaseToken on Android
     },
@@ -767,7 +773,7 @@ When GDPR applies to the user and your app does not use a CMP compatible with TC
 
 | parameter | type           | description                                                                                                                                                                     |
 | ----------- |----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `isUserSubjectToGDPR` | `boolean\|null` | Indicates whether GDPR regulations apply to the user (true if the user is a subject of GDPR). It also serves as a flag for compliance with relevant aspects of DMA regulations. |
+| `isUserSubjectToGDPR` | `boolean` | Indicates whether GDPR regulations apply to the user (true if the user is a subject of GDPR). It also serves as a flag for compliance with relevant aspects of DMA regulations. |
 | `hasConsentForDataUsage` | `boolean\|null` (optional) | Indicates whether the user has consented to use their data for advertising purposes.  This can apply under GDPR, DMA, or other applicable privacy regulations.|
 | `hasConsentForAdsPersonalization` | `boolean\|null` (optional) | Indicates whether the user has consented to use their data for personalized advertising.  This can apply under GDPR, DMA, or other applicable privacy regulations.              |
 | `hasConsentForAdStorage` | `boolean\|null` (optional) | Indicates whether the user has provided consent for the storage of their advertising data. This can be relevant for GDPR, DMA, or other regulatory compliance purposes.         |
@@ -806,7 +812,7 @@ log ad-revenue event. The fields that used to live in a nested `adRevenueData` o
 | parameter        | type     | description                                                                                                                                                                                                                                                |
 |------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `monetizationNetwork`  | `string` | Monetization network name |
-| `mediationNetwork` | `string` | See `MediationNetwork` in `constants.ts` |
+| `mediationNetwork` | `string` | Schema camelCase value: `ironSource`, `applovinMax`, `googleAdMob`, `fyber`, `appodeal`, `admost`, `topon`, `tradplus`, `yandex`, `chartboost`, `unity`, `toponPte`, `customMediation`, `directMonetizationNetwork`, `googleAdManager`, `cloudX` |
 | `currencyIso4217Code` | `string` | Currency in ISO 4217 format |
 | `revenue` | `number` | Revenue amount |
 | `additionalParameters` | `Object` (optional) | additional Params Data map |
@@ -815,11 +821,9 @@ log ad-revenue event. The fields that used to live in a nested `adRevenueData` o
 *Example:*
 
 ```javascript
-let mediationNetwork = MediationNetwork.TOPON;
-
 await window.plugins.appsFlyer.logAdRevenue({
     monetizationNetwork: 'testMonetizationNetwork',
-    mediationNetwork: mediationNetwork,
+    mediationNetwork: 'topon',
     currencyIso4217Code: 'USD',
     revenue: 15.0,
     additionalParameters: {
@@ -842,6 +846,66 @@ Disables App Set ID collection (enabled by default). Please look on [App Set ID 
 
 ```javascript
 await window.plugins.appsFlyer.disableAppSetId();
+```
+
+---
+
+##### <a id="setAndroidIdData"> **`setAndroidIdData(params): Promise<void>`**
+
+**Android only.** Explicitly sends the device Android ID (`Settings.Secure.ANDROID_ID`) to AppsFlyer.
+
+By default, AppsFlyer doesn't collect the Android ID on devices running Android versions higher than KitKat (4.4) with Google Play Services. Call this method before `start()` if you need to attribute devices using their Android ID.
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `androidId` | `string` | Device Android ID |
+
+*Example:*
+
+```javascript
+await window.plugins.appsFlyer.setAndroidIdData({
+  androidId: '4b3d7a8e9f012345'
+});
+```
+
+---
+
+##### <a id="setImeiData"> **`setImeiData(params): Promise<void>`**
+
+**Android only.** Explicitly sends the device IMEI (International Mobile Equipment Identity) to AppsFlyer.
+
+By default, AppsFlyer doesn't collect the IMEI on devices running Android versions higher than KitKat (4.4) with Google Play Services. Call this method before `start()` when your app targets app stores or regions where IMEI is required for attribution (such as domestic Chinese app stores).
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `imei` | `string` | Device IMEI |
+
+*Example:*
+
+```javascript
+await window.plugins.appsFlyer.setImeiData({
+  imei: '356938035643803'
+});
+```
+
+---
+
+##### <a id="setOaidData"> **`setOaidData(params): Promise<void>`**
+
+**Android only.** Explicitly sends the Open Anonymous Device Identifier (OAID) to AppsFlyer.
+
+AppsFlyer doesn't collect the OAID automatically. Call this method before `start()` to attribute installs from third-party Android app stores such as Huawei AppGallery, Xiaomi GetApps, and OPPO App Market.
+
+| parameter | type | description |
+| ----------- |-----------------------------|--------------|
+| `oaid` | `string` | Device Open Anonymous Device Identifier (OAID) |
+
+*Example:*
+
+```javascript
+await window.plugins.appsFlyer.setOaidData({
+  oaid: 'a8d05200-22fb-4e66-9e8c-4a30e872e4b3'
+});
 ```
 
 ---

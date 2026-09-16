@@ -5,7 +5,7 @@
   "iosSdkVersion": "7.0.13",
   "iosFrameworkVersion": "7.0.2",
   "androidSdkVersion": "7.0.1",
-  "androidPluginBridgeVersion": "7.0.12",
+  "androidPluginBridgeVersion": "7.0.13",
   "cordova": {
     "id": "cordova-plugin-appsflyer-sdk",
     "platforms": [
@@ -24,12 +24,9 @@
     "cordova-android",
     "cordova-ios"
   ],
-  "engines": [
-    {
-      "name": "cordova",
-      "version": ">=4.3.0"
-    }
-  ],
+  "engines": {
+    "cordova": ">=12.0.0"
+  },
   "author": "Appsflyer",
   "license": {
     "type": "MIT",
@@ -51,9 +48,6 @@
     "setupIonicCordova": "cd examples/ionic-cordova; npm install; ionic cordova plugin rm cordova-plugin-appsflyer-sdk --save; ionic cordova platform rm android; ionic cordova platform rm ios; ionic cordova plugin add cordova-plugin-appsflyer-sdk --save; ionic cordova platform add android; ionic cordova platform add ios",
     "runIonicCordovaIos": "cd examples/ionic-cordova; ionic cordova prepare ios; ionic cordova run ios;",
     "runIonicCordovaAndroid": "cd examples/ionic-cordova; ionic cordova prepare android; ionic cordova run android;",
-    "setupCordova": "cd examples/cordova; npm install; cordova plugin rm cordova-plugin-appsflyer-sdk --save; cordova platform rm android; cordova platform rm ios; cordova plugin add cordova-plugin-appsflyer-sdk --save; cordova platform add android; cordova platform add ios",
-    "runCordovaIos": "cd examples/cordova; cordova prepare ios; cordova run ios;",
-    "runCordovaAndroid": "cd examples/cordova; cordova prepare android; cordova run android;",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
@@ -64,6 +58,6 @@
     "vitest": "^4.1.11"
   },
   "dependencies": {
-    "@appsflyer-sdk/js-core-plugin": "7.0.15"
+    "@appsflyer-sdk/js-core-plugin": "7.1.0"
   }
 }

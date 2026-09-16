@@ -35,7 +35,7 @@ dependencies {
     implementation("com.appsflyer:af-android-sdk")
     // Pinned explicitly -- af-android-sdk-bom does not yet carry this version (mirrors
     // src/android/cordovaAF.gradle, the real dependency block this harness must match).
-    implementation("com.appsflyer:af-android-plugin-bridge:7.0.12")
+    implementation("com.appsflyer:af-android-plugin-bridge:7.0.13")
     implementation("org.apache.cordova:framework:15.0.0")
 
     // Real org.json impl -- Android's mockable android.jar stubs org.json methods to throw,
