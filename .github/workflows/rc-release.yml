@@ -44,7 +44,7 @@ on:
         required: true
         type: string
       skip_unit:
-        description: 'Skip lint (JSHint) + skip build jobs in lint-test-build'
+        description: 'Skip unit-test job (vitest + typecheck)'
         required: false
         type: boolean
         default: false
@@ -187,6 +187,7 @@ jobs:
     with:
       skip_unit: ${{ inputs.skip_unit }}
       skip_builds: ${{ inputs.skip_builds }}
+      ref: ${{ needs.validate-release.outputs.release_branch }}
     secrets: inherit
 
   run-e2e-ios:

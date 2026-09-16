@@ -16,9 +16,14 @@ on:
         required: false
         type: boolean
         default: false
+      ref:
+        description: 'Git ref to check out'
+        required: false
+        type: string
+        default: ''
 
 concurrency:
-  group: ltb-cordova-${{ github.workflow }}-${{ github.ref }}
+  group: ltb-cordova-${{ github.workflow }}-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -31,6 +36,8 @@ jobs:
     if: ${{ inputs.skip_unit != true }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
@@ -42,6 +49,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - name: iOS + Android dual-pin pairs must be known-good
         run: |
           chmod +x scripts/check-native-version-pairs.sh
@@ -54,8 +63,11 @@ jobs:
   android-unit-tests:
     name: Android shim unit tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
@@ -73,11 +85,43 @@ jobs:
   ios-unit-tests:
     name: iOS shim unit tests
     runs-on: macos-15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - name: xcodebuild test
         working-directory: ios-tests
-        run: xcodebuild -scheme AppsFlyerCordovaShim -destination 'platform=iOS Simulator,name=iPhone 16' test
+        run: |
+          set -euo pipefail
+          # Prefer iPhone 15–17 on iOS 17/18 (same policy as ios-e2e.yml); fall back to any iPhone.
+          DEVICES_JSON=$(xcrun simctl list -j devices available)
+          UDID=$(echo "$DEVICES_JSON" | jq -r '
+            .devices
+            | to_entries
+            | map(select(.key | test("iOS-1[78]")))
+            | sort_by(.key) | reverse
+            | map(
+                . as $rt
+                | $rt.value
+                | map(select(.name | test("^iPhone 1[5-7]$")))
+                | first
+                | (if . then {udid, runtime: $rt.key, name} else empty end)
+              )
+            | first // empty
+            | .udid // empty
+          ')
+          if [[ -z "$UDID" ]]; then
+            echo "No iPhone 15/16/17 on iOS 17/18 found; falling back to first available iPhone."
+            UDID=$(echo "$DEVICES_JSON" | jq -r '.devices[][] | select(.name | test("^iPhone")) | .udid' | head -1)
+          fi
+          if [[ -z "${UDID}" ]]; then
+            echo "::error::No available iPhone simulator"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "Using simulator UDID=$UDID"
+          xcodebuild -scheme AppsFlyerCordovaShim -destination "platform=iOS Simulator,id=$UDID" test
 
   build-android:
     name: Build Cordova E2E app (Android)
@@ -86,6 +130,8 @@ jobs:
     if: ${{ (needs.test.result == 'success' || needs.test.result == 'skipped') && needs.check-native-version-pairs.result == 'success' && needs.android-unit-tests.result == 'success' && inputs.skip_builds != true }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
@@ -117,6 +163,8 @@ jobs:
     if: ${{ (needs.test.result == 'success' || needs.test.result == 'skipped') && needs.check-native-version-pairs.result == 'success' && needs.ios-unit-tests.result == 'success' && inputs.skip_builds != true }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
