@@ -28,7 +28,7 @@
     <keywords>cordova,appsflyer</keywords>
     <repo>https://github.com/AppsFlyerSDK/appsflyer-cordova-plugin.git</repo>
     <engines>
-        <engine name="cordova" version=">=4.3.0"/>
+        <engine name="cordova" version=">=12.0.0"/>
         <!-- Kotlin and Swift build support require these platform minimums; below them `cordova.exec` calls hang forever instead of failing loudly. Matches the versions this repo actually builds/tests against (test-app/package.json). -->
         <engine name="cordova-android" version=">=13.0.0"/>
         <engine name="cordova-ios" version=">=7.1.1"/>
@@ -59,13 +59,6 @@
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
             <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
         </config-file>
-        <config-file target="AndroidManifest.xml" parent="/*/application">
-            <receiver android:name="com.appsflyer.MultipleInstallBroadcastReceiver" android:exported="true">
-                <intent-filter>
-                    <action android:name="com.android.vending.INSTALL_REFERRER"/>
-                </intent-filter>
-            </receiver>
-        </config-file>
 
         <!-- cordova-android's source-file installer only special-cases the ".java" extension
              (pluginHandlers.js getInstallDestination); a ".kt" target-dir without the "app/"
@@ -79,6 +72,7 @@
         <source-file src="src/android/com/appsflyer/cordova/plugin/AppsFlyerPlugin.kt"
                      target-dir="app/src/main/kotlin/com/appsflyer/cordova/plugin"/>
         <framework src="src/android/cordovaAF.gradle" custom="true" type="gradleReference"/>
+        <hook type="after_prepare" src="hooks/af_strict_mode.js"/>
     </platform>
 
 
@@ -92,7 +86,7 @@
         <!-- This plugin ships Swift source; cordova-ios doesn't set SWIFT_VERSION on a project
              that had none of its own, and Xcode then refuses to build at all. -->
         <hook type="after_prepare" src="hooks/af_set_swift_version.js"/>
-        <header-file src="src/ios/AppsFlyerX+AppController.h"/>
+        <hook type="after_prepare" src="hooks/af_strict_mode.js"/>
         <source-file src="src/ios/AppsFlyerX+AppController.m"/>
         <source-file src="src/ios/AppsFlyerPlugin.swift"/>
         <source-file src="src/ios/AppsFlyerAttribution.swift"/>

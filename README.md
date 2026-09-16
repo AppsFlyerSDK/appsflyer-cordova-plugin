@@ -4,7 +4,6 @@
   
 # Cordova AppsFlyer plugin for Android and iOS.   
 [![npm version](https://badge.fury.io/js/cordova-plugin-appsflyer-sdk.svg)](https://badge.fury.io/js/cordova-plugin-appsflyer-sdk)  
-[![Build Status](https://travis-ci.org/AppsFlyerSDK/appsflyer-cordova-plugin.svg?branch=master)](https://travis-ci.org/AppsFlyerSDK/appsflyer-cordova-plugin)  
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)   
 [![Downloads](https://img.shields.io/npm/dm/cordova-plugin-appsflyer-sdk.svg)](https://www.npmjs.com/package/cordova-plugin-appsflyer-sdk)  
   ----------  
@@ -34,7 +33,7 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
 - [V7 Breaking Changes](#breakingChangesV7)  
 - [V6 Breaking Changes](#breakingChanges)  
 - [Installation](#installation)  
-- [Add or Remove Strict mode for App-kids](#appKids)  
+- [Strict mode for app-kids](#appKids)  
 - [Guides](#guides)  
 - [Setup](#setup)  
 - [API](#api)   
@@ -44,8 +43,8 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
   
 ### <a id="plugin-build-for"> This plugin is built for  
   
-- iOS AppsFlyerSDK **v7.0.13**  
-- Android AppsFlyerSDK **v7.0.1**
+- iOS AppsFlyerSDK **v7.0.2** (AppsFlyerRPC **v7.0.13**)
+- Android AppsFlyerSDK **v7.0.1** (af-android-plugin-bridge **v7.0.13**)
 
 ### <a id="breakingChangesV7"> ❗v7 Breaking Changes — no backward compatibility
 
@@ -114,31 +113,22 @@ to allow the SDK to collect the Android Advertising ID on apps targeting API 33.
 If your app is targeting children, you need to revoke this permission to comply with Google's Data policy.
 You can read more about it [here](https://dev.appsflyer.com/hc/docs/install-android-sdk#the-ad_id-permission). </br>
 
-## <a id="appKids">👨‍👩‍👧‍👦 Add or Remove Strict mode for App-kids  
-Starting from version **6.1.10** iOS SDK comes in two variants: **Strict** mode and **Regular** mode. Please read more [here](https://support.appsflyer.com/hc/en-us/articles/207032066#integration-strict-mode-sdk)  
-***Change to Strict mode***<br>  
-After you [installed](#installation) the AppsFlyer plugin, go to the `ios` folder inside `platform` folder:  
-```  
-cd platform/ios  
-```  
-open the `Podfile` and replace `pod 'AppsFlyerFramework', '6.1.1'` with `pod 'AppsFlyerFramework/Strict', '6.1.1'`  
-  
-Run `pod install` inside the `ios` folder  
-  
-inside xcode, go to your target and define Preprocessor Macro `AFSDK_NO_IDFA=1`  
-![Add Preprocessor macro](https://github.com/amit-kremer93/resources/blob/main/preprocessorMacro.png) <br>  
-* You can add the Preprocessor Macro using our [Hooks](/docs/Hooks.md).  
-  
-***Change to Regular mode***<br>  
-Go to the `ios` folder inside `platform` folder:  
-```  
-cd platform/ios  
-```  
-open the `Podfile` and replace `pod 'AppsFlyerFramework/Strict', '6.1.1'` with `pod 'AppsFlyerFramework', '6.1.1'`  
-  
-Run `pod install` inside the `ios` folder  
-  
-inside xcode, go to your target and remove the Preprocessor Macro `AFSDK_NO_IDFA=1`  
+## <a id="appKids">👨‍👩‍👧‍👦 Strict mode for app-kids  
+Use strict mode to completely remove IDFA and Advertising ID collection (for example, when developing apps for kids under COPPA or Google Play Families policy).
+
+### Enabling strict mode
+
+Add the `AppsFlyerStrictMode` preference to your app's `config.xml`:
+
+```xml
+<preference name="AppsFlyerStrictMode" value="true" />
+```
+
+During `cordova prepare`, the plugin automatically:
+- **iOS:** Switches the CocoaPods dependency to `AppsFlyerRPC/Strict` (which pulls `AppsFlyerFramework/Strict`) and runs `pod install`.
+- **Android:** Removes the `com.google.android.gms.permission.AD_ID` permission from the prepared `AndroidManifest.xml`.
+
+To disable strict mode, remove the preference or set its value to `"false"`. The hook restores the standard dependencies on the next `cordova prepare`.  
   
   ## <a id="guides"> 📖 Guides  
   
@@ -155,8 +145,7 @@ Great installation and setup guides can be viewed [here](/docs/Guides.md).
 ####  Set your App_ID (iOS only), Dev_Key and enable AppsFlyer to detect installations, sessions (app opens) and updates. > This is the minimum requirement to start tracking your app installs and is already implemented in this plugin. You **MUST** modify this call and provide:    
  **devKey** - Your application devKey provided by AppsFlyer.<br>  
 **appId**  - ***For iOS only.*** Your iTunes Application ID.<br>  
-**waitForATTUserAuthorization**  - ***For iOS14 only.*** Time for the sdk to wait before launch.  
-  
+
   
 Add the following lines to your code to be able to initialize tracking with your own AppsFlyer dev key:  
   

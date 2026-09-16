@@ -1,41 +1,18 @@
 # Hooks
 
-For iOS, you may need to add Preprocessor Macros to compile your project. <br> You can add them manually by following [these steps](https://stackoverflow.com/questions/26928622/add-preprocessor-macro-to-a-target-in-xcode-6/26928784#26928784) or, you can use our Cordova hooks scripts. For more info about Cordova hooks, please check [this document](https://cordova.apache.org/docs/en/10.x/guide/appdev/hooks/).
+The plugin uses Cordova lifecycle hooks to automate build settings and native dependency management during `cordova prepare`.
 
-## Table of content
-- [ Available Scripts](#AvailableScripts)  
-- [How To Use](#HowToUse)
+## Automated hooks
 
-## <a id="AvailableScripts"> Available Scripts
+These hooks are registered in `plugin.xml` and run automatically on `after_prepare`. You do not need to copy them or configure them manually:
 
-The list of available hooks for this plugin is described below.
+- **`af_strict_mode.js`**: Runs after prepare on both iOS and Android. When `<preference name="AppsFlyerStrictMode" value="true" />` is set in `config.xml`:
+  - **iOS:** Switches the CocoaPods dependency to `AppsFlyerRPC/Strict` (which pulls `AppsFlyerFramework/Strict`) and runs `pod install`.
+  - **Android:** Removes the `com.google.android.gms.permission.AD_ID` permission from the prepared `AndroidManifest.xml`.
+- **`af_set_swift_version.js`**: Runs on `after_prepare` for iOS. Sets `SWIFT_VERSION = 5.0` in the generated Xcode project if the project does not already define one.
 
-|Script Name                 |Preprocessor Macros            |Script Uses                  |
-|----------------------------|-------------------------------|-----------------------------|
-|`af_enable_swizzling.js.`   |`AFSDK_SHOULD_SWIZZLE=1`       |Use this script to enable method swizzling (when using another plugin for deep linking like `cordova-plugin-deeplinks`, `ionic-plugin-deeplinks`, etc.)|
-|`af_disable_app_delegate.js`|`AFSDK_DISABLE_APP_DELEGATE=1` |Use this script to disable AppsFlyer deep links implementation completely. The plugin would not process deep links unless you implemented the code in `AppDelegate.m` on your own. |
-|`af_use_strict_mode.js`     |`AFSDK_NO_IDFA=1`			     |Use this script to exclude non strict mode SDK methods from the compilation.|
+## Disable AppDelegate swizzling
 
-## <a id="HowToUse"> How To Use
+The plugin resolves deep links through AppDelegate swizzling by default. To turn that off, add the `AFSDK_DISABLE_APP_DELEGATE=1` preprocessor macro in Xcode build settings (Preprocessor Macros / `GCC_PREPROCESSOR_DEFINITIONS`).
 
-To use our Cordova hooks, please follow the next steps:
-
- 1. Make sure you installed the 3rd party library [q](https://www.npmjs.com/package/q).
- 2. Create a hooks directory in your project root folder. 
- 3. Open the folder `/node_modules/cordova-plugin-appsflyer-sdk/hooks` and copy the scripts into the directory you created in step #2 
- 4. Open your `config.xml` file and paste the line `<hook src="hooks/${ScriptName}.js" type="after_prepare" />` under the iOS platform tag.
- 5. The Script will run automatically after the command `cordova prepare ios`.
- 
-*  Example: 
-```xml
-<widget ...>
-	...
-	...
-	<platform name="ios">  
-		<hook src="hooks/af_enable_swizzling.js" type="after_prepare" />  
-	    ...
-	    ...
-	</platform>
-</widget>
-```
-
+After you disable swizzling, wire deep links yourself in `AppDelegate` (see [Guides.md](./Guides.md#ios-deeplink)).
