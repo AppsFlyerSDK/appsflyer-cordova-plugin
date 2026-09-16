@@ -37,9 +37,7 @@ describe('index', () => {
     expect(indexModule.default).toBe(indexModule.AppsFlyer);
   });
 
-  it('chains window.handleOpenURL instead of clobbering a pre-existing handler', async () => {
-    // No jsdom in this workspace (vitest's default 'node' environment, see vitest.config.mts) — a plain object stub is all production's `typeof window !== 'undefined'` guard requires.
-    // Only guards against a ReferenceError in cordova-plugin-customurlscheme's `loadUrl("javascript:handleOpenURL(...)")` call — AppsFlyerPlugin.kt's onNewIntent forwards the deep link natively, so this doesn't call performDeepLinking itself.
+  it('preserves a pre-existing window.handleOpenURL instead of clobbering it', async () => {
     const previousHandler = vi.fn();
     vi.stubGlobal('window', { handleOpenURL: previousHandler });
 
@@ -47,5 +45,16 @@ describe('index', () => {
     (window as unknown as { handleOpenURL: (url: string) => void }).handleOpenURL('scheme://deep-link');
 
     expect(previousHandler).toHaveBeenCalledWith('scheme://deep-link');
+  });
+
+  it('installs a no-op window.handleOpenURL when none exists on Android', async () => {
+    vi.stubGlobal('window', {});
+
+    await import('../index');
+    const handleOpenURL = (window as unknown as { handleOpenURL?: (url: string) => void }).handleOpenURL;
+
+    expect(typeof handleOpenURL).toBe('function');
+    expect(() => handleOpenURL?.('scheme://deep-link')).not.toThrow();
+    expect(AppsFlyerSDKMock.prototype.performDeepLinking).not.toHaveBeenCalled();
   });
 });

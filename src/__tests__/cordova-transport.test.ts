@@ -15,6 +15,7 @@ describe('CordovaTransport', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
@@ -57,21 +58,22 @@ describe('CordovaTransport', () => {
     });
     const transport = new CordovaTransport();
 
-    await expect(transport.call('start')).rejects.toMatchObject(new AppsFlyerRpcError(500, 'boom'));
+    await expect(transport.call('start')).rejects.toMatchObject({ code: 500, message: 'boom' });
+    await expect(transport.call('start')).rejects.toBeInstanceOf(AppsFlyerRpcError);
   });
 
   it('rejects with a clear error on malformed (non-JSON) native response', async () => {
     execMock.mockImplementation((success) => success('not json'));
     const transport = new CordovaTransport();
 
-    await expect(transport.call('start')).rejects.toThrow(/Malformed RPC response/);
+    await expect(transport.call('start')).rejects.toThrow('Malformed RPC response for start');
   });
 
   it('rejects with a clear error on well-formed JSON missing the required success field', async () => {
     execMock.mockImplementation((success) => success(JSON.stringify({ data: {} })));
     const transport = new CordovaTransport();
 
-    await expect(transport.call('start')).rejects.toThrow(/Malformed RPC response/);
+    await expect(transport.call('start')).rejects.toThrow('Malformed RPC response for start');
   });
 
   it('rejects when the native exec call itself fails (bridge-level failure)', async () => {
@@ -183,5 +185,28 @@ describe('CordovaTransport', () => {
     // listener1 was removed -- still only 1 call; listener2 is unaffected and gets the second event.
     expect(listener1).toHaveBeenCalledTimes(1);
     expect(listener2).toHaveBeenCalledTimes(2);
+  });
+
+  it('still delivers the event to other listeners when one subscriber throws', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    let handler: ExecSuccess | undefined;
+    execMock.mockImplementation((success) => {
+      handler = success;
+    });
+    const transport = new CordovaTransport();
+    const throwing = vi.fn(() => {
+      throw new Error('listener boom');
+    });
+    const surviving = vi.fn();
+
+    transport.subscribe(throwing);
+    transport.subscribe(surviving);
+    handler?.(JSON.stringify({ event: 'onConversionDataSuccess', data: { af_status: 'Organic' } }));
+
+    expect(throwing).toHaveBeenCalledTimes(1);
+    expect(surviving).toHaveBeenCalledTimes(1);
+    expect(surviving).toHaveBeenCalledWith({ event: 'onConversionDataSuccess', data: { af_status: 'Organic' } });
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 });

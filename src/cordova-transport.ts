@@ -18,12 +18,55 @@ export class AppsFlyerRpcError extends Error {
   }
 }
 
+function isRpcFailureError(value: unknown): value is RpcFailure['error'] {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { code?: unknown }).code === 'number' &&
+    typeof (value as { message?: unknown }).message === 'string'
+  );
+}
+
 function isRpcResponse(value: unknown): value is RpcSuccess<unknown> | RpcFailure {
-  return typeof value === 'object' && value !== null && typeof (value as { success?: unknown }).success === 'boolean';
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const success = (value as { success?: unknown }).success;
+  if (typeof success !== 'boolean') {
+    return false;
+  }
+  // success:false must carry a well-shaped error; otherwise call() would throw on parsed.error.code
+  // inside the Cordova success callback and leave the Promise pending forever.
+  if (success === false) {
+    return isRpcFailureError((value as { error?: unknown }).error);
+  }
+  return true;
 }
 
 function isRpcEvent(value: unknown): value is RpcEvent {
   return typeof value === 'object' && value !== null && typeof (value as { event?: unknown }).event === 'string';
+}
+
+function parseJsonSafe(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+}
+
+function toError(err: unknown): Error {
+  if (err instanceof Error) {
+    return err;
+  }
+  if (typeof err === 'string') {
+    return new Error(err);
+  }
+  try {
+    return new Error(JSON.stringify(err));
+  } catch {
+    return new Error(String(err));
+  }
 }
 
 export class CordovaTransport implements RpcTransport {
@@ -38,12 +81,7 @@ export class CordovaTransport implements RpcTransport {
       // esbuild bundles this with --bundle for the browser, so `require('cordova/exec')` would resolve as a real module and fail the build; fall back to the documented global instead, same as `platform` above.
       cordova.exec(
         (responseJson: string) => {
-          let parsed: unknown;
-          try {
-            parsed = JSON.parse(responseJson);
-          } catch {
-            parsed = undefined;
-          }
+          const parsed = parseJsonSafe(responseJson);
           if (!isRpcResponse(parsed)) {
             reject(new Error(`Malformed RPC response for ${method}: ${responseJson}`));
             return;
@@ -54,8 +92,8 @@ export class CordovaTransport implements RpcTransport {
           }
           resolve((parsed as RpcSuccess<T>).data);
         },
-        // Native failure callback can hand back a generic Error or a bare string; normalize so every rejection from this transport is a real Error instance.
-        (err: unknown) => reject(typeof err === 'string' ? new Error(err) : err),
+        // Native failure callback can hand back Error, string, or arbitrary values; normalize so every rejection from this transport is a real Error instance.
+        (err: unknown) => reject(toError(err)),
         PLUGIN_SERVICE,
         EXECUTE_RPC_ACTION,
         [{ requestJson }],
@@ -72,31 +110,39 @@ export class CordovaTransport implements RpcTransport {
 
     if (!this.nativeSubscribed) {
       this.nativeSubscribed = true;
-      cordova.exec(
-        // Both native shims send the raw JSON string directly (same shape as call()'s responseJson), not an { envelopeJson } object — destructuring it as one silently read `envelopeJson` off a string (always undefined), dropping every native event as "malformed".
-        (envelopeJson: string) => {
-          let parsed: unknown;
-          try {
-            parsed = JSON.parse(envelopeJson);
-          } catch {
-            parsed = undefined;
-          }
-          if (!isRpcEvent(parsed)) {
-            // eslint-disable-next-line no-console -- never log the envelope itself, rpcEvent carries deep-link URLs with PII query params.
-            console.warn('[AppsFlyer] Malformed rpcEvent payload, dropping.');
-            return;
-          }
-          for (const registered of this.listeners) {
-            registered(parsed);
-          }
-        },
-        // eslint-disable-next-line no-console -- native rejecting subscribeRpcEvents means the
-        // bridge is gone; nothing meaningful to do but avoid an unhandled failure.
-        (error: unknown) => console.warn('[AppsFlyer] subscribeRpcEvents failed:', error),
-        PLUGIN_SERVICE,
-        SUBSCRIBE_RPC_EVENTS_ACTION,
-        [],
-      );
+      try {
+        cordova.exec(
+          // Both native shims send the raw JSON string directly (same shape as call()'s responseJson), not an { envelopeJson } object — destructuring it as one silently read `envelopeJson` off a string (always undefined), dropping every native event as "malformed".
+          (envelopeJson: string) => {
+            const parsed = parseJsonSafe(envelopeJson);
+            if (!isRpcEvent(parsed)) {
+              // eslint-disable-next-line no-console -- never log the envelope itself, rpcEvent carries deep-link URLs with PII query params.
+              console.warn('[AppsFlyer] Malformed rpcEvent payload, dropping.');
+              return;
+            }
+            for (const registered of [...this.listeners]) {
+              try {
+                registered(parsed);
+              } catch (listenerError) {
+                // eslint-disable-next-line no-console -- one bad listener must not drop the event for the rest.
+                console.error('[AppsFlyer] rpcEvent listener threw:', listenerError);
+              }
+            }
+          },
+          // eslint-disable-next-line no-console -- native rejecting subscribeRpcEvents means the
+          // bridge is gone; reset so a later subscribe() can retry the native latch.
+          (error: unknown) => {
+            this.nativeSubscribed = false;
+            console.warn('[AppsFlyer] subscribeRpcEvents failed:', error);
+          },
+          PLUGIN_SERVICE,
+          SUBSCRIBE_RPC_EVENTS_ACTION,
+          [],
+        );
+      } catch (error) {
+        this.nativeSubscribed = false;
+        throw error;
+      }
     }
 
     return {
