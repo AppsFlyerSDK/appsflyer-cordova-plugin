@@ -5,7 +5,6 @@
 //  Thin Cordova shim over AppsFlyerRPC: one call (`executeRpc`) and one persistent event channel (`subscribeRpcEvents`). All RPC dispatch, response normalization, and threading is owned by AppsFlyerRPCBridge — this file only shapes JSON envelopes and Cordova plumbing.
 
 import Foundation
-// A real Cordova iOS project has no Swift module named "Cordova" (CordovaLib is a plain Obj-C static library reached via the project's auto-generated bridging header); the ios-tests/ SPM harness has no such header, so it fakes "Cordova" as an importable module instead — this flag is defined only there.
 #if AF_CORDOVA_SPM_TEST
 import Cordova
 #endif
@@ -13,8 +12,6 @@ import AppsFlyerRPC
 
 @objc(AppsFlyerPlugin)
 public class AppsFlyerPlugin: CDVPlugin {
-
-    // Cordova has no notifyListeners equivalent — a persistent event stream is one stored callbackId re-sent with keepCallback (Cordova's watchPosition-style pattern), guarded so a second subscribeRpcEvents call can't register a second native handler and double-fire events. Written on Cordova's dispatch thread, read from the RPC bridge's delivery thread — same cross-thread hazard/lock pattern as AppsFlyerAttribution.swift's `bridgeReady`.
     private let lock = NSLock()
     private var _rpcEventCallbackId: String?
     private var rpcEventCallbackId: String? {
@@ -32,15 +29,21 @@ public class AppsFlyerPlugin: CDVPlugin {
             return
         }
         let requestedMethod = Self.canonicalMethod(ofRequestJson: requestJson)
+        let callbackId = command.callbackId
+        let delegate = self.commandDelegate
         Task {
-            AppsFlyerRPCBridge.shared.executeJson(requestJson) { [weak self] responseJson in
+            AppsFlyerRPCBridge.shared.executeJson(requestJson) { responseJson in
                 let (normalized, succeeded) = Self.normalize(iosResponseJson: responseJson)
-                if requestedMethod == "initialize" && succeeded {
-                    // Setting bridgeReady triggers AppsFlyerAttribution's own didSet flush.
-                    AppsFlyerAttribution.shared.bridgeReady = true
+                DispatchQueue.main.async {
+                    if requestedMethod == "initialize" && succeeded {
+                        AppsFlyerAttribution.shared.bridgeReady = true
+                    }
+                    guard let result = CDVPluginResult(status: .ok, messageAs: normalized) else {
+                        NSLog("AppsFlyer: failed to build CDVPluginResult for executeRpc")
+                        return
+                    }
+                    delegate?.send(result, callbackId: callbackId)
                 }
-                let result = CDVPluginResult(status: .ok, messageAs: normalized)
-                self?.commandDelegate.send(result, callbackId: command.callbackId)
             }
         }
     }
@@ -48,29 +51,34 @@ public class AppsFlyerPlugin: CDVPlugin {
     @objc func subscribeRpcEvents(_ command: CDVInvokedUrlCommand) {
         guard rpcEventCallbackId == nil else {
             NSLog("AppsFlyer: subscribeRpcEvents called more than once; ignoring the second subscription.")
+            let result = CDVPluginResult(status: .error, messageAs: "subscribeRpcEvents called more than once; ignoring duplicate subscription.")
+            self.commandDelegate.send(result, callbackId: command.callbackId)
             return
         }
         rpcEventCallbackId = command.callbackId
         AppsFlyerRPCBridge.shared.setEventHandler { [weak self] jsonEvent in
             guard let self, let callbackId = self.rpcEventCallbackId else { return }
-            // Explicit `CDVPluginResult?` (not `let result = ...`) is load-bearing: cordova-ios 8's audited header makes this initializer non-optional while cordova-ios 7's makes it Optional; the annotation compiles against both, but still guard below rather than force-unwrap since neither guarantees non-nil.
-            let maybeResult: CDVPluginResult? = CDVPluginResult(status: .ok, messageAs: jsonEvent)
-            guard let result = maybeResult else {
-                NSLog("AppsFlyer: failed to build CDVPluginResult for RPC event")
-                return
-            }
-            result.setKeepCallbackAs(true)
-            self.commandDelegate.send(result, callbackId: callbackId)
+            Self.deliverRpcEvent(jsonEvent: jsonEvent, callbackId: callbackId, to: self.commandDelegate)
         }
+    }
+
+    internal static func deliverRpcEvent(jsonEvent: String, callbackId: String, to delegate: CDVCommandDelegate?) {
+        let maybeResult: CDVPluginResult? = CDVPluginResult(status: .ok, messageAs: jsonEvent)
+        guard let result = maybeResult else {
+            NSLog("AppsFlyer: failed to build CDVPluginResult for RPC event")
+            return
+        }
+        result.setKeepCallbackAs(true)
+        delegate?.send(result, callbackId: callbackId)
     }
 
     // WebView reload invalidates all previously issued callbackIds — Cordova calls this so plugins can drop stale ones instead of sending to a dead callback forever.
     public override func onReset() {
         super.onReset()
         rpcEventCallbackId = nil
+        AppsFlyerRPCBridge.shared.removeEventHandler()
     }
 
-    // internal (not private) + static so AppsFlyerPluginTests can call these directly.
     static func canonicalMethod(ofRequestJson requestJson: String) -> String? {
         guard
             let data = requestJson.data(using: .utf8),
@@ -124,14 +132,5 @@ public class AppsFlyerPlugin: CDVPlugin {
             return "{\"success\":false,\"error\":{\"code\":500,\"message\":\"Failed to encode RPC response\"}}"
         }
         return json
-    }
-}
-
-private extension NSLock {
-    // Same iOS-15-compatible equivalent as AppsFlyerAttribution.swift's `withCriticalScope` (NSLocking.withLock is iOS 16+); duplicated here since that one is file-private there.
-    func withCriticalScope<T>(_ body: () -> T) -> T {
-        lock()
-        defer { unlock() }
-        return body()
     }
 }

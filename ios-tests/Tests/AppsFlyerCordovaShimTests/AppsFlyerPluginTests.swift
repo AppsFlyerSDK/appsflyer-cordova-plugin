@@ -6,6 +6,11 @@ import Cordova
 
 final class AppsFlyerPluginTests: XCTestCase {
 
+    override func tearDown() {
+        super.tearDown()
+        CDVPluginResult.forceNilOnNextInit = false
+    }
+
     func testNormalizeReturnsSuccessEnvelope() {
         let iosResponse = #"{"result":{"success":true,"data":{"uid":"abc"}}}"#
         let (json, succeeded) = AppsFlyerPlugin.normalize(iosResponseJson: iosResponse)
@@ -64,6 +69,37 @@ final class AppsFlyerPluginTests: XCTestCase {
 
     private static func resetForceNilOnNextInit() {
         CDVPluginResult.forceNilOnNextInit = false
+    }
+
+    // The real blocker to testing subscribeRpcEvents(_:) end-to-end is AppsFlyerRPCBridge.shared,
+    // a real prebuilt xcframework singleton with no fake -- deliverRpcEvent is the closure body it
+    // registers, extracted so the guard-let-or-bail path (formerly `result!`) is directly testable
+    // without going through the bridge at all.
+    final class FakeCommandDelegate: CDVCommandDelegate {
+        private(set) var sentResults: [(result: CDVPluginResult?, callbackId: String?)] = []
+        func send(_ pluginResult: CDVPluginResult?, callbackId: String?) {
+            sentResults.append((pluginResult, callbackId))
+        }
+    }
+
+    func testDeliverRpcEventSendsResultWithKeepCallback() {
+        let delegate = FakeCommandDelegate()
+        AppsFlyerPlugin.deliverRpcEvent(jsonEvent: #"{"event":"onConversionDataSuccess"}"#, callbackId: "cb1", to: delegate)
+
+        XCTAssertEqual(delegate.sentResults.count, 1)
+        XCTAssertEqual(delegate.sentResults[0].callbackId, "cb1")
+        XCTAssertEqual(delegate.sentResults[0].result?.keepsCallback, true)
+    }
+
+    // Regression guard for the crash this file's guard-let (formerly `result!`) protects against.
+    func testDeliverRpcEventDoesNotCrashAndSendsNothingWhenPluginResultInitFails() {
+        AppsFlyerPluginTests.resetForceNilOnNextInit()
+        let delegate = FakeCommandDelegate()
+
+        CDVPluginResult.forceNilOnNextInit = true
+        AppsFlyerPlugin.deliverRpcEvent(jsonEvent: #"{"event":"onConversionDataSuccess"}"#, callbackId: "cb1", to: delegate)
+
+        XCTAssertTrue(delegate.sentResults.isEmpty)
     }
 
     func testCanonicalMethodExtractsMethodName() {
