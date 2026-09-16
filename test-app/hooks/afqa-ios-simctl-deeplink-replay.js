@@ -6,22 +6,6 @@
 const fs = require('fs');
 const path = require('path');
 
-function walkFiles(dir, predicate) {
-  const out = [];
-  if (!fs.existsSync(dir)) return out;
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (const ent of entries) {
-    const full = path.join(dir, ent.name);
-    if (ent.isDirectory()) {
-      if (ent.name === 'Pods' || ent.name === 'build') continue;
-      out.push(...walkFiles(full, predicate));
-    } else if (predicate(full)) {
-      out.push(full);
-    }
-  }
-  return out;
-}
-
 // Reads the AppsFlyerAttribution forward declaration straight out of AppsFlyerX+AppController.m (see that file's header comment) instead of keeping an independent hand-written copy here.
 function readForwardDeclFromAppController() {
   const appControllerPath = path.join(__dirname, '..', '..', 'src', 'ios', 'AppsFlyerX+AppController.m');
@@ -118,10 +102,11 @@ module.exports = function (context) {
     return;
   }
 
-  const delegates = walkFiles(
-    iosRoot,
-    (p) => path.basename(p) === 'AppDelegate.m'
-  );
+  const delegates = fs
+    .readdirSync(iosRoot, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => path.join(iosRoot, d.name, 'Classes', 'AppDelegate.m'))
+    .filter((p) => fs.existsSync(p));
 
   if (delegates.length === 0) {
     console.warn(

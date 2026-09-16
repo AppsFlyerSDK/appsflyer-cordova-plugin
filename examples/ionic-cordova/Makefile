@@ -59,29 +59,9 @@ ios: build
 
 # ─── Android ────────────────────────────────────────────────────────────────
 
-# ANDROID_HOME/ANDROID_SDK_ROOT are frequently unset in interactive shells even
-# when the SDK is installed (usually only exported from .zshrc, which `make`
-# doesn't source) -- fall back to the default install location.
-ANDROID_SDK := $(or $(ANDROID_HOME),$(ANDROID_SDK_ROOT),$(HOME)/Library/Android/sdk)
-ADB := $(ANDROID_SDK)/platform-tools/adb
-EMULATOR := $(ANDROID_SDK)/emulator/emulator
-export ANDROID_HOME := $(ANDROID_SDK)
-
 .PHONY: ensure-android-emu
 ensure-android-emu:
-	@test -x "$(ADB)" || { echo "Error: adb not found at $(ADB). Set ANDROID_HOME or install the SDK."; exit 1; }
-	@if "$(ADB)" devices | awk 'NR>1 && $$2=="device"{found=1} END{exit !found}'; then \
-		echo "Android emulator/device already running."; \
-	else \
-		echo "No running Android device, booting an emulator..."; \
-		test -x "$(EMULATOR)" || { echo "Error: emulator not found at $(EMULATOR). Set ANDROID_HOME or install the SDK."; exit 1; }; \
-		AVD=$$("$(EMULATOR)" -list-avds | head -1); \
-		test -n "$$AVD" || { echo "Error: no AVD found. Create one first (Android Studio > Device Manager)."; exit 1; }; \
-		echo "Booting AVD: $$AVD"; \
-		nohup "$(EMULATOR)" -avd "$$AVD" -no-snapshot -netdelay none -netspeed full >/tmp/af-ionic-cordova-emulator.log 2>&1 & \
-		"$(ADB)" wait-for-device; \
-		until [ "$$("$(ADB)" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do sleep 2; done; \
-	fi
+	$(MAKE) -C "$(PLUGIN_ROOT)" ensure-android-emu
 
 .PHONY: android
 android: build ensure-android-emu

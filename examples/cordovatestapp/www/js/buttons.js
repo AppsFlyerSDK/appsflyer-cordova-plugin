@@ -1,79 +1,31 @@
-let logEventBtn = document.getElementById('logEvent');
-let logCrossPromotionAndOpenStoreBtn = document.getElementById('logCrossPromotionAndOpenStore');
-let setCurrencyBtn = document.getElementById('setCurrency');
-let generateUserInviteBtn = document.getElementById('generateUserInvite');
-let setUserIdBtn = document.getElementById('setUserId');
-let setUserEmailsBtn = document.getElementById('setUserEmails');
-let setPhoneBtn = document.getElementById('setPhone');
-let setHostsBtn = document.getElementById('setHosts');
-let getUserIdBtn = document.getElementById('getUserId');
-let getSdkVBtn = document.getElementById('getSdkV');
-let customDomainsBtn = document.getElementById('customDomains');
-let enableFBBtn = document.getElementById('enableFB');
-let addPushNotificationPathBtn = document.getElementById('addPushNotificationPath');
-let logAdRevenueBtn = document.getElementById('logAdRevenue');
-let disableAppSetIdBtn = document.getElementById('disableAppSetId');
-let validateAndLogV2Btn = document.getElementById('validateAndLogV2');
+const buttonBindings = [
+    ['logAdRevenue', logAdRevenue],
+    ['testSetConsent', setConsentData],
+    ['generateUserInvite', generateUserInvite],
+    ['logEvent', logEvent],
+    ['logCrossPromotionAndOpenStore', logCrossPromotionAndOpenStore],
+    ['setCurrency', setCurrency],
+    ['setUserId', setUserId],
+    ['setUserEmails', setEmails],
+    ['setPhone', setPhoneNumber],
+    ['setHosts', setHosts],
+    ['getUserId', getUserId],
+    ['getSdkV', getSdkVersion],
+    ['customDomains', setCustomDomains],
+    ['enableFB', setFBEnabled],
+    ['addPushNotificationPath', addPushNotificationDeepLinkPath],
+    ['disableAppSetId', disableAppSetId],
+    ['validateAndLogV2', validateAndLogV2]
+];
 
-// Consent
-let setConsentBtn = document.getElementById('testSetConsent');
-let isUserSubjectToGDPRSwitch = document.getElementById('isUserSubjectToGDPR');
-let hasConsentForDataUsageSwitch = document.getElementById('hasConsentForDataUsage');
-let hasConsentForAdsPersonalizationSwitch = document.getElementById('hasConsentForAdsPersonalization');
-let hasConsentForAdStorageSwitch = document.getElementById('hasConsentForAdStorage');
+for (const [id, handler] of buttonBindings) {
+    document.getElementById(id)?.addEventListener('click', handler, false);
+}
 
-
-if(logAdRevenueBtn){
-    logAdRevenueBtn.addEventListener('click', logAdRevenue, false);
-}
-if(setConsentBtn){
-    setConsentBtn.addEventListener('click', setConsentData, false);
-}
-if (generateUserInviteBtn) {
-    generateUserInviteBtn.addEventListener('click', generateUserInvite, false);
-}
-if (logEventBtn) {
-    logEventBtn.addEventListener('click', logEvent, false);
-}
-if (logCrossPromotionAndOpenStoreBtn) {
-    logCrossPromotionAndOpenStoreBtn.addEventListener('click', logCrossPromotionAndOpenStore, false);
-}
-if (setCurrencyBtn) {
-    setCurrencyBtn.addEventListener('click', setCurrency, false);
-}
-if (setUserIdBtn) {
-    setUserIdBtn.addEventListener('click', setUserId, false);
-}
-if (setUserEmailsBtn) {
-    setUserEmailsBtn.addEventListener('click', setEmails, false);
-}
-if (setPhoneBtn) {
-    setPhoneBtn.addEventListener('click', setPhoneNumber, false);
-}
-if (setHostsBtn) {
-    setHostsBtn.addEventListener('click', setHosts, false);
-}
-if (getUserIdBtn) {
-    getUserIdBtn.addEventListener('click', getUserId, false);
-}
-if (getSdkVBtn) {
-    getSdkVBtn.addEventListener('click', getSdkVersion, false);
-}
-if (customDomainsBtn) {
-    customDomainsBtn.addEventListener('click', setCustomDomains, false);
-}
-if (enableFBBtn) {
-    enableFBBtn.addEventListener('click', setFBEnabled, false);
-}
-if (addPushNotificationPathBtn) {
-    addPushNotificationPathBtn.addEventListener('click', addPushNotificationDeepLinkPath, false);
-}
-if (disableAppSetIdBtn) {
-    disableAppSetIdBtn.addEventListener('click', disableAppSetId, false);
-}
-if (validateAndLogV2Btn) {
-    validateAndLogV2Btn.addEventListener('click', validateAndLogV2, false);
-}
+const isUserSubjectToGDPRSwitch = document.getElementById('isUserSubjectToGDPR');
+const hasConsentForDataUsageSwitch = document.getElementById('hasConsentForDataUsage');
+const hasConsentForAdsPersonalizationSwitch = document.getElementById('hasConsentForAdsPersonalization');
+const hasConsentForAdStorageSwitch = document.getElementById('hasConsentForAdStorage');
 
 function fmt(value) {
     // RPC results/errors are objects -- string-concatenating one directly renders "[object Object]".
