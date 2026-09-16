@@ -125,6 +125,10 @@ await window.plugins.appsFlyer.registerConversionListener({
     console.log(err);  
   }  
 });  
+
+await window.plugins.appsFlyer.registerSessionReadyListener(() => {  
+  window.plugins.appsFlyer.start();  
+});  
 ```  
   
   
@@ -217,12 +221,9 @@ You will get deep link information via `registerDeepLinkListener`'s `onDeepLinki
   
 #### <a id="ios-universal"> If you are using Ionic+Capacitor or Ionic+Cordova:<br>  
 ##### import:<br>  
-`#import "AppsFlyerPlugin.h"` to `AppDelegate.m`   
-For plugin version **6.1.30** and less:  
+Import the generated Swift header into `AppDelegate.m` (for example `#import "YourApp-Swift.h"`) so you can call `AppsFlyerAttribution`. The exact header name matches your app module. Plugin versions **6.1.30** and earlier imported `#import "AppsFlyerLib.h"` instead.  
   
-`#import "AppsFlyerLib.h"` to `AppDelegate.m`  
-  
-In both cases, you need to add this code before the `@end` tag:<br>  
+Then add this code before the `@end` tag:<br>  
 ```  
 // Deep linking  
 // Open URI-scheme for iOS 9 and above  
@@ -236,9 +237,9 @@ In both cases, you need to add this code before the `@end` tag:<br>
  // version < 6.2.30 [[AppsFlyerLib shared] handleOpenUrl:url sourceApplication:sourceApplication withAnnotation:annotation]; return YES;}  
 // Open Universal Links  
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler {  
- // version >= 6.2.30 [[AppsFlyerAttribution shared] continueUserActivity:userActivity restorationHandler:restorationHandler];      
-    //version < 6.2.30  
- [[AppsFlyerLib shared] continueUserActivity:userActivity restorationHandler:restorationHandler]; return YES;}  
+ // version >= 7.0
+ [[AppsFlyerAttribution shared] continueUserActivity:userActivity restorationHandler:restorationHandler];
+ return YES;}  
 ```  
   
   
@@ -277,13 +278,22 @@ Plugin depends on cordova-support-google-services for setting up google services
 2. Send the token to AppsFlyer by calling `updateServerUninstallToken`.<br>  
   
 ```javascript  
-await window.plugins.appsFlyer.init(options);  
+await window.plugins.appsFlyer.init({  
+  devKey: 'K2***************99',  
+  appId: '41*****44' // iOS only; safe to omit on Android-only apps  
+});  
+
+await window.plugins.appsFlyer.registerSessionReadyListener(() => {  
+  window.plugins.appsFlyer.start();  
+});  
+
 cordova.plugins.firebase.messaging.onTokenRefresh(function() {  
   console.log("Device token updated");  
- cordova.plugins.firebase.messaging.getToken().then(function(token) {  
-  window.plugins.appsFlyer.updateServerUninstallToken({ token });  
- });})  
-  ```  
+  cordova.plugins.firebase.messaging.getToken().then(function(token) {  
+    window.plugins.appsFlyer.updateServerUninstallToken({ token });  
+  });  
+});  
+```  
   
 ###  <a id="ios-uninstall"> iOS Uninstall Setup  
 **Removed in 7.0.** `registerUninstall` (both the native `[[AppsFlyerTracker sharedTracker] registerUninstall:deviceToken]` call and the JS `window.plugins.appsFlyer.registerUninstall("<token>")` wrapper) has no equivalent in the new RPC schema and was removed with no replacement — see [RELEASENOTES.md](../RELEASENOTES.md).  
