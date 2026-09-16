@@ -7,8 +7,18 @@ const fs = require('fs');
 const path = require('path');
 
 // Reads the AppsFlyerAttribution forward declaration straight out of AppsFlyerX+AppController.m (see that file's header comment) instead of keeping an independent hand-written copy here.
-function readForwardDeclFromAppController() {
-  const appControllerPath = path.join(__dirname, '..', '..', 'src', 'ios', 'AppsFlyerX+AppController.m');
+// This hook runs from the synced sibling app copy (scripts/sync-test-app-e2e-copy.sh), where the plugin lives under plugins/, as well as from the in-repo test-app/, where only the repo tree exists — so both roots are candidates.
+function readForwardDeclFromAppController(projectRoot) {
+  const candidates = [
+    path.join(projectRoot, 'plugins', 'cordova-plugin-appsflyer-sdk', 'src', 'ios', 'AppsFlyerX+AppController.m'),
+    path.join(__dirname, '..', '..', 'src', 'ios', 'AppsFlyerX+AppController.m')
+  ];
+  const appControllerPath = candidates.find((p) => fs.existsSync(p));
+  if (!appControllerPath) {
+    throw new Error(
+      `[afqa-ios-simctl-deeplink-replay] Could not locate AppsFlyerX+AppController.m; looked in:\n  ${candidates.join('\n  ')}`
+    );
+  }
   const src = fs.readFileSync(appControllerPath, 'utf8');
   const match = src.match(/@interface AppsFlyerAttribution : NSObject[\s\S]*?\n@end/);
   if (!match) {
@@ -19,7 +29,7 @@ function readForwardDeclFromAppController() {
   return match[0];
 }
 
-function patchAppDelegateM(filePath) {
+function patchAppDelegateM(filePath, projectRoot) {
   let src = fs.readFileSync(filePath, 'utf8');
   const begin = '/* AFQA_SIMCTL_DEEPLINK_REPLAY_BEGIN */';
   const end = '/* AFQA_SIMCTL_DEEPLINK_REPLAY_END */';
@@ -27,7 +37,7 @@ function patchAppDelegateM(filePath) {
     return false;
   }
 
-  const forwardDecl = readForwardDeclFromAppController();
+  const forwardDecl = readForwardDeclFromAppController(projectRoot);
   if (!src.includes(forwardDecl)) {
     const anchor = '#import "MainViewController.h"';
     if (!src.includes(anchor)) {
@@ -102,10 +112,14 @@ module.exports = function (context) {
     return;
   }
 
+  // cordova-ios 7 emits platforms/ios/<AppName>/AppDelegate.m; older layouts nest it under Classes/. Check both — matching only one silently no-ops the whole hook.
   const delegates = fs
     .readdirSync(iosRoot, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .map((d) => path.join(iosRoot, d.name, 'Classes', 'AppDelegate.m'))
+    .filter((d) => d.isDirectory() && d.name !== 'CordovaLib' && d.name !== 'Pods')
+    .flatMap((d) => [
+      path.join(iosRoot, d.name, 'AppDelegate.m'),
+      path.join(iosRoot, d.name, 'Classes', 'AppDelegate.m')
+    ])
     .filter((p) => fs.existsSync(p));
 
   if (delegates.length === 0) {
@@ -116,6 +130,6 @@ module.exports = function (context) {
   }
 
   for (const f of delegates) {
-    patchAppDelegateM(f);
+    patchAppDelegateM(f, projectRoot);
   }
 };

@@ -1,9 +1,11 @@
-# Lint, Test & Build — reusable workflow (workflow_call), invoked by rc-release.yml.
-# Runs vitest/tsc on src/, gradlew tests against android-tests/ (scratch module, not part of the plugin's own distribution), and optional debug builds. Jasmine tests under tests/ are not run in CI.
+# Lint, Test & Build — runs on pull requests, manual dispatch, and as a reusable workflow (workflow_call) invoked by rc-release.yml.
+# Runs vitest/tsc on src/, gradlew tests against android-tests/ (scratch module, not part of the plugin's own distribution), and optional debug builds.
 
 name: Lint, Test & Build
 
 on:
+  pull_request:
+  workflow_dispatch:
   workflow_call:
     inputs:
       skip_unit:

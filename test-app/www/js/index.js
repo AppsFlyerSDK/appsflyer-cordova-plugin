@@ -476,10 +476,12 @@
     // field name, kept as a fallback in case anything upstream ever leaks the pre-normalization shape.
     var ds = o.status != null ? String(o.status) : (o.deepLinkStatus != null ? String(o.deepLinkStatus) : '');
     var statusLabel = 'Status.ERROR';
-    if (ds === 'FOUND' || ds === 'Found' || ds.indexOf('FOUND') !== -1) {
-      statusLabel = 'Status.FOUND';
-    } else if (ds === 'NOT_FOUND' || ds === 'NotFound' || ds.indexOf('NOT_FOUND') !== -1) {
+    // NOT_FOUND must be tested before FOUND: 'NOT_FOUND'.indexOf('FOUND') is 4, so the substring
+    // check would otherwise label every NOT_FOUND payload as Status.FOUND.
+    if (ds === 'NOT_FOUND' || ds === 'NotFound' || ds.indexOf('NOT_FOUND') !== -1) {
       statusLabel = 'Status.NOT_FOUND';
+    } else if (ds === 'FOUND' || ds === 'Found' || ds.indexOf('FOUND') !== -1) {
+      statusLabel = 'Status.FOUND';
     } else if (ds === 'Error' || ds === 'FAILURE' || ds === 'Failure' || ds.indexOf('Error') !== -1) {
       statusLabel = 'Status.ERROR';
     }

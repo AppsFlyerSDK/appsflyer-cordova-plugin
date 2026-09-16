@@ -715,8 +715,11 @@ run_phase() {
     # `run-as cat` is costly on GitHub's emulator.
     wait_for_qa_marker "[AF_QA][AUTO_APIS] --- Auto run complete ---" "$wait_sec" 10
     # Native HTTP success lines sometimes land slightly after the JS file marker.
-    log_info "Brief settle after auto-run marker before deep link / log capture..."
-    sleep 5
+    # On slow emulators in CI (e.g. GitHub Actions with slirp networking), background
+    # SDK HTTP requests can take 8-12s to drain the queue.
+    local settle_sec="${AF_SETTLE_AFTER_AUTO_RUN_SEC:-15}"
+    log_info "Brief settle (${settle_sec}s) after auto-run marker before deep link / log capture..."
+    sleep "$settle_sec"
   fi
 
   # Pre-actions (deep link phases: background the app, etc.)
