@@ -16,15 +16,12 @@ import java.util.concurrent.TimeUnit
 
 private const val TAG = "AppsFlyerPlugin"
 private const val RPC_EVENT_NAME = "rpcEvent"
-private const val DEEP_LINK_EVENT_NAME = "onDeepLinking"
 
-// Wire method names whose native handler blocks the calling thread on an async response -- optionally via an "awaitResponse" param, or always for validateAndLogInAppPurchase (no such param; its promise needs the store-validation round trip). Own lane avoids head-of-line-blocking rpcExecutor.
-// internal (not private) so AppsFlyerPluginTest can size a real awaitResponseExecutor off it without duplicating the literal set.
+// Methods that block on async responses; use separate executor to avoid head-of-line-blocking.
 internal val AWAIT_RESPONSE_METHODS: Set<String> = setOf(
     "start", "logEvent", "generateInviteLink", "validateAndLogInAppPurchase",
 )
 
-// internal (not private) + top-level so AppsFlyerPluginTest can call this directly.
 internal fun isAwaitResponseCall(requestJson: String): Boolean =
     parseJsonOrDefault(requestJson, default = false) { it.optString("method") in AWAIT_RESPONSE_METHODS }
 
@@ -39,7 +36,6 @@ private inline fun <T> parseJsonOrDefault(json: String, default: T, block: (JSON
     }
 }
 
-// Cordova's PluginManager calls onNewIntent on every registered plugin for a warm-resume Intent (CordovaActivity.onNewIntent -> appView.onNewIntent), so this covers cordova-plugin-customurlscheme's redelivered Intent natively, without a JS-level handleOpenURL shim. Primitives, not Intent, so it's testable without an Android framework mock -- see the class-level comment on why onNewIntent itself isn't covered here.
 internal fun deepLinkRequestJsonForIntent(action: String?, url: String?): String? {
     if (action != Intent.ACTION_VIEW || url.isNullOrEmpty()) return null
     return JSONObject().apply {
@@ -48,33 +44,19 @@ internal fun deepLinkRequestJsonForIntent(action: String?, url: String?): String
     }.toString()
 }
 
-// `status` is left as-is — js-core-plugin's normalizeDeepLinkStatus() already re-normalizes it for every consumer; duplicating that here would just drift out of sync.
-internal fun normalizeDeepLinkEvent(eventJson: String): String = parseJsonOrDefault(eventJson, eventJson) { envelope ->
-    if (envelope.optString("event") != DEEP_LINK_EVENT_NAME) return@parseJsonOrDefault eventJson
-    val data = envelope.optJSONObject("data") ?: return@parseJsonOrDefault eventJson
-
-    // Copy instead of mutating `data` in place — pluginNotifier fires from arbitrary native threads and `data` is owned by `envelope`, not this function.
-    val error = data.optString("error").takeIf { it.isNotEmpty() }?.lowercase()
-    if (error != null) {
-        val copy = JSONObject(data.toString())
-        copy.put("error", error)
-        envelope.put("data", copy)
-    }
-
-    envelope.toString()
-}
+// Pass-through: preserve native deep-link strings unchanged (parity with iOS).
+internal fun normalizeDeepLinkEvent(eventJson: String): String = eventJson
 
 /** Cordova bridge — every SDK capability is dispatched via executeRpc -> AppsFlyerRpcHandler. */
 class AppsFlyerPlugin : CordovaPlugin() {
 
-    // rpcExecutor single-threaded: AppsFlyerRpcHandler's listener fields are unsynchronized `var`s, so pooling it could race registration against dispatch. awaitResponseExecutor is pooled, sized to AWAIT_RESPONSE_METHODS, so its methods don't block each other while still isolated from general RPC dispatch.
     private val awaitResponseExecutor = Executors.newFixedThreadPool(AWAIT_RESPONSE_METHODS.size)
     private val rpcExecutor = Executors.newSingleThreadExecutor()
 
-    // Set once by subscribeRpcEvents; js-core-plugin's transport subscribes at most once per instance, but nothing stops a stray second call, so double-subscription is guarded explicitly below.
+    @Volatile
     private var rpcEventCallbackContext: CallbackContext? = null
 
-    private val rpcHandler by lazy {
+    private val rpcHandler by lazy {  
         AppsFlyerRpcHandler(
             contextProvider = { cordova.activity ?: cordova.context },
             pluginNotifier = { rawEventJson ->
@@ -114,10 +96,10 @@ class AppsFlyerPlugin : CordovaPlugin() {
         dispatch(callbackContext, executor, requestJson)
     }
 
-    // Stores the CallbackContext once; a stray second subscription would otherwise register a second listener and double-fire every rpcEvent.
     private fun subscribeRpcEvents(callbackContext: CallbackContext) {
         if (rpcEventCallbackContext != null) {
             Log.w(TAG, "subscribeRpcEvents called more than once; ignoring duplicate subscription")
+            callbackContext.error("subscribeRpcEvents called more than once; ignoring duplicate subscription")
             return
         }
         rpcEventCallbackContext = callbackContext
@@ -138,9 +120,9 @@ class AppsFlyerPlugin : CordovaPlugin() {
         }
     }
 
-    // Fire-and-forget: no JS caller is waiting on this, unlike executeRpc's callbackContext-driven dispatch.
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        intent?.let { cordova.activity?.intent = it }
         val requestJson = deepLinkRequestJsonForIntent(intent?.action, intent?.dataString) ?: return
         try {
             rpcExecutor.execute { safeDispatchToNative(requestJson) }
@@ -149,21 +131,33 @@ class AppsFlyerPlugin : CordovaPlugin() {
         }
     }
 
+    override fun onReset() {
+        super.onReset()
+        rpcEventCallbackContext = null
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        // shutdownNow (not shutdown): don't run queued calls against a torn-down bridge/activity; awaitTermination bounds the wait so onDestroy can't hang on a stuck task.
+        rpcEventCallbackContext = null
         for (executor in listOf(awaitResponseExecutor, rpcExecutor)) {
             executor.shutdownNow()
         }
         try {
-            awaitResponseExecutor.awaitTermination(2, TimeUnit.SECONDS)
-            rpcExecutor.awaitTermination(2, TimeUnit.SECONDS)
+            val deadlineNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(2)
+            for (executor in listOf(awaitResponseExecutor, rpcExecutor)) {
+                val remainingNanos = deadlineNanos - System.nanoTime()
+                if (remainingNanos > 0) {
+                    executor.awaitTermination(remainingNanos, TimeUnit.NANOSECONDS)
+                }
+            }
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
         }
     }
 
-    // Catches AppsFlyerRpcHandler exceptions here so they fail the call instead of crashing the process; never forwards the exception message to JS since it can contain internal class names/paths (CWE-209).
+    internal fun awaitResponseExecutorForTest(): ExecutorService = awaitResponseExecutor
+    internal fun rpcExecutorForTest(): ExecutorService = rpcExecutor
+
     private fun safeDispatchToNative(requestJson: String): String {
         return try {
             normalize(rpcHandler.execute(requestJson))
@@ -175,30 +169,19 @@ class AppsFlyerPlugin : CordovaPlugin() {
     }
 }
 
-// internal (not private) + top-level so AppsFlyerPluginTest can call these directly without instantiating a CordovaPlugin(); must match the { success, data|error } envelope iOS's bridge also emits — keep in sync with AppsFlyerPluginTests.swift.
-internal fun normalize(response: RpcResponse): String {
-    val normalized = JSONObject()
-    when (response) {
-        is RpcResponse.Success<*> -> {
-            normalized.put("success", true)
-            // wrap() also covers a future result type that isn't a Map/Collection, falling back to JSONObject.NULL instead of a stringified blob.
-            normalized.put("data", JSONObject.wrap(response.result) ?: JSONObject.NULL)
-        }
-        is RpcResponse.VoidSuccess -> {
-            normalized.put("success", true)
-            normalized.put("data", JSONObject.NULL)
-        }
-        is RpcResponse.Error -> return normalizeError(code = response.code, message = response.message)
-    }
-    return normalized.toString()
+internal fun normalize(response: RpcResponse): String = when (response) {
+    is RpcResponse.Success<*> -> JSONObject()
+        .put("success", true)
+        .put("data", JSONObject.wrap(response.result) ?: JSONObject.NULL)
+        .toString()
+    is RpcResponse.VoidSuccess -> JSONObject()
+        .put("success", true)
+        .put("data", JSONObject.NULL)
+        .toString()
+    is RpcResponse.Error -> normalizeError(code = response.code, message = response.message)
 }
 
-internal fun normalizeError(code: Int, message: String): String {
-    val error = JSONObject()
-    error.put("code", code)
-    error.put("message", message)
-    val normalized = JSONObject()
-    normalized.put("success", false)
-    normalized.put("error", error)
-    return normalized.toString()
-}
+internal fun normalizeError(code: Int, message: String): String = JSONObject()
+    .put("success", false)
+    .put("error", JSONObject().put("code", code).put("message", message))
+    .toString()

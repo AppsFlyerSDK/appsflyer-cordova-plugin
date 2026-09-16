@@ -9,8 +9,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 // Exercises the pure JSON-normalization/routing logic against real org.json/af-android-plugin-bridge artifacts; CordovaPlugin/CallbackContext/executor wiring needs a real Activity and isn't covered here (see the test report).
 class AppsFlyerPluginTest {
@@ -57,7 +57,8 @@ class AppsFlyerPluginTest {
 
     @Test
     fun `isAwaitResponseCall is true for every await-response method`() {
-        for (method in listOf("start", "logEvent", "generateInviteLink", "validateAndLogInAppPurchase")) {
+        assertEquals(4, AWAIT_RESPONSE_METHODS.size)
+        for (method in AWAIT_RESPONSE_METHODS) {
             val requestJson = JSONObject().put("method", method).toString()
             assertTrue("$method should route to the awaitResponse lane", isAwaitResponseCall(requestJson))
         }
@@ -92,10 +93,10 @@ class AppsFlyerPluginTest {
         assertEquals(null, deepLinkRequestJsonForIntent(Intent.ACTION_VIEW, null))
     }
 
-    // normalizeDeepLinkEvent(): Android FOUND/NOT_FOUND/ERROR -> lowercase, everything else untouched.
+    // normalizeDeepLinkEvent(): pass-through; preserve native strings unchanged (parity with iOS).
 
     @Test
-    fun `normalizeDeepLinkEvent lowercases only the error field, leaves status untouched`() {
+    fun `normalizeDeepLinkEvent preserves error and status casing unchanged`() {
         val raw = JSONObject()
             .put("event", "onDeepLinking")
             .put("data", JSONObject().put("status", "FOUND").put("error", "SOME_ERROR"))
@@ -105,7 +106,7 @@ class AppsFlyerPluginTest {
         val data = normalized.getJSONObject("data")
 
         assertEquals("FOUND", data.getString("status"))
-        assertEquals("some_error", data.getString("error"))
+        assertEquals("SOME_ERROR", data.getString("error"))
     }
 
     @Test
@@ -115,14 +116,12 @@ class AppsFlyerPluginTest {
     }
 
     @Test
-    fun `normalizeDeepLinkEvent does not mutate the original envelope's data object`() {
-        val data = JSONObject().put("status", "FOUND").put("error", "ERR")
-        val envelope = JSONObject().put("event", "onDeepLinking").put("data", data)
-
-        normalizeDeepLinkEvent(envelope.toString())
-
-        // Must copy before lowercasing: pluginNotifier fires from arbitrary native threads and `data` isn't owned by this call.
-        assertEquals("ERR", data.getString("error"))
+    fun `normalizeDeepLinkEvent returns the input string unchanged`() {
+        val raw = JSONObject()
+            .put("event", "onDeepLinking")
+            .put("data", JSONObject().put("status", "FOUND").put("error", "ERR"))
+            .toString()
+        assertEquals(raw, normalizeDeepLinkEvent(raw))
     }
 
     @Test
@@ -135,8 +134,9 @@ class AppsFlyerPluginTest {
 
     @Test
     fun `a slow awaitResponse call does not delay a concurrently queued general-lane call`() {
-        val awaitResponseExecutor = Executors.newFixedThreadPool(AWAIT_RESPONSE_METHODS.size)
-        val rpcExecutor = Executors.newSingleThreadExecutor()
+        val plugin = AppsFlyerPlugin()
+        val awaitResponseExecutor = plugin.awaitResponseExecutorForTest()
+        val rpcExecutor = plugin.rpcExecutorForTest()
         try {
             val slowStarted = CountDownLatch(1)
             val releaseSlow = CountDownLatch(1)
@@ -165,7 +165,8 @@ class AppsFlyerPluginTest {
 
     @Test
     fun `the awaitResponse lane is pooled so two concurrent slow calls don't block each other`() {
-        val awaitResponseExecutor = Executors.newFixedThreadPool(AWAIT_RESPONSE_METHODS.size)
+        val plugin = AppsFlyerPlugin()
+        val awaitResponseExecutor = plugin.awaitResponseExecutorForTest()
         try {
             // A 2-party barrier only trips once both tasks run concurrently; a single-threaded lane would leave the first task stuck at the barrier until its own await times out, proving pooling deterministically instead of racing a sleep.
             val barrier = CyclicBarrier(2)
@@ -176,6 +177,41 @@ class AppsFlyerPluginTest {
             second.get(3, TimeUnit.SECONDS)
         } finally {
             awaitResponseExecutor.shutdownNow()
+            plugin.rpcExecutorForTest().shutdownNow()
         }
+    }
+
+    // onDestroy() previously stacked two full 2s awaitTermination calls sequentially (up to ~4s of
+    // main-thread blocking during teardown); it now bounds the *total* wait to one 2s deadline.
+    @Test
+    fun `onDestroy bounds the total shutdown wait to one deadline instead of stacking two full timeouts`() {
+        val plugin = AppsFlyerPlugin()
+        // Workers must ignore interrupts from shutdownNow(); otherwise awaitTermination returns
+        // immediately and this test would pass even if the 2s ceiling logic were broken.
+        val stop = AtomicBoolean(false)
+        val workersStarted = CountDownLatch(2)
+        val busyWork = Runnable {
+            workersStarted.countDown()
+            while (!stop.get()) {
+                try {
+                    Thread.sleep(50)
+                } catch (_: InterruptedException) {
+                    // Keep running until stop is set so awaitTermination actually waits.
+                }
+            }
+        }
+        plugin.awaitResponseExecutorForTest().execute(busyWork)
+        plugin.rpcExecutorForTest().execute(busyWork)
+        assertTrue("workers should start before onDestroy", workersStarted.await(2, TimeUnit.SECONDS))
+
+        val start = System.nanoTime()
+        plugin.onDestroy()
+        val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start)
+        stop.set(true)
+
+        assertTrue(
+            "onDestroy took ${elapsedMs}ms -- expected close to one 2s deadline, not an immediate return (~0) or two stacked timeouts (~4s)",
+            elapsedMs in 1500 until 3500,
+        )
     }
 }
