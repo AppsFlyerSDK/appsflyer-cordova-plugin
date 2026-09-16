@@ -208,6 +208,11 @@ android_install() {
 
 android_launch() {
   log_info "Launching $PACKAGE_NAME..."
+  # GitHub's emulator boots with a 2M logcat buffer, which on a noisy emulator retains only ~25s of
+  # history -- less than a phase takes (launch -> auto-run marker -> settle -> deep link -> capture),
+  # so the SDK's HTTP lines get evicted before the checks read them. Enlarge before clearing.
+  adb logcat -G "${ANDROID_LOGCAT_BUFFER_SIZE:-32M}" >/dev/null 2>&1 || \
+    log_debug "logcat -G unsupported; keeping the device default buffer size"
   adb logcat -c
   adb shell am start -n "${PACKAGE_NAME}/${ACTIVITY}" 2>/dev/null || \
     adb shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1 2>/dev/null
@@ -219,7 +224,9 @@ android_get_pid() {
 
 android_collect_logs() {
   local log_file="$1"
-  local tail_lines="${ANDROID_LOGCAT_TAIL_LINES:-8000}"
+  # Must exceed what the enlarged buffer holds (~130k lines at 32M), or this cap re-imposes the
+  # same truncation the bigger buffer just removed.
+  local tail_lines="${ANDROID_LOGCAT_TAIL_LINES:-200000}"
 
   : > "$log_file"
   local found=0
