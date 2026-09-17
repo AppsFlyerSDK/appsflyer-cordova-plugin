@@ -44,9 +44,6 @@ internal fun deepLinkRequestJsonForIntent(action: String?, url: String?): String
     }.toString()
 }
 
-// Pass-through: preserve native deep-link strings unchanged (parity with iOS).
-internal fun normalizeDeepLinkEvent(eventJson: String): String = eventJson
-
 /** Cordova bridge — every SDK capability is dispatched via executeRpc -> AppsFlyerRpcHandler. */
 class AppsFlyerPlugin : CordovaPlugin() {
 
@@ -64,7 +61,8 @@ class AppsFlyerPlugin : CordovaPlugin() {
                 if (callbackContext == null) {
                     Log.w(TAG, "Dropping $RPC_EVENT_NAME: no subscriber registered")
                 } else {
-                    val pluginResult = PluginResult(PluginResult.Status.OK, normalizeDeepLinkEvent(rawEventJson))
+                    // Event JSON is forwarded to the WebView unmodified (parity with iOS).
+                    val pluginResult = PluginResult(PluginResult.Status.OK, rawEventJson)
                     pluginResult.keepCallback = true
                     callbackContext.sendPluginResult(pluginResult)
                 }

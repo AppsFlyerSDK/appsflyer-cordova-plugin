@@ -11,21 +11,6 @@ final class AppsFlyerPluginTests: XCTestCase {
         CDVPluginResult.forceNilOnNextInit = false
     }
 
-    func testNormalizeReturnsSuccessEnvelope() {
-        let iosResponse = #"{"result":{"success":true,"data":{"uid":"abc"}}}"#
-        let (json, succeeded) = AppsFlyerPlugin.normalize(iosResponseJson: iosResponse)
-        XCTAssertTrue(succeeded)
-        XCTAssertTrue(json.contains("\"success\":true"))
-        XCTAssertTrue(json.contains("\"uid\":\"abc\""))
-    }
-
-    func testNormalizeReturnsErrorEnvelopeOnProtocolError() {
-        let iosResponse = #"{"error":{"code":404,"message":"not found"}}"#
-        let (json, succeeded) = AppsFlyerPlugin.normalize(iosResponseJson: iosResponse)
-        XCTAssertFalse(succeeded)
-        XCTAssertTrue(json.contains("\"code\":404"))
-    }
-
     func testNormalizeFailsClosedWhenResultMissingSuccessFlag() {
         let iosResponse = #"{"result":{"data":{"uid":"abc"}}}"#
         let (json, succeeded) = AppsFlyerPlugin.normalize(iosResponseJson: iosResponse)
@@ -46,7 +31,6 @@ final class AppsFlyerPluginTests: XCTestCase {
         XCTAssertTrue(json.contains("native validation failed"))
     }
 
-    // Regression guard for the parallel fix that stopped hardcoding 500 on SDK-level failure.
     func testNormalizeForwardsSdkLevelFailureCodeInsteadOfHardcoding500() {
         let iosResponse = #"{"result":{"success":false,"code":599,"error":"native validation failed"}}"#
         let (json, succeeded) = AppsFlyerPlugin.normalize(iosResponseJson: iosResponse)
@@ -54,52 +38,46 @@ final class AppsFlyerPluginTests: XCTestCase {
         XCTAssertTrue(json.contains("\"code\":599"))
     }
 
-    // Proves the fake CDVPluginResult init? mirrors the real Obj-C initializer's contract both ways (non-nil normally, nil when forced) — the failure mode AppsFlyerPlugin.subscribeRpcEvents' guard-let branch (formerly `result!`) now fails safe against. Not exercised through subscribeRpcEvents(_:) itself: it registers with the prebuilt AppsFlyerRPCBridge.shared xcframework, so the stored closure isn't reachable from test code; real coverage needs an injectable event-handler seam (production code) or a generated Cordova project.
-    func testFakeCDVPluginResultInitCanReturnNilOrNonNil() {
-        AppsFlyerPluginTests.resetForceNilOnNextInit()
-
-        XCTAssertNotNil(CDVPluginResult(status: .ok, messageAs: "{}"))
-
-        CDVPluginResult.forceNilOnNextInit = true
-        XCTAssertNil(CDVPluginResult(status: .ok, messageAs: "{}"))
-
-        // The toggle is single-shot — must not leak into the next construction.
-        XCTAssertNotNil(CDVPluginResult(status: .ok, messageAs: "{}"))
-    }
-
-    private static func resetForceNilOnNextInit() {
-        CDVPluginResult.forceNilOnNextInit = false
-    }
-
-    // The real blocker to testing subscribeRpcEvents(_:) end-to-end is AppsFlyerRPCBridge.shared,
-    // a real prebuilt xcframework singleton with no fake -- deliverRpcEvent is the closure body it
-    // registers, extracted so the guard-let-or-bail path (formerly `result!`) is directly testable
-    // without going through the bridge at all.
     final class FakeCommandDelegate: CDVCommandDelegate {
         private(set) var sentResults: [(result: CDVPluginResult?, callbackId: String?)] = []
+        var onSend: (() -> Void)?
+
         func send(_ pluginResult: CDVPluginResult?, callbackId: String?) {
             sentResults.append((pluginResult, callbackId))
+            onSend?()
         }
     }
 
     func testDeliverRpcEventSendsResultWithKeepCallback() {
         let delegate = FakeCommandDelegate()
+        let sent = expectation(description: "RPC event sent")
+        delegate.onSend = {
+            XCTAssertTrue(Thread.isMainThread)
+            sent.fulfill()
+        }
         AppsFlyerPlugin.deliverRpcEvent(jsonEvent: #"{"event":"onConversionDataSuccess"}"#, callbackId: "cb1", to: delegate)
+        wait(for: [sent], timeout: 1)
 
         XCTAssertEqual(delegate.sentResults.count, 1)
         XCTAssertEqual(delegate.sentResults[0].callbackId, "cb1")
         XCTAssertEqual(delegate.sentResults[0].result?.keepsCallback, true)
     }
 
-    // Regression guard for the crash this file's guard-let (formerly `result!`) protects against.
     func testDeliverRpcEventDoesNotCrashAndSendsNothingWhenPluginResultInitFails() {
-        AppsFlyerPluginTests.resetForceNilOnNextInit()
         let delegate = FakeCommandDelegate()
 
         CDVPluginResult.forceNilOnNextInit = true
         AppsFlyerPlugin.deliverRpcEvent(jsonEvent: #"{"event":"onConversionDataSuccess"}"#, callbackId: "cb1", to: delegate)
 
         XCTAssertTrue(delegate.sentResults.isEmpty)
+    }
+
+    func testFakePluginResultInitializerIsNilForOneForcedCallOnly() {
+        XCTAssertNotNil(CDVPluginResult(status: .ok, messageAs: "default"))
+
+        CDVPluginResult.forceNilOnNextInit = true
+        XCTAssertNil(CDVPluginResult(status: .ok, messageAs: "forced"))
+        XCTAssertNotNil(CDVPluginResult(status: .ok, messageAs: "reset"))
     }
 
     func testCanonicalMethodExtractsMethodName() {

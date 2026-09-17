@@ -93,42 +93,6 @@ class AppsFlyerPluginTest {
         assertEquals(null, deepLinkRequestJsonForIntent(Intent.ACTION_VIEW, null))
     }
 
-    // normalizeDeepLinkEvent(): pass-through; preserve native strings unchanged (parity with iOS).
-
-    @Test
-    fun `normalizeDeepLinkEvent preserves error and status casing unchanged`() {
-        val raw = JSONObject()
-            .put("event", "onDeepLinking")
-            .put("data", JSONObject().put("status", "FOUND").put("error", "SOME_ERROR"))
-            .toString()
-
-        val normalized = JSONObject(normalizeDeepLinkEvent(raw))
-        val data = normalized.getJSONObject("data")
-
-        assertEquals("FOUND", data.getString("status"))
-        assertEquals("SOME_ERROR", data.getString("error"))
-    }
-
-    @Test
-    fun `normalizeDeepLinkEvent passes through a non-deep-link event unmodified`() {
-        val raw = JSONObject().put("event", "somethingElse").put("data", JSONObject()).toString()
-        assertEquals(raw, normalizeDeepLinkEvent(raw))
-    }
-
-    @Test
-    fun `normalizeDeepLinkEvent returns the input string unchanged`() {
-        val raw = JSONObject()
-            .put("event", "onDeepLinking")
-            .put("data", JSONObject().put("status", "FOUND").put("error", "ERR"))
-            .toString()
-        assertEquals(raw, normalizeDeepLinkEvent(raw))
-    }
-
-    @Test
-    fun `normalizeDeepLinkEvent passes through malformed JSON unmodified rather than throwing`() {
-        assertEquals("not json", normalizeDeepLinkEvent("not json"))
-    }
-
     // Two lanes, not three: a slow awaitResponse call must not delay an unrelated queued RPC.
     // Uses AppsFlyerPlugin's exact executor factory calls + sizing constant (not a reimplementation) to prove the isolation the two-lane design exists for, without driving the real rpcHandler (needs a live Activity/AppsFlyerLib).
 

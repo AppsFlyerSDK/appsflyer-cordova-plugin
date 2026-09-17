@@ -34,8 +34,8 @@
 
     var af = window.plugins.appsFlyer;
 
-    // registerOnAppOpenAttribution removed -- folded into registerDeepLinkListener's onDeepLinking
-    // (see RENAME_AUDIT.md). Must be registered before init() per the new SDK's sequencing model.
+    // registerOnAppOpenAttribution removed -- folded into registerDeepLinkListener's onDeepLinking.
+    // Must be registered before init() per the new SDK's sequencing model.
     af.registerDeepLinkListener({
       onDeepLinking: function (res) {
         void (async function () {
@@ -52,7 +52,7 @@
       appId: env.APP_ID
       // isDebug -> enableDebug() below; onInstallConversionDataListener -> registerConversionListener
       // below; onDeepLinkListener -> registerDeepLinkListener above; shouldStartSdk is moot -- init()
-      // never implicitly starts tracking anymore, see RENAME_AUDIT.md's initSdk row.
+      // never implicitly starts tracking anymore.
     };
 
     await initSdkWait(af, initOpts, 1500);
@@ -96,7 +96,7 @@
     await afQaLog('[AF_QA][AUTO_APIS] --- Pre-start auto APIs complete ---');
 
     // start() must be called from inside registerSessionReadyListener's callback per SDK 7's manual
-    // startup model (RENAME_AUDIT.md) -- no longer fired unconditionally right after init. Bounded
+    // startup model -- no longer fired unconditionally right after init. Bounded
     // with a timeout so the QA log always gets an unambiguous SUCCESS/error/timeout line for this
     // call, instead of silently having no line at all if onSessionReady never fires.
     // 10s, not 5s: AppsFlyerLib's own Universal Link readiness check (a session-ready
@@ -351,158 +351,45 @@
     }
   }
 
-  function extractDeepLinkValueFromUdl(o) {
-    if (!o || typeof o !== 'object') {
-      return '';
+  // Every real payload delivers both the event and its nested `deepLink` as objects, but this runs
+  // inside the SDK's event dispatch -- throwing here loses the event, so anything that isn't an
+  // object is tolerated rather than trusted.
+  function asPayloadObject(value) {
+    var parsed = value;
+    if (typeof parsed === 'string') {
+      try {
+        parsed = JSON.parse(parsed);
+      } catch (e) {
+        return null;
+      }
     }
-    function visit(node, depth) {
-      if (depth > 8 || node == null) {
-        return '';
-      }
-      if (typeof node === 'string') {
-        if (node.length > 1 && (node.charAt(0) === '{' || node.charAt(0) === '[')) {
-          try {
-            var parsed = JSON.parse(node);
-            var fromParsed = visit(parsed, depth + 1);
-            if (fromParsed) {
-              return fromParsed;
-            }
-          } catch (e0) {
-            /* not JSON */
-          }
-        }
-        if (/^qa_deeplink_(bg|fg)$/.test(node)) {
-          return node;
-        }
-        var um = node.match(/[?&]deep_link_value=([^&]+)/);
-        if (um) {
-          try {
-            return decodeURIComponent(um[1]);
-          } catch (e) {
-            return um[1];
-          }
-        }
-        return '';
-      }
-      if (typeof node !== 'object') {
-        return '';
-      }
-      var k;
-      for (k in node) {
-        if (!Object.prototype.hasOwnProperty.call(node, k)) continue;
-        var lk = k.toLowerCase();
-        var val = node[k];
-        if (
-          (lk === 'deep_link_value' || lk === 'deeplinkvalue' || lk === 'deep_value') &&
-          val != null &&
-          String(val) !== ''
-        ) {
-          return String(val);
-        }
-        if (lk === 'link' && typeof val === 'string') {
-          var fromLink = visit(val, depth + 1);
-          if (fromLink) return fromLink;
-        }
-        if (
-          typeof val === 'string' &&
-          val !== '' &&
-          (val.indexOf('deep_link_value=') !== -1 ||
-            val.indexOf('afqa-') !== -1 ||
-            val.indexOf('://') !== -1)
-        ) {
-          var fromUrlish = visit(val, depth + 1);
-          if (fromUrlish) return fromUrlish;
-        }
-        if (val && typeof val === 'object') {
-          var inner = visit(val, depth + 1);
-          if (inner) return inner;
-        }
-        if (typeof val === 'string' && /^qa_deeplink_(bg|fg)$/.test(val)) {
-          return val;
-        }
-      }
-      return '';
-    }
-    var out = visit(o, 0);
-    if (out) {
-      return out;
-    }
-    try {
-      var s = JSON.stringify(o);
-      var qm = s.match(/\b(qa_deeplink_(?:bg|fg))\b/);
-      if (qm) {
-        return qm[1];
-      }
-      var m = s.match(/"deep_link_value"\s*:\s*"([^"]+)"/);
-      if (m) return m[1];
-      m = s.match(/"deepLinkValue"\s*:\s*"([^"]+)"/);
-      if (m) return m[1];
-      m = s.match(/deep_link_value=([^&"\\]+)/);
-      if (m) {
-        try {
-          return decodeURIComponent(m[1]);
-        } catch (e2) {
-          return m[1];
-        }
-      }
-      m = s.match(/afqa-cordova:\/\/[^"'\\s]*[?&]deep_link_value=([^&"'\\]+)/);
-      if (m) {
-        try {
-          return decodeURIComponent(m[1]);
-        } catch (e4) {
-          return m[1];
-        }
-      }
-    } catch (e3) {
-      return '';
-    }
-    return '';
+    return parsed && typeof parsed === 'object' ? parsed : null;
   }
 
-  function parseDeepLinkNativePayload(raw) {
-    var o = raw;
-    if (typeof raw === 'string') {
-      try {
-        o = JSON.parse(raw);
-      } catch (e) {
-        return { statusLabel: 'Status.ERROR', deepLinkValue: '' };
-      }
+  // js-core-plugin's normalizeDeepLinkData() collapses every platform's raw status (iOS sends
+  // 'found'/'notFound'/'failure', Android the uppercase enum name) onto 'FOUND'|'NOT_FOUND'|'ERROR'
+  // before onDeepLinking runs, so exact equality is enough here. The labels themselves are the
+  // scenario-runner contract (.af-e2e/test-plan.json asserts `status=Status.FOUND`).
+  function deepLinkStatusLabel(status) {
+    if (status === 'FOUND') {
+      return 'Status.FOUND';
     }
-    if (!o || typeof o !== 'object') {
+    if (status === 'NOT_FOUND') {
+      return 'Status.NOT_FOUND';
+    }
+    return 'Status.ERROR';
+  }
+
+  // DeepLinkData declares `status`, `error` and `deepLink` and no top-level value field: the deep
+  // link value arrives as deepLink.deep_link_value on both platforms.
+  function parseDeepLinkNativePayload(raw) {
+    var data = asPayloadObject(raw);
+    if (!data) {
       return { statusLabel: 'Status.ERROR', deepLinkValue: '' };
     }
-    // `status` is the new normalized DeepLinkData field (registerDeepLinkListener's onDeepLinking
-    // always delivers 'FOUND'|'NOT_FOUND'|'ERROR' here now); `deepLinkStatus` is the old raw-payload
-    // field name, kept as a fallback in case anything upstream ever leaks the pre-normalization shape.
-    var ds = o.status != null ? String(o.status) : (o.deepLinkStatus != null ? String(o.deepLinkStatus) : '');
-    var statusLabel = 'Status.ERROR';
-    // NOT_FOUND must be tested before FOUND: 'NOT_FOUND'.indexOf('FOUND') is 4, so the substring
-    // check would otherwise label every NOT_FOUND payload as Status.FOUND.
-    if (ds === 'NOT_FOUND' || ds === 'NotFound' || ds.indexOf('NOT_FOUND') !== -1) {
-      statusLabel = 'Status.NOT_FOUND';
-    } else if (ds === 'FOUND' || ds === 'Found' || ds.indexOf('FOUND') !== -1) {
-      statusLabel = 'Status.FOUND';
-    } else if (ds === 'Error' || ds === 'FAILURE' || ds === 'Failure' || ds.indexOf('Error') !== -1) {
-      statusLabel = 'Status.ERROR';
-    }
-    var dlv = extractDeepLinkValueFromUdl(o);
-    if (!dlv && o.deepLinkValue != null && String(o.deepLinkValue) !== '') {
-      dlv = String(o.deepLinkValue);
-    }
-    if (!dlv && o.data != null) {
-      var d = o.data;
-      if (typeof d === 'string') {
-        try {
-          d = JSON.parse(d);
-        } catch (e1) {
-          d = null;
-        }
-      }
-      if (d && typeof d === 'object') {
-        dlv = extractDeepLinkValueFromUdl(d);
-      }
-    }
-    return { statusLabel: statusLabel, deepLinkValue: dlv };
+    var deepLink = asPayloadObject(data.deepLink);
+    var value = deepLink && deepLink.deep_link_value != null ? String(deepLink.deep_link_value) : '';
+    return { statusLabel: deepLinkStatusLabel(data.status), deepLinkValue: value };
   }
 
   function formatOnDeepLinkingContractLine(res) {

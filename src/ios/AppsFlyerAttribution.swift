@@ -7,26 +7,27 @@ public final class AppsFlyerAttribution: NSObject {
 
     @objc public static let shared = AppsFlyerAttribution()
 
-    internal var deliverHandleOpen: (URL, [UIApplication.OpenURLOptionsKey: Any]) -> Void = { url, options in
+    internal static let defaultDeliverHandleOpen: (URL, [UIApplication.OpenURLOptionsKey: Any]) -> Void = { url, options in
         AppsFlyerLib.shared().handleOpen(url, options: options)
     }
-    internal var deliverLegacyHandleOpen: (URL, String?, Any?) -> Void = { url, sourceApplication, annotation in
+    internal static let defaultDeliverLegacyHandleOpen: (URL, String?, Any?) -> Void = { url, sourceApplication, annotation in
         AppsFlyerLib.shared().handleOpen(url, sourceApplication: sourceApplication, withAnnotation: annotation)
     }
-    internal var deliverContinueUserActivity: (NSUserActivity, (([Any]?) -> Void)?) -> Void = { activity, handler in
+    internal static let defaultDeliverContinueUserActivity: (NSUserActivity, (([Any]?) -> Void)?) -> Void = { activity, handler in
         _ = AppsFlyerLib.shared().continue(activity, restorationHandler: handler)
     }
-    internal var deliverHandleLaunchOptions: (([AnyHashable: Any]?) -> Void) = { AppsFlyerLib.shared().handleLaunchOptions($0) }
+    internal static let defaultDeliverHandleLaunchOptions: ([AnyHashable: Any]?) -> Void = { AppsFlyerLib.shared().handleLaunchOptions($0) }
+
+    internal var deliverHandleOpen = AppsFlyerAttribution.defaultDeliverHandleOpen
+    internal var deliverLegacyHandleOpen = AppsFlyerAttribution.defaultDeliverLegacyHandleOpen
+    internal var deliverContinueUserActivity = AppsFlyerAttribution.defaultDeliverContinueUserActivity
+    internal var deliverHandleLaunchOptions = AppsFlyerAttribution.defaultDeliverHandleLaunchOptions
 
     internal func resetDeliveryClosuresToDefaultsForTest() {
-        deliverHandleOpen = { url, options in AppsFlyerLib.shared().handleOpen(url, options: options) }
-        deliverLegacyHandleOpen = { url, sourceApplication, annotation in
-            AppsFlyerLib.shared().handleOpen(url, sourceApplication: sourceApplication, withAnnotation: annotation)
-        }
-        deliverContinueUserActivity = { activity, handler in
-            _ = AppsFlyerLib.shared().continue(activity, restorationHandler: handler)
-        }
-        deliverHandleLaunchOptions = { AppsFlyerLib.shared().handleLaunchOptions($0) }
+        deliverHandleOpen = Self.defaultDeliverHandleOpen
+        deliverLegacyHandleOpen = Self.defaultDeliverLegacyHandleOpen
+        deliverContinueUserActivity = Self.defaultDeliverContinueUserActivity
+        deliverHandleLaunchOptions = Self.defaultDeliverHandleLaunchOptions
         lock.withCriticalScope { pendingActions.removeAll() }
     }
 

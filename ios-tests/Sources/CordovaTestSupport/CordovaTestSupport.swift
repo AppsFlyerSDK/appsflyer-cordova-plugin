@@ -24,7 +24,7 @@ public final class CDVPluginResult: NSObject {
         self.message = message
     }
 
-    // Swift's Clang importer renames the real setKeepCallbackAsBool: to setKeepCallbackAs(_:); match that here or this double silently drifts from what production code calls (as it did until e2e caught it).
+    // Swift's Clang importer renames the real setKeepCallbackAsBool: to setKeepCallbackAs(_:); match that here or this double silently drifts from what production code calls.
     public func setKeepCallbackAs(_ bKeepCallback: Bool) {
         keepCallback = bKeepCallback
     }

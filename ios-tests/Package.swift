@@ -25,8 +25,8 @@ let package = Package(
     ],
     targets: [
         // Module name is "Cordova" purely as a test double -- the real CordovaLib has no Swift
-        // module by that name (see AppsFlyerPlugin.swift's AF_CORDOVA_SPM_TEST comment). Gated
-        // behind that same flag so production's `import Cordova` only fires in this harness.
+        // module by that name. Gated behind AF_CORDOVA_SPM_TEST so production's `import Cordova`
+        // only fires in this harness.
         .target(
             name: "Cordova",
             dependencies: [],
