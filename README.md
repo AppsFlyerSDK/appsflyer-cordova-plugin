@@ -43,7 +43,7 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
   
 ### <a id="plugin-build-for"> This plugin is built for  
   
-- iOS AppsFlyerSDK **v7.0.2** (AppsFlyerRPC **v7.0.13**)
+- iOS AppsFlyerSDK **v7.0.13** (AppsFlyerRPC **v7.0.13**)
 - Android AppsFlyerSDK **v7.0.1** (af-android-plugin-bridge **v7.0.13**)
 
 ### <a id="breakingChangesV7"> ❗v7 Breaking Changes — no backward compatibility
