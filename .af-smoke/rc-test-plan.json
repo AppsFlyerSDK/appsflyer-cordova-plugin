@@ -44,7 +44,7 @@
           "id": "is_first_launch_true",
           "description": "onInstallConversionData fires with is_first_launch=true",
           "type": "log_contains",
-          "pattern": "[AF_QA][CALLBACK][onInstallConversionData]",
+          "pattern": "[AF_QA][CALLBACK][onInstallConversionData] received:",
           "payload_check": {
             "field": "is_first_launch",
             "expected": "true"
@@ -66,10 +66,24 @@
           "fail_action": "fail"
         },
         {
-          "id": "event_af_demo_launch",
-          "description": "af_demo_launch event fires",
+          "id": "event_qa_demo_launch",
+          "description": "qa_demo_launch event fires",
           "type": "log_contains",
-          "pattern": "[AF_QA][logEvent(af_demo_launch)] result:",
+          "pattern": "[AF_QA][logEvent(qa_demo_launch)] result:",
+          "fail_action": "fail"
+        },
+        {
+          "id": "event_af_purchase",
+          "description": "af_purchase event fires",
+          "type": "log_contains",
+          "pattern": "[AF_QA][logEvent: af_purchase sent] result:",
+          "fail_action": "fail"
+        },
+        {
+          "id": "event_af_content_view",
+          "description": "af_content_view event fires",
+          "type": "log_contains",
+          "pattern": "[AF_QA][logEvent: af_content_view sent] result:",
           "fail_action": "fail"
         },
         {
@@ -169,6 +183,17 @@
           "description": "startSDK returns SUCCESS on fresh install",
           "type": "log_contains",
           "pattern": "[AF_QA][startSDK] result: SUCCESS",
+          "fail_action": "abort"
+        },
+        {
+          "id": "is_first_launch_true",
+          "description": "onInstallConversionData fires with is_first_launch=true before deep link",
+          "type": "log_contains",
+          "pattern": "[AF_QA][CALLBACK][onInstallConversionData] received:",
+          "payload_check": {
+            "field": "is_first_launch",
+            "expected": "true"
+          },
           "fail_action": "abort"
         },
         {

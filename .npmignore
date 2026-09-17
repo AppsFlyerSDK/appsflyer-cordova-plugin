@@ -1,6 +1,4 @@
 examples/
-tests/
-testsScripts/
 docs/
 .github/
 .claude/
@@ -13,4 +11,13 @@ docs/
 test-app/
 test-app_rc_smoke/
 RELEASENOTES.md
-.travis.yml
+src/__tests__/
+src/*.test.ts
+src/version.ts
+tsconfig*.json
+vitest.config.mts
+scripts/gen-version.mjs
+scripts/verify-bundle-shape.mjs
+ios-tests/
+android-tests/
+Makefile

@@ -30,3 +30,6 @@ npm-debug.log*
 /plugins
 /www
 package-lock.json
+
+# Generated from .env by scripts/gen-af-config.js -- contains the real devKey/appId
+src/app/af-config.ts
