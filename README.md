@@ -4,7 +4,6 @@
   
 # Cordova AppsFlyer plugin for Android and iOS.   
 [![npm version](https://badge.fury.io/js/cordova-plugin-appsflyer-sdk.svg)](https://badge.fury.io/js/cordova-plugin-appsflyer-sdk)  
-[![Build Status](https://travis-ci.org/AppsFlyerSDK/appsflyer-cordova-plugin.svg?branch=master)](https://travis-ci.org/AppsFlyerSDK/appsflyer-cordova-plugin)  
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)   
 [![Downloads](https://img.shields.io/npm/dm/cordova-plugin-appsflyer-sdk.svg)](https://www.npmjs.com/package/cordova-plugin-appsflyer-sdk)  
   ----------  
@@ -31,9 +30,10 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
 ## Table of content  
   
 - [SDK versions](#plugin-build-for)  
+- [V7 Breaking Changes](#breakingChangesV7)  
 - [V6 Breaking Changes](#breakingChanges)  
 - [Installation](#installation)  
-- [Add or Remove Strict mode for App-kids](#appKids)  
+- [Strict mode for app-kids](#appKids)  
 - [Guides](#guides)  
 - [Setup](#setup)  
 - [API](#api)   
@@ -43,8 +43,33 @@ You can read more [here](https://support.appsflyer.com/hc/en-us/articles/2070320
   
 ### <a id="plugin-build-for"> This plugin is built for  
   
-- iOS AppsFlyerSDK **v6.18.0**  
-- Android AppsFlyerSDK **v6.18.0**
+- iOS AppsFlyerSDK **v7.0.2** (AppsFlyerRPC **v7.0.13**)
+- Android AppsFlyerSDK **v7.0.1** (af-android-plugin-bridge **v7.0.13**)
+
+### <a id="breakingChangesV7"> ❗v7 Breaking Changes — no backward compatibility
+
+Plugin **v7.0.2** moves onto AppsFlyer's shared RPC core (`AppsFlyerRPC` on iOS,
+`af-android-plugin-bridge` on Android, `@appsflyer-sdk/js-core-plugin` in JS). This is a **major,
+intentionally breaking release** — old method names, callback-style calls, and a few methods with
+no equivalent in the new schema are gone, not deprecated. There is no compatibility shim; update
+every call site. Full method-by-method mapping: [RELEASENOTES.md](/RELEASENOTES.md#702) /
+[API.md](/docs/API.md).
+
+- **Every method is now Promise-based.** `fn(args, successCB, errorCB)` → `await AppsFlyer.fn(params)`.
+  Failures throw (`AppsFlyerRpcError` for transport failures, `AppsFlyerError` for SDK failures)
+  instead of calling an error callback.
+- **Renamed:** `initSdk`→`init`, `startSdk`→`start`, `setAppUserId`→`setCustomerUserId`,
+  `Stop`→`stop`, `logCrossPromotionAndOpenStore`→`logAndOpenStore`,
+  `setPhoneNumber`→`setUserPhone` (now requires `countryCode`), `setUserEmails`→`setUserEmail`
+  (single email, not an array), and more — see [API.md](/docs/API.md) for every signature.
+- **Removed, no replacement:** `registerOnAppOpenAttribution` (folded into
+  `registerDeepLinkListener`), `registerUninstall`, `setSharingFilter`/`setSharingFilterForAllPartners`
+  (already deprecated, superseded by `setSharingFilterForPartners`), the `AppsFlyerConsent` and
+  `AFPurchaseDetails` classes (pass a plain object instead).
+- **`start()` is no longer implicit after `init()`** — call it from inside
+  `registerSessionReadyListener`'s callback. See the updated example below.
+- **Dependencies:** iOS pod is now `AppsFlyerRPC` (was `AppsFlyerFramework`). Android needs
+  **JDK 21** to build (was 17). See [Installation.md](/docs/Installation.md).
 
 ### <a id="breakingChanges"> ❗v6.15.11 Breaking Changes
 
@@ -88,31 +113,22 @@ to allow the SDK to collect the Android Advertising ID on apps targeting API 33.
 If your app is targeting children, you need to revoke this permission to comply with Google's Data policy.
 You can read more about it [here](https://dev.appsflyer.com/hc/docs/install-android-sdk#the-ad_id-permission). </br>
 
-## <a id="appKids">👨‍👩‍👧‍👦 Add or Remove Strict mode for App-kids  
-Starting from version **6.1.10** iOS SDK comes in two variants: **Strict** mode and **Regular** mode. Please read more [here](https://support.appsflyer.com/hc/en-us/articles/207032066#integration-strict-mode-sdk)  
-***Change to Strict mode***<br>  
-After you [installed](#installation) the AppsFlyer plugin, go to the `ios` folder inside `platform` folder:  
-```  
-cd platform/ios  
-```  
-open the `Podfile` and replace `pod 'AppsFlyerFramework', '6.1.1'` with `pod 'AppsFlyerFramework/Strict', '6.1.1'`  
-  
-Run `pod install` inside the `ios` folder  
-  
-inside xcode, go to your target and define Preprocessor Macro `AFSDK_NO_IDFA=1`  
-![Add Preprocessor macro](https://github.com/amit-kremer93/resources/blob/main/preprocessorMacro.png) <br>  
-* You can add the Preprocessor Macro using our [Hooks](/docs/Hooks.md).  
-  
-***Change to Regular mode***<br>  
-Go to the `ios` folder inside `platform` folder:  
-```  
-cd platform/ios  
-```  
-open the `Podfile` and replace `pod 'AppsFlyerFramework/Strict', '6.1.1'` with `pod 'AppsFlyerFramework', '6.1.1'`  
-  
-Run `pod install` inside the `ios` folder  
-  
-inside xcode, go to your target and remove the Preprocessor Macro `AFSDK_NO_IDFA=1`  
+## <a id="appKids">👨‍👩‍👧‍👦 Strict mode for app-kids  
+Use strict mode to completely remove IDFA and Advertising ID collection (for example, when developing apps for kids under COPPA or Google Play Families policy).
+
+### Enabling strict mode
+
+Add the `AppsFlyerStrictMode` preference to your app's `config.xml`:
+
+```xml
+<preference name="AppsFlyerStrictMode" value="true" />
+```
+
+During `cordova prepare`, the plugin automatically:
+- **iOS:** Switches the CocoaPods dependency to `AppsFlyerRPC/Strict` (which pulls `AppsFlyerFramework/Strict`) and runs `pod install`.
+- **Android:** Removes the `com.google.android.gms.permission.AD_ID` permission from the prepared `AndroidManifest.xml`.
+
+To disable strict mode, remove the preference or set its value to `"false"`. The hook restores the standard dependencies on the next `cordova prepare`.  
   
   ## <a id="guides"> 📖 Guides  
   
@@ -129,23 +145,32 @@ Great installation and setup guides can be viewed [here](/docs/Guides.md).
 ####  Set your App_ID (iOS only), Dev_Key and enable AppsFlyer to detect installations, sessions (app opens) and updates. > This is the minimum requirement to start tracking your app installs and is already implemented in this plugin. You **MUST** modify this call and provide:    
  **devKey** - Your application devKey provided by AppsFlyer.<br>  
 **appId**  - ***For iOS only.*** Your iTunes Application ID.<br>  
-**waitForATTUserAuthorization**  - ***For iOS14 only.*** Time for the sdk to wait before launch.  
-  
+
   
 Add the following lines to your code to be able to initialize tracking with your own AppsFlyer dev key:  
   
   
 ```javascript  
-document.addEventListener('deviceready', function() {  
-  
-  window.plugins.appsFlyer.initSdk({  
-  devKey: 'K2***************99', // your AppsFlyer devKey  
-  isDebug: false,  
-  appId: '41*****44', // your ios appID  
-  waitForATTUserAuthorization: 10, //time for the sdk to wait before launch - IOS 14 ONLY!  
- }, (result) => {  console.log(result);  
- }, (error) => {  console.error(error);  
- } );  }, false);  
+document.addEventListener('deviceready', async function() {  
+
+  const AppsFlyer = window.plugins.appsFlyer;
+
+  // Register the deep-link listener before init().
+  await AppsFlyer.registerDeepLinkListener({
+    onDeepLinking: (data) => console.log(data),
+  });
+
+  await AppsFlyer.init({
+    devKey: 'K2***************99', // your AppsFlyer devKey
+    appId: '41*****44', // your iOS appID
+  });
+
+  // start() is no longer implicit after init() — call it once the session is ready.
+  await AppsFlyer.registerSessionReadyListener(() => {
+    AppsFlyer.start().catch((error) => console.error(error));
+  });
+
+}, false);  
 ```  
 ---  
   
@@ -155,8 +180,16 @@ document.addEventListener('deviceready', function() {
   
   
 ## <a id="demo"> 📱 Demo  
-Check out the demo for this project [here](docs/Guides.md#demo).<br>  
-There is 1 demo project called ```demoC```, run ```npm run setup_c``` in the appsflyer-cordova-plugin folder and then open the ios project in Xcode to see implementation for IOS 14.<br>  
+Clone this Git repository to use the demo apps; the npm package doesn't include `examples/`. The repository contains two demos, each with its own `Makefile`:  
+- [`examples/cordovatestapp`](/examples/cordovatestapp): plain Cordova (JavaScript)  
+- [`examples/ionic-cordova`](/examples/ionic-cordova): Angular + Ionic  
+
+In either folder, copy `.env.example` to `.env` and fill in your `DEV_KEY` and `APP_ID`, then run:  
+```sh  
+make ios      # build and run on an iOS simulator  
+make android  # build and run on an Android emulator  
+```  
+`make help` lists the available targets, and `make clean` removes the synced-out build copy.  
 Check out our Sample-App  **Let's cook!** [here](https://github.com/AppsFlyerSDK/appsflyer-cordova-app) if you want to implement our SDK inside React-Cordova app  
 ## <a id="ionic"> 📍 Ionic  
 ***NOTICE!*** In AppsFlyer Cordova plugin version 6.x.x we replaced the word ``track`` with ``log`` from all our api but Ionic-Navite Appsflyer plugin still uses ``track``<br>  
@@ -180,8 +213,13 @@ declare var window;
 ...  
 export class HomePage {  
   constructor(public platform: Platform) {  
-  this.platform.ready().then(() => {  
-  window.plugins.appsFlyer.initSdk(options, success, error);  
+  this.platform.ready().then(async () => {  
+  const AppsFlyer = window.plugins.appsFlyer;
+  await AppsFlyer.registerDeepLinkListener({ onDeepLinking: (data) => console.log(data) });
+  await AppsFlyer.init({ devKey, appId });
+  await AppsFlyer.registerSessionReadyListener(() => {
+    AppsFlyer.start().catch((error) => console.error(error));
+  });
  }); }}  
 ```  
   

@@ -1,0 +1,28 @@
+<ion-app>
+  <ion-header [translucent]="true">
+    <ion-toolbar>
+      <ion-title>
+        AppsFlyer
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content [fullscreen]="true">
+    <div id="container">
+      <strong>AppsFlyer ionic-cordova App</strong>
+      <!-- SDK init + start() run automatically once the platform is ready (app.ts) -- no manual start button. -->
+      <ion-button color="primary" (click)="logEvent()">Log event</ion-button>
+      <ion-button color="primary" (click)="brandedDomains()">set branded domains</ion-button>
+      <ion-button color="primary" (click)="resolveDeepLinksUrls()">set Resolve DeepLink</ion-button>
+      <ion-button color="primary" (click)="getSDKVersion()">get sdk version</ion-button>
+      <ion-button color="primary" (click)="getAppsFlyerUID()">get AppsFlyer UID</ion-button>
+      <ion-button color="primary" (click)="setCustomerUserId()">set customer user id</ion-button>
+      <ion-button color="primary" (click)="setCurrency()">set currency</ion-button>
+      <ion-button color="primary" (click)="generateInviteLink()">generate invite link</ion-button>
+      <ion-button color="primary" (click)="logAndOpenStore()">log cross promo + open store</ion-button>
+      <ion-button color="primary" (click)="logAdRevenue()">log ad revenue</ion-button>
+      <ion-button color="primary" (click)="validateAndLogInAppPurchase()">validate + log purchase</ion-button>
+      <ion-button color="primary" (click)="disableAppSetId()">disable app set id</ion-button>
+    </div>
+  </ion-content>
+</ion-app>

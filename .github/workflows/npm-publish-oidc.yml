@@ -1,7 +1,4 @@
-# Single workflow file for npm trusted publishing (OIDC). npm allows one trusted
-# publisher workflow name per package. RC and production entry workflows trigger
-# this file via workflow_dispatch so the executing workflow matches npm config.
-# See https://docs.npmjs.com/trusted-publishers#troubleshooting (workflow_call caveat).
+# Single workflow name for npm trusted publishing (OIDC) — npm allows only one per package. RC/production entry workflows trigger this via workflow_dispatch to keep the executing workflow matching npm config. See https://docs.npmjs.com/trusted-publishers#troubleshooting.
 
 name: npm publish (OIDC)
 
@@ -39,7 +36,7 @@ jobs:
           ref: ${{ inputs.git_ref }}
           token: ${{ secrets.CI_DEV_GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
@@ -54,6 +51,27 @@ jobs:
           echo "npm ${NPM_VERSION}"
           export NPM_VERSION
           node -e 'const version = process.env.NPM_VERSION || ""; const parts = version.split(".").map(Number); const ok = parts[0] > 11 || (parts[0] === 11 && (parts[1] > 5 || (parts[1] === 5 && parts[2] >= 1))); if (!ok) { console.error("npm " + version + " is too old for OIDC trusted publishing; need >=11.5.1"); process.exit(1); }'
+
+      - name: Prepare package for registry publish
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # npm provenance requires repository.url to match this GitHub repository; older release branches may still have the old URL.
+          node <<'NODE'
+          const fs = require('fs');
+          const repo = `https://github.com/${process.env.GITHUB_REPOSITORY}`;
+          const pj = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pj.repository = { type: 'git', url: `git+${repo}.git` };
+          pj.bugs = { url: `${repo}/issues` };
+          pj.homepage = `${repo}#readme`;
+          if (pj.license && typeof pj.license === 'object') {
+            pj.license.url = `${repo}/blob/master/LICENSE`;
+          }
+          fs.writeFileSync('package.json', JSON.stringify(pj, null, 2) + '\n');
+          console.log(`[npm-publish-oidc] repository.url=${pj.repository.url}`);
+          NODE
+          echo "Prepared package.json repository metadata"
 
       - name: Install plugin dependencies
         run: npm install

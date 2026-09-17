@@ -208,6 +208,11 @@ android_install() {
 
 android_launch() {
   log_info "Launching $PACKAGE_NAME..."
+  # GitHub's emulator boots with a 2M logcat buffer, which on a noisy emulator retains only ~25s of
+  # history -- less than a phase takes (launch -> auto-run marker -> settle -> deep link -> capture),
+  # so the SDK's HTTP lines get evicted before the checks read them. Enlarge before clearing.
+  adb logcat -G "${ANDROID_LOGCAT_BUFFER_SIZE:-32M}" >/dev/null 2>&1 || \
+    log_debug "logcat -G unsupported; keeping the device default buffer size"
   adb logcat -c
   adb shell am start -n "${PACKAGE_NAME}/${ACTIVITY}" 2>/dev/null || \
     adb shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1 2>/dev/null
@@ -219,20 +224,11 @@ android_get_pid() {
 
 android_collect_logs() {
   local log_file="$1"
-  # Long Cordova/WebView sessions can push native SDK HTTP lines out of a short
-  # tail; CI emulators are also chatty. Override with ANDROID_LOGCAT_TAIL_LINES.
-  local tail_lines="${ANDROID_LOGCAT_TAIL_LINES:-8000}"
+  # Must exceed what the enlarged buffer holds (~130k lines at 32M), or this cap re-imposes the
+  # same truncation the bigger buffer just removed.
+  local tail_lines="${ANDROID_LOGCAT_TAIL_LINES:-200000}"
 
-  # Always start from an empty file so each phase capture is self-contained.
   : > "$log_file"
-
-  # Strategy 1: Read the app's af_qa_logs.txt from internal storage via
-  # `run-as` (debuggable APK). Cordova: `[AF_QA]` lines often also appear in
-  # logcat via Chromium/WebView (`console.log`), but a **file** mirror is still
-  # the contract when you need the same markers as iOS `Documents/af_qa_logs.txt`.
-  # Try `files/` first (typical for `cordova-plugin-file` / native helpers), then
-  # `app_flutter/` (alternate app data layout some setups use with this runner).
-  # `run-as` requires a **debug** build (e.g. `cordova build android --debug`).
   local found=0
   for path in files/af_qa_logs.txt app_flutter/af_qa_logs.txt; do
     if adb shell "run-as $PACKAGE_NAME cat $path 2>/dev/null" >> "$log_file" 2>/dev/null; then
@@ -247,18 +243,11 @@ android_collect_logs() {
     log_debug "No af_qa_logs.txt found via run-as; relying on logcat only"
   fi
 
-  # Strategy 2: Always also append logcat. Picks up AppsFlyer native SDK lines
-  # (HTTP response codes, etc.), Cordova/Chromium **`[AF_QA]`** `console.log`
-  # output, and other markers used by `count_matches`. Use **-i** and spellings
-  # aligned with iOS collection: some Android builds log `appsflyer` / AFLogger
-  # tags or `response_status=` without the exact `response code:200 OK` substring
-  # on the same line as the `AppsFlyer` brand string — a case-only `AppsFlyer`
-  # filter drops them entirely.
   adb logcat -d -t "$tail_lines" 2>&1 | grep -Ei "${LOG_TAG}|AppsFlyer|appsflyer|AF-AFLogger|chromium|Console|Cordova|WebView|response code|response_status|preparing data:" >> "$log_file" || true
 }
 
 android_background_app() {
-  log_info "Backgrounding app (launcher HOME intent + 2s on device)..."
+  log_info "Backgrounding app..."
   adb shell "am start -a android.intent.action.MAIN -c android.intent.category.HOME && sleep 2"
 }
 
@@ -296,17 +285,41 @@ ios_ensure_udid() {
 }
 
 ios_is_installed() {
-  xcrun simctl listapps "$IOS_UDID" 2>/dev/null | grep -q "$PACKAGE_NAME" 2>/dev/null
+  xcrun simctl get_app_container "$IOS_UDID" "$PACKAGE_NAME" app &>/dev/null
+}
+
+ios_get_qa_log_path() {
+  ios_ensure_udid
+  local container
+  container=$(xcrun simctl get_app_container "$IOS_UDID" "$PACKAGE_NAME" data 2>/dev/null || true)
+  if [[ -n "$container" && -d "$container" ]]; then
+    if [[ -f "$container/Library/NoCloud/af_qa_logs.txt" ]]; then
+      echo "$container/Library/NoCloud/af_qa_logs.txt"
+      return 0
+    fi
+    if [[ -f "$container/Documents/af_qa_logs.txt" ]]; then
+      echo "$container/Documents/af_qa_logs.txt"
+      return 0
+    fi
+    local found
+    found=$(find "$container" -name "af_qa_logs.txt" -maxdepth 3 2>/dev/null | head -1)
+    if [[ -n "$found" ]]; then
+      echo "$found"
+      return 0
+    fi
+  fi
+  return 1
 }
 
 ios_uninstall() {
   ios_ensure_udid
   log_info "Uninstalling $PACKAGE_NAME..."
-  if ios_is_installed; then
-    xcrun simctl uninstall "$IOS_UDID" "$PACKAGE_NAME" 2>/dev/null || true
-  else
-    log_info "App not installed, skipping uninstall"
+  local qa_log
+  qa_log=$(ios_get_qa_log_path 2>/dev/null || true)
+  if [[ -n "$qa_log" && -f "$qa_log" ]]; then
+    rm -f "$qa_log" 2>/dev/null || true
   fi
+  xcrun simctl uninstall "$IOS_UDID" "$PACKAGE_NAME" 2>/dev/null || true
 }
 
 ios_install() {
@@ -325,10 +338,6 @@ ios_install() {
 ios_launch() {
   ios_ensure_udid
   log_info "Launching $PACKAGE_NAME..."
-  # Capture launch output so we can pin log filtering to this PID. simctl
-  # prints "<bundle_id>: <pid>" on success; anything else (already running,
-  # error) leaves IOS_LAST_PID empty and the collector falls back to the
-  # unfiltered window.
   local out
   out=$(xcrun simctl launch "$IOS_UDID" "$PACKAGE_NAME" 2>&1 || true)
   echo "$out"
@@ -349,19 +358,14 @@ ios_collect_logs() {
   # Always start from an empty file so each phase capture is self-contained.
   : > "$log_file"
 
-  # Strategy 1: Read the app's af_qa_logs.txt from the simulator filesystem
-  # (test-app contract: `Documents/af_qa_logs.txt`). Cordova uses the same path via
-  # the native/file bridge; the file is the reliable source of `[AF_QA]` because
-  # `simctl log show` alone misses many lines.
-  local sim_data_dir
-  sim_data_dir="$HOME/Library/Developer/CoreSimulator/Devices/${IOS_UDID}/data"
-  if [[ -d "$sim_data_dir" ]]; then
-    local qa_log
-    qa_log=$(find "$sim_data_dir/Containers/Data/Application" -name "af_qa_logs.txt" -maxdepth 4 2>/dev/null | head -1)
-    if [[ -n "$qa_log" && -f "$qa_log" ]]; then
-      log_debug "Found iOS QA log file: $qa_log"
-      cat "$qa_log" >> "$log_file"
-    fi
+  # Strategy 1: Read the app's af_qa_logs.txt from its data container.
+  # The file is the reliable source of `[AF_QA]` because `simctl log show`
+  # alone misses many lines.
+  local qa_log
+  qa_log=$(ios_get_qa_log_path 2>/dev/null || true)
+  if [[ -n "$qa_log" && -f "$qa_log" ]]; then
+    log_debug "Found iOS QA log file: $qa_log"
+    cat "$qa_log" >> "$log_file"
   fi
 
   # Strategy 2: Always also append simctl log show output. The file logger
@@ -377,6 +381,13 @@ ios_collect_logs() {
   # pattern checks (e.g. phase_1 no_fatal_errors). Falls back to unfiltered
   # when PID is unknown (first phase before launch, or `simctl launch`
   # failed to print one).
+  local current_pid
+  current_pid=$(ios_get_pid || true)
+  if [[ -n "$current_pid" && "$current_pid" =~ ^[0-9]+$ ]]; then
+    IOS_LAST_PID="$current_pid"
+    log_debug "Resolved live app PID: $IOS_LAST_PID"
+  fi
+
   log_debug "Appending simctl log show output"
   local predicate_args=()
   if [[ -n "$IOS_LAST_PID" ]]; then
@@ -442,13 +453,8 @@ platform_peek_qa_log() {
     done
     return 0
   fi
-  ios_ensure_udid
-  local sim_data_dir
-  sim_data_dir="$HOME/Library/Developer/CoreSimulator/Devices/${IOS_UDID}/data"
-  [[ -d "$sim_data_dir" ]] || return 0
   local qa_log
-  qa_log=$(find "$sim_data_dir/Containers/Data/Application" \
-    -name "af_qa_logs.txt" -maxdepth 4 2>/dev/null | head -1)
+  qa_log=$(ios_get_qa_log_path 2>/dev/null || true)
   [[ -n "$qa_log" && -f "$qa_log" ]] || return 0
   cat "$qa_log" 2>/dev/null || true
 }
@@ -503,6 +509,15 @@ run_phase_command() {
 
   if [[ -n "$output" ]]; then
     printf '%s\n' "$output" >&2
+  fi
+
+  if [[ "$PLATFORM" == "ios" && -n "$PACKAGE_NAME" ]]; then
+    local spawned_pid
+    spawned_pid=$(echo "$output" | awk -F': ' '/^'"$PACKAGE_NAME"': [0-9]+$/ {print $2}' | tail -1)
+    if [[ -n "$spawned_pid" ]]; then
+      IOS_LAST_PID="$spawned_pid"
+      log_debug "Updated IOS_LAST_PID from command output: $IOS_LAST_PID"
+    fi
   fi
 
   if [[ "$status" -ne 0 ]]; then
@@ -707,10 +722,11 @@ run_phase() {
     # `run-as cat` is costly on GitHub's emulator.
     wait_for_qa_marker "[AF_QA][AUTO_APIS] --- Auto run complete ---" "$wait_sec" 10
     # Native HTTP success lines sometimes land slightly after the JS file marker.
-    if [[ "$PLATFORM" == "android" ]]; then
-      log_info "Android: brief settle after auto-run marker before deep link / log capture..."
-      sleep 5
-    fi
+    # On slow emulators in CI (e.g. GitHub Actions with slirp networking), background
+    # SDK HTTP requests can take 8-12s to drain the queue.
+    local settle_sec="${AF_SETTLE_AFTER_AUTO_RUN_SEC:-15}"
+    log_info "Brief settle (${settle_sec}s) after auto-run marker before deep link / log capture..."
+    sleep "$settle_sec"
   fi
 
   # Pre-actions (deep link phases: background the app, etc.)
