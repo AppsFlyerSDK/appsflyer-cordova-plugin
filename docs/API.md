@@ -812,7 +812,7 @@ log ad-revenue event. The fields that used to live in a nested `adRevenueData` o
 | parameter        | type     | description                                                                                                                                                                                                                                                |
 |------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `monetizationNetwork`  | `string` | Monetization network name |
-| `mediationNetwork` | `string` | Schema camelCase value: `ironSource`, `applovinMax`, `googleAdMob`, `fyber`, `appodeal`, `admost`, `topon`, `tradplus`, `yandex`, `chartboost`, `unity`, `toponPte`, `customMediation`, `directMonetizationNetwork`, `googleAdManager`, `cloudX` |
+| `mediationNetwork` | `string` | Use the exported `MediationNetwork` constant rather than a literal; the plugin maps each value to the right native spelling per platform. Values: `ironSource`, `applovinMax`, `googleAdMob`, `fyber`, `appodeal`, `admost`, `topon`, `tradplus`, `yandex`, `chartboost`, `unity`, `toponPte`, `customMediation`, `directMonetizationNetwork` |
 | `currencyIso4217Code` | `string` | Currency in ISO 4217 format |
 | `revenue` | `number` | Revenue amount |
 | `additionalParameters` | `Object` (optional) | additional Params Data map |
@@ -823,7 +823,7 @@ log ad-revenue event. The fields that used to live in a nested `adRevenueData` o
 ```javascript
 await window.plugins.appsFlyer.logAdRevenue({
     monetizationNetwork: 'testMonetizationNetwork',
-    mediationNetwork: 'topon',
+    mediationNetwork: window.plugins.appsFlyer.MediationNetwork.TOPON,
     currencyIso4217Code: 'USD',
     revenue: 15.0,
     additionalParameters: {

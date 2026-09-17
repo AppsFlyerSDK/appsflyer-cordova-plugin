@@ -180,8 +180,16 @@ document.addEventListener('deviceready', async function() {
   
   
 ## <a id="demo"> 📱 Demo  
-Check out the demo for this project [here](docs/Guides.md#demo).<br>  
-There is 1 demo project called ```demoC```, run ```npm run setup_c``` in the appsflyer-cordova-plugin folder and then open the ios project in Xcode to see implementation for IOS 14.<br>  
+Clone this Git repository to use the demo apps; the npm package doesn't include `examples/`. The repository contains two demos, each with its own `Makefile`:  
+- [`examples/cordovatestapp`](/examples/cordovatestapp): plain Cordova (JavaScript)  
+- [`examples/ionic-cordova`](/examples/ionic-cordova): Angular + Ionic  
+
+In either folder, copy `.env.example` to `.env` and fill in your `DEV_KEY` and `APP_ID`, then run:  
+```sh  
+make ios      # build and run on an iOS simulator  
+make android  # build and run on an Android emulator  
+```  
+`make help` lists the available targets, and `make clean` removes the synced-out build copy.  
 Check out our Sample-App  **Let's cook!** [here](https://github.com/AppsFlyerSDK/appsflyer-cordova-app) if you want to implement our SDK inside React-Cordova app  
 ## <a id="ionic"> 📍 Ionic  
 ***NOTICE!*** In AppsFlyer Cordova plugin version 6.x.x we replaced the word ``track`` with ``log`` from all our api but Ionic-Navite Appsflyer plugin still uses ``track``<br>  

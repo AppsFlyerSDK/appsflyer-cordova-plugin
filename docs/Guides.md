@@ -321,17 +321,14 @@ Related reading: [Apple developer](https://developer.apple.com/documentation/sto
 ##  <a id="demo"> Demo  
   
   
-This plugin has an `examples` folder with `cordova` (pure Cordova (javascript))  and `ionic-cordova` (ionic) projects bundled with it. To give it a try , clone this repo and from root a.e. `cordova-plugin-appsflyer-sdk` execute the following:  
-  
-For Cordova:  
+This repo ships two demo apps under [`examples/`](/examples), each with its own `Makefile`:  
+- [`examples/cordovatestapp`](/examples/cordovatestapp): plain Cordova (JavaScript)  
+- [`examples/ionic-cordova`](/examples/ionic-cordova): Angular + Ionic  
+
+Clone this repo, then in either folder copy `.env.example` to `.env` and fill in your `DEV_KEY` and `APP_ID`:  
 ```sh  
-npm run setupCordova ```  
-- `npm run runCordovaIos` - run iOS  
-- `npm run runCordovaAndroid` - run Android  
-  
-For Ionic-Cordova:  
-```sh  
-npm run setupIonicCordova  
+cd examples/cordovatestapp  # or examples/ionic-cordova
+make ios      # build and run on an iOS simulator  
+make android  # build and run on an Android emulator  
 ```  
-- `npm run runIonicCordovaIos` - run iOS  
-- `npm run runIonicCordovaAndroid` - run Android
+`make help` lists the available targets, and `make clean` removes the synced-out build copy.
