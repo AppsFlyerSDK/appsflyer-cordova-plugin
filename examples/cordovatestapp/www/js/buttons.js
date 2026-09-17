@@ -46,8 +46,8 @@ function notify(promise, label) {
     });
 }
 
-// setUserPhone() now requires a countryCode that the old setPhoneNumber() call never took (see
-// RENAME_AUDIT.md) -- this repo has no source for a real one, placeholder pending a human decision.
+// setUserPhone() now requires a countryCode that the old setPhoneNumber() call never took --
+// this repo has no source for a real one, placeholder pending a human decision.
 const TODO_COUNTRY_CODE = "TODO_COUNTRY_CODE";
 
 function generateUserInvite(){
@@ -83,8 +83,8 @@ function addPushNotificationDeepLinkPath() {
 
 function setEmails() {
     let emails = ["foo@bar.com", "support@appsflyer.com"];
-    // setUserEmails (array) -> setUserEmail (single) -- cardinality change, no batch equivalent
-    // (see RENAME_AUDIT.md) -- call once per email to preserve sending all of them.
+    // setUserEmails (array) -> setUserEmail (single) -- cardinality change, no batch equivalent;
+    // call once per email to preserve sending all of them.
     emails.forEach(function (email) {
         notify(window.plugins.appsFlyer.setUserEmail({ email: email }), 'setUserEmail(' + email + ')');
     });

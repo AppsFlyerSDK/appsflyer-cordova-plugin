@@ -43,7 +43,7 @@ document.addEventListener(
             devKey: window.AF_CONFIG.devKey,
             appId: window.AF_CONFIG.appId,
             // isDebug/onInstallConversionDataListener/onDeepLinkListener/waitForATTUserAuthorization
-            // are gone from init()'s schema (see RENAME_AUDIT.md): isDebug -> enableDebug() below;
+            // are gone from init()'s schema: isDebug -> enableDebug() below;
             // onInstallConversionDataListener -> registerConversionListener; onDeepLinkListener ->
             // registerDeepLinkListener above. waitForATTUserAuthorization has NO equivalent anywhere
             // in js-core-plugin's RPC method schema -- not carried forward, flagged for a human.

@@ -46,7 +46,7 @@ export class App {
         // isDebug -> enableDebug() below; onInstallConversionDataListener -> registerConversionListener
         // below; onDeepLinkListener -> registerDeepLinkListener above (folding onAppOpenAttribution in
         // too). waitForATTUserAuthorization has NO equivalent anywhere in js-core-plugin's RPC method
-        // schema (see RENAME_AUDIT.md) -- dropped, flagged for a human, not guessed.
+        // schema -- dropped, flagged for a human, not guessed.
       };
 
       try {
@@ -79,7 +79,7 @@ export class App {
       // manual test app, not a retry/recovery strategy.
       let sessionReady = false;
       // start() must be called from inside registerSessionReadyListener's callback per SDK 7's
-      // manual startup model (see RENAME_AUDIT.md) -- no longer fired unconditionally after init.
+      // manual startup model -- no longer fired unconditionally after init.
       window.plugins.appsFlyer.registerSessionReadyListener(() => {
         sessionReady = true;
         window.plugins.appsFlyer.start().catch((err: unknown) => {
