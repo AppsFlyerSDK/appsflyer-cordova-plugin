@@ -31,7 +31,7 @@ kotlin {
 
 dependencies {
     implementation("com.android.installreferrer:installreferrer:2.1")
-    implementation(platform("com.appsflyer:af-android-sdk-bom:7.0.1"))
+    implementation(platform("com.appsflyer:af-android-sdk-bom:7.0.4"))
     implementation("com.appsflyer:af-android-sdk")
     // Pinned explicitly -- af-android-sdk-bom does not yet carry this version (mirrors
     // src/android/cordovaAF.gradle, the real dependency block this harness must match).

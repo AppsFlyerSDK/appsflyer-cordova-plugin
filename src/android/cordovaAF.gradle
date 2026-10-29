@@ -4,7 +4,7 @@ repositories {
 
 dependencies {
 	implementation 'com.android.installreferrer:installreferrer:2.1'
-	implementation platform('com.appsflyer:af-android-sdk-bom:7.0.1')
+	implementation platform('com.appsflyer:af-android-sdk-bom:7.0.4')
 	implementation 'com.appsflyer:af-android-sdk'
 	// Pinned explicitly — af-android-sdk-bom does not yet carry this version.
 	implementation 'com.appsflyer:af-android-plugin-bridge:7.0.13'

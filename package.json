@@ -1,10 +1,10 @@
 {
   "name": "cordova-plugin-appsflyer-sdk",
-  "version": "7.0.2",
+  "version": "7.0.4-rc1",
   "description": "Cordova AppsFlyer SDK Plugin",
-  "iosSdkVersion": "7.0.13",
-  "iosFrameworkVersion": "7.0.2",
-  "androidSdkVersion": "7.0.1",
+  "iosSdkVersion": "7.0.41",
+  "iosFrameworkVersion": "7.0.4",
+  "androidSdkVersion": "7.0.4",
   "androidPluginBridgeVersion": "7.0.13",
   "cordova": {
     "id": "cordova-plugin-appsflyer-sdk",
