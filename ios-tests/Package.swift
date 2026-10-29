@@ -20,8 +20,8 @@ let package = Package(
         // here and must be bumped in lockstep with AppsFlyerRPC. plugin.xml's CocoaPods podspec
         // doesn't need the equivalent pin — CocoaPods resolves it transitively from AppsFlyerRPC's
         // own dependency declaration.
-        .package(url: "https://github.com/AppsFlyerSDK/appsflyer-apple-rpc.git", exact: "7.0.13"),
-        .package(url: "https://github.com/AppsFlyerSDK/AppsFlyerFramework-Static.git", exact: "7.0.2"),
+        .package(url: "https://github.com/AppsFlyerSDK/appsflyer-apple-rpc.git", exact: "7.0.41"),
+        .package(url: "https://github.com/AppsFlyerSDK/AppsFlyerFramework-Static.git", exact: "7.0.4"),
     ],
     targets: [
         // Module name is "Cordova" purely as a test double -- the real CordovaLib has no Swift

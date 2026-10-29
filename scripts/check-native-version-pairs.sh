@@ -21,9 +21,11 @@ plugin_bridge="${4:?usage: $0 <ios_sdk_version> <ios_framework_version> <android
 
 IOS_KNOWN_GOOD_PAIRS=(
   "7.0.13:7.0.2"
+  "7.0.41:7.0.4"
 )
 ANDROID_KNOWN_GOOD_PAIRS=(
   "7.0.1:7.0.13"
+  "7.0.4:7.0.13"
 )
 
 check_pair() {
